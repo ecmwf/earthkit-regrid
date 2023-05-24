@@ -1,0 +1,5 @@
+# earthkit-regrid
+
+ECMWF python regridding toolkit.
+
+:warning: This project is BETA and will be Experimental for the forseable time. Interfaces and functionality are likely to change, and the project itself may be scrapped. DO NOT use this software in any project/software that is operational.

@@ -1,0 +1,6 @@
+# These are the requirements for readthedoc
+docutils
+Pygments>=2.6.1
+Sphinx
+sphinx-rtd-theme
+setuptools

@@ -10,14 +10,12 @@
 import json
 import logging
 import os
-
 from contextlib import contextmanager
 
 from scipy.sparse import load_npz
 
 from earthkit.regrid.gridspec import GridSpec
 from earthkit.regrid.utils.download import download_and_cache
-
 
 LOG = logging.getLogger(__name__)
 
@@ -70,7 +68,8 @@ class LocalAccessor:
 @contextmanager
 def _use_local_index(path):
     """Context manager for testing only. Allow using local index
-    file and matrices."""
+    file and matrices.
+    """
     DB.clear_index()
     DB.accessor = LocalAccessor(path)
     try:

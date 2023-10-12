@@ -12,11 +12,8 @@ import logging
 
 from multiurl import Downloader
 
-from earthkit.regrid.utils.caching import cache_file
-from earthkit.regrid.utils.caching import SETTINGS
-
 from earthkit.regrid.utils import progress_bar
-
+from earthkit.regrid.utils.caching import SETTINGS, cache_file
 
 LOG = logging.getLogger(__name__)
 

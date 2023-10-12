@@ -22,4 +22,3 @@ def interpolate(x, gridspec_in, gridspec_out):
     x = z @ x
 
     return x.reshape(shape)
-

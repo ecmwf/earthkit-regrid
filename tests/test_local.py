@@ -14,7 +14,6 @@ import pytest
 from earthkit.regrid import interpolate
 from earthkit.regrid.db import DB, _use_local_index
 
-
 PATH = os.path.join(os.path.dirname(__file__), "data", "local")
 
 
@@ -58,6 +57,7 @@ def test_local_gg_to_ll_1():
         assert v_res.shape == (19, 36)
         assert np.allclose(v_res.flatten(), v_ref)
 
+
 def test_local_gg_to_ll_2():
     with _use_local_index(PATH):
         v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
@@ -85,16 +85,22 @@ def test_local_gg_to_ll_2():
         ({"grid": [5, 5]}, {"grid": [10, 10], "shape": [19, 36]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
         ({"grid": "O32", "shape": [5248]}, {"grid": [10, 10]}),
-        ({"grid": "O32",  "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "O32",  "area": [87.8638,0,-87.8638,357.5]}, {"grid": [10, 10]}),
-        ({"grid": "O32",  "global": 1}, {"grid": [10, 10]}),
-        ({"grid": "O32",  "global": 1, "area": [87.8638,0,-87.8638,357.5]}, {"grid": [10, 10]}),
+        ({"grid": "O32", "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
+        ({"grid": "O32", "area": [87.8638, 0, -87.8638, 357.5]}, {"grid": [10, 10]}),
+        ({"grid": "O32", "global": 1}, {"grid": [10, 10]}),
+        (
+            {"grid": "O32", "global": 1, "area": [87.8638, 0, -87.8638, 357.5]},
+            {"grid": [10, 10]},
+        ),
         ({"grid": "N32"}, {"grid": [10, 10]}),
         ({"grid": "N32", "shape": [6114]}, {"grid": [10, 10]}),
-        ({"grid": "N32",  "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "N32",  "area": [87.8638,0,-87.8638,357.188]}, {"grid": [10, 10]}),
-        ({"grid": "N32",  "global": 1}, {"grid": [10, 10]}),
-        ({"grid": "N32",  "global": 1, "area":[87.8638,0,-87.8638,357.188]}, {"grid": [10, 10]}),
+        ({"grid": "N32", "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
+        ({"grid": "N32", "area": [87.8638, 0, -87.8638, 357.188]}, {"grid": [10, 10]}),
+        ({"grid": "N32", "global": 1}, {"grid": [10, 10]}),
+        (
+            {"grid": "N32", "global": 1, "area": [87.8638, 0, -87.8638, 357.188]},
+            {"grid": [10, 10]},
+        ),
     ],
 )
 def test_local_gridspec_ok(gs_in, gs_out):
@@ -103,11 +109,10 @@ def test_local_gridspec_ok(gs_in, gs_out):
         assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
 
-
 @pytest.mark.parametrize(
     "gs_in, gs_out",
     [
-        ({"grid": [1,1]}, {"grid": [2, 2]}),
+        ({"grid": [1, 1]}, {"grid": [2, 2]}),
         ({"grid": [5, 5], "area": [90, 0, -90, 350]}, {"grid": [10, 10]}),
         ({"grid": [5, 5], "area": [90.001, 0, -90, 360]}, {"grid": [10, 10]}),
         ({"grid": [5, 5], "area": [90, 0, -89.0001, 360]}, {"grid": [10, 10]}),
@@ -118,13 +123,16 @@ def test_local_gridspec_ok(gs_in, gs_out):
         ({"grid": "O32", "shape": 6599680}, {"grid": [10, 10]}),
         ({"grid": "O32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}),
         ({"grid": "O32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [87.8638,0,-87.8638,357.6]}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [87.8638,0.01,-87.8638,357.5]}, {"grid": [10, 10]}),
+        ({"grid": "O32", "area": [87.8638, 0, -87.8638, 357.6]}, {"grid": [10, 10]}),
+        ({"grid": "O32", "area": [87.8638, 0.01, -87.8638, 357.5]}, {"grid": [10, 10]}),
         ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}),
         ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}),
         ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "N32", "area": [87.8638,0,-87.8638,357.189]}, {"grid": [10, 10]}),
-        ({"grid": "N32", "area": [87.8638,0.01,-87.8638,357.188]}, {"grid": [10, 10]}),
+        ({"grid": "N32", "area": [87.8638, 0, -87.8638, 357.189]}, {"grid": [10, 10]}),
+        (
+            {"grid": "N32", "area": [87.8638, 0.01, -87.8638, 357.188]},
+            {"grid": [10, 10]},
+        ),
     ],
 )
 def test_local_gridspec_bad(gs_in, gs_out):

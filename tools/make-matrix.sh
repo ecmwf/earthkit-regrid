@@ -27,7 +27,7 @@ if [[ ! -f ${input_grib} ]] ; then
 #    param=2t,
 #    grid=$1,
 #    target=${input_grib}
-# EOF 
+# EOF
    fi
 fi
 

@@ -8,7 +8,6 @@
 #
 
 
-
 import ctypes
 import datetime
 import functools
@@ -20,16 +19,15 @@ import os
 import platform
 import shutil
 import sqlite3
-import threading
 import tempfile
+import threading
 import time
 from abc import ABCMeta, abstractmethod
 
-import pandas as pd
 from filelock import FileLock
 
-from earthkit.regrid.utils.temporary import temp_directory
 from earthkit.regrid.utils import humanize
+from earthkit.regrid.utils.temporary import temp_directory
 
 VERSION = 2
 CACHE_DB = f"cache-{VERSION}.db"

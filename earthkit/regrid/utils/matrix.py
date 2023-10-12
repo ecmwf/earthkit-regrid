@@ -12,6 +12,7 @@ import os
 
 from .mir import mir_cached_matrix_to_file
 
+
 def regular_ll(entry):
     bb = entry["bbox"]
     d = {
@@ -30,7 +31,7 @@ def reduced_gg(entry):
     N = entry["N"]
     bb = entry["bbox"]
 
-    d =  {
+    d = {
         "grid": f"{G}{N}",
         "shape": [sum(pl)],
         "area": [bb["north"], bb["west"], bb["south"], bb["east"]],
@@ -38,7 +39,7 @@ def reduced_gg(entry):
 
     if "global" in entry:
         d["global"] = entry["global"]
-    
+
     return d
 
 
@@ -70,11 +71,11 @@ def make_matrix(input_path, output_path, global_input=None, global_output=None):
         return proc(x)
 
     if global_input is not None and "global" not in entry["input"]:
-        entry["input"]["global"]= 1 if global_input else 0
+        entry["input"]["global"] = 1 if global_input else 0
 
     if global_output is not None and "global" not in entry["output"]:
-        entry["output"]["global"]= 1 if global_output else 0
-    
+        entry["output"]["global"] = 1 if global_output else 0
+
     index[name] = dict(
         name=name,
         input=convert(entry["input"]),

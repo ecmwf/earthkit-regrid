@@ -17,6 +17,7 @@ PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
+
 def simple_download(url, target):
     import requests
 
@@ -24,12 +25,13 @@ def simple_download(url, target):
     r.raise_for_status()
     open(target, "wb").write(r.content)
 
+
 def get_test_data(filename, subfolder="global_0_360"):
     if not isinstance(filename, list):
         filename = [filename]
 
     res = []
-    for fn in filename: 
+    for fn in filename:
         d_path = os.path.join(PATH, "data", subfolder)
         os.makedirs(d_path, exist_ok=True)
         f_path = os.path.join(d_path, fn)
@@ -42,9 +44,10 @@ def get_test_data(filename, subfolder="global_0_360"):
     else:
         return res
 
+
 # def file_in_testdir(filename, download=True):
 #     return os.path.join(PATH, filename)
-    
+
 
 def test_ll_to_ll():
     f_in, f_out = get_test_data(["in_5x5.npz", "out_5x5_10x10.npz"])
@@ -66,6 +69,7 @@ def test_gg_to_ll_1():
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
+
 
 def test_gg_to_ll_2():
     f_in, f_out = get_test_data(["in_N32.npz", "out_N32_10x10.npz"])

@@ -18,7 +18,6 @@ except ImportError:  # pragma: no cover
 
 from earthkit.regrid.interpolate import interpolate
 
-
 __all__ = [
     "interpolate",
     "__version__",

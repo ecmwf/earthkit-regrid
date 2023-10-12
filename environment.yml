@@ -5,6 +5,7 @@ channels:
 dependencies:
 - pip
 - multiurl
+- filelock
 - scipy
 - make
 - mypy

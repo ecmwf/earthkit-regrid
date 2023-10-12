@@ -111,7 +111,7 @@ class GridSpec(dict):
         if len(area1) == len(area2):
             return all(same_coord(v1, v2) for v1, v2 in zip(area1, area2))
         return False
-    
+
     def has_default_area(self):
         return self.same_area(self["area"], self.DEFAULT_AREA)
 
@@ -137,14 +137,14 @@ class GridSpec(dict):
             return self._global_ns
         else:
             raise NotADirectoryError
-        
+
 
 class LLGridSpec(GridSpec):
     def __init__(self, gs):
         super().__init__(gs)
 
         self.setdefault("area", self.DEFAULT_AREA)
-        if  self.get("global", 0) or self.has_default_area():
+        if self.get("global", 0) or self.has_default_area():
             self._global_ew = True
             self._global_ns = True
 
@@ -154,7 +154,7 @@ class LLGridSpec(GridSpec):
 
         if self.same_area(self["area"], o["area"]):
             return True
-        
+
         # sanity check: north and south must be the same
         if not same_coord(self.north, o.north) or not same_coord(self.south, o.south):
             return False
@@ -202,7 +202,6 @@ class LLGridSpec(GridSpec):
                 self._global_ew = True
             elif abs(FULL_GLOBE - (east - west) - self.dx) < FULL_GLOBE_EPS:
                 self._global_ew = True
-            # print(f"west={self.west} east={self.east} -> west={west} east={east} dx={dx} global_ew={self._global_ew}")
         return self._global_ew
 
 
@@ -211,12 +210,12 @@ class ReducedGGGridSpec(GridSpec):
         super().__init__(gs)
 
         self.setdefault("area", self.DEFAULT_AREA)
-        if  self.get("global", 0) or self.has_default_area():
+        if self.get("global", 0) or self.has_default_area():
             self._global_ew = True
             self._global_ns = True
 
         self._octahedral = None
-        self._N = None 
+        self._N = None
 
     def __eq__(self, o):
         if not super().__eq__(o):
@@ -225,37 +224,33 @@ class ReducedGGGridSpec(GridSpec):
         if self.same_area(self["area"], o["area"]):
             return True
 
-        # print(f"self={self}")
-        # print(f"o={o}")
-
         # check if west the same fro global grids
         if self.is_global() and o.is_global():
             west = self.normalise_lon(self.west, 0)
             west_o = self.normalise_lon(o.west, 0)
             if same_coord(west, west_o):
                 return True
-        
+
         # TODO: add code for non global grids
         return False
 
     @property
     def west(self):
         return self["area"][1]
-    
+
     @property
     def east(self):
         return self["area"][3]
 
-    
     @property
     def dx(self):
         if self.octahedral:
-            return FULL_GLOBE/(4* self.N + 16)
+            return FULL_GLOBE / (4 * self.N + 16)
         else:
-            return FULL_GLOBE/(4* self.N)
-   
+            return FULL_GLOBE / (4 * self.N)
+
     def is_global_ew(self):
-        if self._global_ew is None:     
+        if self._global_ew is None:
             west = self.normalise_lon(self.west, 0)
             east = self.normalise_lon(self.east, 0)
             self._global_ew = False
@@ -267,15 +262,12 @@ class ReducedGGGridSpec(GridSpec):
                 self._global_ew = True
             elif abs(FULL_GLOBE - (east - west) - self.dx) < FULL_GLOBE_EPS:
                 self._global_ew = True
-
-            # print(f"west={self.west} east={self.east} -> west={west} east={east} dx={dx} global_ew={self._global_ew}")
         return self._global_ew
 
     def is_global_ns(self):
         if self._global_ns is None:
             self._global_ns = True
         return self._global_ns
-
 
     def _inspect_grid(self):
         if self._N is None or self._octahedral is None:
@@ -297,20 +289,21 @@ class ReducedGGGridSpec(GridSpec):
                 raise ValueError(f"Invalid N={N}")
             if N < 1 or N > 1000000:
                 raise ValueError(f"Invalid N={N}")
-            self._N=N
-            self._octahedral=octahedral
-            
+            self._N = N
+            self._octahedral = octahedral
+
     @property
     def N(self):
         if self._N is None:
-           self._inspect_grid()       
+            self._inspect_grid()
         return self._N
-    
+
     @property
     def octahedral(self):
         if self._octahedral is None:
-           self._inspect_grid()  
+            self._inspect_grid()
         return self._octahedral
+
 
 class UnsupportedGridSpec(GridSpec):
     pass

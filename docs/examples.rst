@@ -10,4 +10,3 @@ Here is a list of example notebooks to illustrate how to use earthkit-regrid.
     :maxdepth: 1
 
     examples/interpolation.ipynb
-  

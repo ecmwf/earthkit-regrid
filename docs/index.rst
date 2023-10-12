@@ -10,6 +10,13 @@ Welcome to earthkit-regrids's documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Examples
+   :titlesonly:
+
+   examples
+
+.. toctree::
+   :maxdepth: 1
    :caption: Installation
 
    install

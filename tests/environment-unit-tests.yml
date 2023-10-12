@@ -4,7 +4,9 @@ channels:
 - nodefaults
 dependencies:
 - pip
+- multiurl
 - scipy
+- requests
 - make
 - mypy
 - myst-parser

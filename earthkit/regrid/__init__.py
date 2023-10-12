@@ -1,9 +1,11 @@
-import json
-import os
-
-from scipy.sparse import load_npz
-
-from .mir import mir_cached_matrix_to_file
+# (C) Copyright 2023 ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+#
 
 try:
     # NOTE: the `version.py` file must not be present in the git repository
@@ -14,89 +16,10 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 
-here = os.path.dirname(os.path.abspath(__file__))
-MATRICES = os.path.join(here, "matrices")
+from earthkit.regrid.interpolate import interpolate
 
 
-def match(a, b):
-    # Just a proof of concept, not the real thing
-    return a["grid"] == b["grid"]
-
-
-def find_matrix(gridspec_in, gridspec_out):
-    with open(os.path.join(MATRICES, "index.json")) as f:
-        index = json.load(f)
-    for name, entry in index.items():
-        if match(gridspec_in, entry["input"]) and match(gridspec_out, entry["output"]):
-            # The matrix should be hosted elsewhere
-            z = load_npz(os.path.join(MATRICES, entry["name"] + ".npz"))
-            return z, entry["output"]["shape"]
-
-    return None, None
-
-
-def interpolate(x, gridspec_in, gridspec_out):
-    z, shape = find_matrix(gridspec_in, gridspec_out)
-
-    if z is None:
-        raise ValueError("No matrix found that matches the input and output gridspecs")
-
-    # This should check for 1D (GG) and 2D (LL) matrices
-    x = x.reshape(-1, 1)
-
-    x = z @ x
-
-    return x.reshape(shape)
-
-
-def regular_ll(entry):
-    return {
-        "grid": [entry["increments"][x] for x in ("west_east", "south_north")],
-        "shape": [entry["nj"], entry["ni"]],
-    }
-
-
-def reduced_gg(entry):
-    pl = entry["pl"]
-    G = "O" if pl[1] - pl[0] == 4 else "N"
-    N = entry["N"]
-
-    return {
-        "grid": f"{G}{N}",
-        "shape": [sum(pl)],
-    }
-
-
-def make_matrix(path):
-    with open(path) as f:
-        entry = json.load(f)
-
-    cache_file = entry.pop("cache_file")
-    name, _ = os.path.splitext(os.path.basename(cache_file))
-
-    npz_file = os.path.join(MATRICES, name + ".npz")
-
-    mir_cached_matrix_to_file(cache_file, npz_file)
-
-    index_file = os.path.join(MATRICES, "index.json")
-    if os.path.exists(index_file):
-        with open(index_file) as f:
-            index = json.load(f)
-    else:
-        index = {}
-
-    def convert(x):
-        proc = globals()[x["type"]]
-        return proc(x)
-
-    index[name] = dict(
-        name=name,
-        input=convert(entry["input"]),
-        output=convert(entry["output"]),
-    )
-
-    with open(index_file, "w") as f:
-        json.dump(index, f, indent=4)
-
-    print("Written", npz_file)
-    print("Written", index_file)
+__all__ = [
+    "interpolate",
+    "__version__",
+]

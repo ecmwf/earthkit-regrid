@@ -15,34 +15,76 @@ from earthkit.regrid import interpolate
 
 PATH = os.path.dirname(__file__)
 
+URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
-def file_in_testdir(filename):
-    return os.path.join(PATH, filename)
+def simple_download(url, target):
+    import requests
+
+    r = requests.get(url, allow_redirects=True)
+    r.raise_for_status()
+    open(target, "wb").write(r.content)
+
+def get_test_data(filename, subfolder="global_0_360"):
+    if not isinstance(filename, list):
+        filename = [filename]
+
+    res = []
+    for fn in filename: 
+        d_path = os.path.join(PATH, "data", subfolder)
+        os.makedirs(d_path, exist_ok=True)
+        f_path = os.path.join(d_path, fn)
+        if not os.path.exists(f_path):
+            simple_download(url=f"{URL_ROOT}/{subfolder}/{fn}", target=f_path)
+        res.append(f_path)
+
+    if len(res) == 1:
+        return res[0]
+    else:
+        return res
+
+# def file_in_testdir(filename, download=True):
+#     return os.path.join(PATH, filename)
+    
+
+def test_ll_to_ll():
+    f_in, f_out = get_test_data(["in_5x5.npz", "out_5x5_10x10.npz"])
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
 
 
-def test_regular_ll_1x1() -> None:
-    a = np.ones(181 * 360)
-    r = interpolate(a, {"grid": [1, 1]}, {"grid": [2, 2]})
+def test_gg_to_ll_1():
+    f_in, f_out = get_test_data(["in_O32.npz", "out_O32_10x10.npz"])
 
-    assert r.shape == (91, 180)
-    assert np.isclose(r[0, 0], 1.0)
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]})
 
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
 
-def test_o1280() -> None:
-    a = np.ones(6599680)
-    r = interpolate(a, {"grid": "O1280"}, {"grid": [2, 2]})
+def test_gg_to_ll_2():
+    f_in, f_out = get_test_data(["in_N32.npz", "out_N32_10x10.npz"])
 
-    assert r.shape == (91, 180)
-    assert np.isclose(r[0, 0], 1.0)
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]})
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
 
 
 def test_unsupported_input_grid() -> None:
     a = np.ones(91 * 180)
     with pytest.raises(ValueError):
-        _ = interpolate(a, {"grid": [2, 2]}, {"grid": [1, 1]})
+        _ = interpolate(a, {"grid": [2.2333424, 2]}, {"grid": [1, 1]})
 
 
 def test_unsupported_output_grid() -> None:
     a = np.ones(181 * 360)
     with pytest.raises(ValueError):
-        _ = interpolate(a, {"grid": [1, 1]}, {"grid": [5, 5]})
+        _ = interpolate(a, {"grid": [1.11323424, 1]}, {"grid": [5, 5]})

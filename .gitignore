@@ -364,6 +364,8 @@ tempCodeRunnerFile*
 dev/
 
 # data and matrix files
-.grib
+*.grib
+*.grib1
+*.grib2
 *.json
 *.npz

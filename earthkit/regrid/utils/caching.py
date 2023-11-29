@@ -95,10 +95,6 @@ def disk_usage(path):
 def default_serialiser(o):
     if isinstance(o, (datetime.date, datetime.datetime)):
         return o.isoformat()
-    if isinstance(o, (pd.Timestamp)):
-        return o.isoformat()
-    if isinstance(o, (pd.DatetimeIndex)):
-        return [_.isoformat() for _ in o]
     return json.JSONEncoder.default(o)
 
 
@@ -380,12 +376,17 @@ class CacheManager(threading.Thread):
         if entry["size"] is None:
             entry["size"] = 0
 
-        path, size, owner, args = (
+        path, size = (
             entry["path"],
             entry["size"],
-            entry["owner"],
-            entry["args"],
         )
+
+        # path, size, owner, args = (
+        #     entry["path"],
+        #     entry["size"],
+        #     entry["owner"],
+        #     entry["args"],
+        # )
 
         # LOG.warning(
         #     "Deleting entry %s",
@@ -538,7 +539,8 @@ class CacheManager(threading.Thread):
         str
             HTML status of the cache.
         """
-        html = [css("table")]
+        # html = [css("table")]
+        html = []
         with self.new_connection() as db:
             for n in db.execute("SELECT * FROM cache"):
                 n = dict(n)

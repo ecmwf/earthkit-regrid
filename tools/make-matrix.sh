@@ -24,7 +24,7 @@ input_dir="grib"
 [[ ! -d $output_dir ]] && mkdir $output_dir
 
 # get mir version
-version=$(~/build/mir/release/bin/mir --version x x 2>/dev/null | grep mir | cut -d ' '  -f 2) 
+version=$(~/build/mir/release/bin/mir --version x x 2>/dev/null | grep mir | cut -d ' '  -f 2)
 
 input_grib=$input_dir/${input}.grib
 output_json=$output_dir/${output}-${version}.json
@@ -64,4 +64,3 @@ fi
    python3 -c "from earthkit.regrid.utils.matrix import make_matrix; make_matrix('$output_json','$output_dir',global_input=True,global_output=True,version='$version')"
 
    #rm -f $output_json
-

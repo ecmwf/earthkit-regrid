@@ -16,6 +16,8 @@ from earthkit.regrid.db import DB, _use_local_index
 
 PATH = os.path.join(os.path.dirname(__file__), "data", "local")
 
+MATRIX_VERSION = "011801"
+
 
 def file_in_testdir(filename):
     return os.path.join(PATH, filename)
@@ -38,31 +40,40 @@ def test_local_index():
         assert not r
 
 
-def test_local_ll_to_ll():
+@pytest.mark.parametrize(
+    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
+)
+def test_local_ll_to_ll(_kwargs):
     with _use_local_index(PATH):
         v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
-        v_ref = np.load(file_in_testdir("out_5x5_10x10.npz"))["arr_0"]
-        v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+        v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+        v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, **_kwargs)
 
         assert v_res.shape == (19, 36)
         assert np.allclose(v_res.flatten(), v_ref)
 
 
-def test_local_gg_to_ll_1():
+@pytest.mark.parametrize(
+    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
+)
+def test_local_gg_to_ll_1(_kwargs):
     with _use_local_index(PATH):
         v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
-        v_ref = np.load(file_in_testdir("out_O32_10x10.npz"))["arr_0"]
-        v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]})
+        v_ref = np.load(file_in_testdir(f"out_O32_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+        v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]}, **_kwargs)
 
         assert v_res.shape == (19, 36)
         assert np.allclose(v_res.flatten(), v_ref)
 
 
-def test_local_gg_to_ll_2():
+@pytest.mark.parametrize(
+    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
+)
+def test_local_gg_to_ll_2(_kwargs):
     with _use_local_index(PATH):
         v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-        v_ref = np.load(file_in_testdir("out_N32_10x10.npz"))["arr_0"]
-        v_res = interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]})
+        v_ref = np.load(file_in_testdir(f"out_N32_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+        v_res = interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]}, **_kwargs)
 
         assert v_res.shape == (19, 36)
         assert np.allclose(v_res.flatten(), v_ref)

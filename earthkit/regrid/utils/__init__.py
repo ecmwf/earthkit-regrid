@@ -29,3 +29,33 @@ def progress_bar(*, total=None, iterable=None, initial=0, desc=None):
         desc=desc,
         # dynamic_ncols=True, # make this the default?
     )
+
+
+class NoBar:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        pass
+
+    def update(self, *args, **kwargs):
+        pass
+
+    def close(self, *args, **kwargs):
+        pass
+
+
+def no_progress_bar(total, initial=0, desc=None):
+    return NoBar(
+        total=total,
+        initial=initial,
+        unit_scale=True,
+        unit_divisor=1024,
+        unit="B",
+        disable=False,
+        leave=False,
+        desc=desc,
+    )

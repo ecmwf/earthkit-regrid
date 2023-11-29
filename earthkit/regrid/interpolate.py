@@ -10,8 +10,8 @@
 from earthkit.regrid.db import DB
 
 
-def interpolate(x, gridspec_in, gridspec_out):
-    z, shape = DB.find(gridspec_in, gridspec_out)
+def interpolate(x, gridspec_in, gridspec_out, matrix_version=None):
+    z, shape = DB.find(gridspec_in, gridspec_out, matrix_version=matrix_version)
 
     if z is None:
         raise ValueError("No matrix found that matches the input and output gridspecs")

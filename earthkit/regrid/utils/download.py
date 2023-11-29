@@ -30,6 +30,7 @@ def download_and_cache(
     http_headers=None,
     update_if_out_of_date=False,
     fake_headers=None,  # When HEAD is not allowed but you know the size
+    progress_bar=progress_bar,
     **kwargs,
 ):
     # TODO: re-enable this feature
@@ -47,6 +48,7 @@ def download_and_cache(
         http_headers=http_headers,
         fake_headers=fake_headers,
         # statistics_gatherer=record_statistics,
+        # progress_bar=progress_bar,
         progress_bar=progress_bar,
         resume_transfers=True,
         override_target_file=False,

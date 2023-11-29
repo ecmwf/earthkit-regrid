@@ -15,11 +15,12 @@ from contextlib import contextmanager
 from scipy.sparse import load_npz
 
 from earthkit.regrid.gridspec import GridSpec
+from earthkit.regrid.utils import no_progress_bar
 from earthkit.regrid.utils.download import download_and_cache
 
 LOG = logging.getLogger(__name__)
 
-_URL = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/matrices"
+_URL = "https://get.ecmwf.int/repository/earthkit/regrid/matrices"
 _INDEX_FILENAME = "index.json"
 
 
@@ -28,14 +29,17 @@ class UrlAccessor:
         self.url = url
 
     def index_path(self):
+        # checking the out of date status does not work for this file,
+        # so we have to force the download.
         path = download_and_cache(
             os.path.join(self.url, _INDEX_FILENAME),
             owner="url",
             verify=True,
-            force=None,
+            force=True,
             chunk_size=1024 * 1024,
             http_headers=None,
             update_if_out_of_date=True,
+            progress_bar=no_progress_bar,
         )
         return path
 
@@ -107,10 +111,18 @@ class MatrixDb:
         """For testing only"""
         self._index = None
 
-    def find(self, gridspec_in, gridspec_out):
+    def find(self, gridspec_in, gridspec_out, matrix_version=None):
         entry = self.find_entry(gridspec_in, gridspec_out)
+
         if entry is not None:
-            z = self.load_matrix(entry["name"])
+            versions = entry["versions"]
+            if matrix_version is not None:
+                if matrix_version not in versions:
+                    raise ValueError(f"Unsupported matrix_version={matrix_version}")
+            else:
+                matrix_version = sorted(versions)[0]
+
+            z = self.load_matrix(entry["name"], matrix_version)
             return z, entry["output"]["shape"]
         return None, None
 
@@ -124,8 +136,8 @@ class MatrixDb:
 
         return None
 
-    def load_matrix(self, name):
-        name = name + ".npz"
+    def load_matrix(self, name, version):
+        name = f"{name}-{version}.npz"
         path = self.accessor.matrix_path(name)
         z = load_npz(path)
         return z

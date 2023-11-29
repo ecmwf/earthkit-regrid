@@ -43,7 +43,9 @@ def reduced_gg(entry):
     return d
 
 
-def make_matrix(input_path, output_path, global_input=None, global_output=None):
+def make_matrix(
+    input_path, output_path, global_input=None, global_output=None, version=None
+):
     with open(input_path) as f:
         entry = json.load(f)
 
@@ -52,10 +54,15 @@ def make_matrix(input_path, output_path, global_input=None, global_output=None):
 
     # print(f"MATRICES={MATRICES}")
 
+    if version is None:
+        version = "0" * 6
+    else:
+        version = "".join([f"{int(x):02d}" for x in version.split(".")])
+
     os.makedirs(output_path, exist_ok=True)
 
     print(f"entry={entry}")
-    npz_file = os.path.join(output_path, name + ".npz")
+    npz_file = os.path.join(output_path, f"{name}-{version}.npz")
 
     mir_cached_matrix_to_file(cache_file, npz_file)
 
@@ -78,6 +85,7 @@ def make_matrix(input_path, output_path, global_input=None, global_output=None):
 
     index[name] = dict(
         name=name,
+        versions=[version],
         input=convert(entry["input"]),
         output=convert(entry["output"]),
     )

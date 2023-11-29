@@ -4,3 +4,4 @@ Pygments>=2.6.1
 Sphinx
 sphinx-rtd-theme
 setuptools
+nbsphinx

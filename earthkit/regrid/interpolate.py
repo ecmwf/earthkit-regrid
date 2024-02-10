@@ -10,15 +10,15 @@
 from earthkit.regrid.db import DB
 
 
-def interpolate(x, gridspec_in, gridspec_out, matrix_version=None):
-    z, shape = DB.find(gridspec_in, gridspec_out, matrix_version=matrix_version)
+def interpolate(values, source_gridspec, target_gridspec, matrix_version=None):
+    z, shape = DB.find(source_gridspec, target_gridspec, matrix_version=matrix_version)
 
     if z is None:
-        raise ValueError("No matrix found that matches the input and output gridspecs")
+        raise ValueError("No matrix found that matches the source and target gridspecs")
 
     # This should check for 1D (GG) and 2D (LL) matrices
-    x = x.reshape(-1, 1)
+    values = values.reshape(-1, 1)
 
-    x = z @ x
+    values = z @ values
 
-    return x.reshape(shape)
+    return values.reshape(shape)

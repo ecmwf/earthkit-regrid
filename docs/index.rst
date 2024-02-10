@@ -21,6 +21,8 @@ Welcome to earthkit-regrids's documentation
    :caption: Documentation
 
    interpolate
+   gridspec
+   inventory/index
 
 .. toctree::
    :maxdepth: 1

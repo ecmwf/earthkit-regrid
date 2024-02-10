@@ -1,4 +1,7 @@
 # These are the requirements for readthedoc
+multiurl
+filelock
+scipy
 ipykernel
 docutils
 Pygments>=2.6.1

@@ -22,8 +22,8 @@ year = datetime.datetime.now().year
 years = "2023-%s" % (year,)
 copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (years,)
 
-# version = earthkit.meteo.__version__
-# release = earthkit.meteo.__version__
+# version = earthkit.regrid.__version__
+# release = earthkit.regrid.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -33,6 +33,7 @@ copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (
 extensions = [
     "sphinx_rtd_theme",
     "nbsphinx",
+    "earthkit.regrid.sphinxext.module_output",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

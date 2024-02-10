@@ -15,7 +15,7 @@ The ``grid`` format is::
 
     OXXX
 
-where *XXX* is the number of latitude lines between the pole and equator. For details about this grid see `here <https://confluence.ecmwf.int/display/FCST/Introducing+the+octahedral+reduced+Gaussian+grid>`_.
+where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Introducing+the+octahedral+reduced+Gaussian+grid>`_.
 
 Example:
 
@@ -31,7 +31,7 @@ The ``grid`` format is::
 
     NXXX
 
-where *XXX* is the number of latitude lines between the pole and equator. For details about this grid see `here <https://confluence.ecmwf.int/display/FCST/Gaussian+grids>`_.
+where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Gaussian+grids>`_.
 
 Example:
 

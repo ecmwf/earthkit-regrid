@@ -19,7 +19,7 @@ interpolate
 
     The interpolation only works when a pre-generated interpolation matrix is available for the given ``source_gridspec`` - ``target_gridspec`` combination. In this case the interpolation matrix is automatically downloaded and stored in a local cache and when it is needed again the cached version is used.
 
-    Once the matrix is available the interpolation is performed by multiplying it with the ``values`` vector.
+    Once the matrix is available the interpolation is performed by multiplying the ``values`` vector with it.
 
 .. note::
 

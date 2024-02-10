@@ -45,19 +45,19 @@ def make_gs_block(source, target):
 
 """
 
-    txt = f"""
+    txt = rf"""
 
 {source_grid}
 +++++++++++++++++++++++++
 
-Source gridspec:
+Source :ref:`gridspec <gridspec>`:
 
 .. code-block:: python
 
     {to_str(source)}
 
 
-Target gridspecs available for source:
+Target :ref:`gridspec <gridspec>`\s available for source:
 
 .. list-table::
     :header-rows: 0

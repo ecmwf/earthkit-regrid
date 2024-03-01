@@ -25,7 +25,16 @@ def file_in_testdir(filename):
 
 def test_local_index():
     with _use_local_index(PATH):
-        assert len(DB.index) == 3
+        # we have an extra unsupported entry in the index file. We have
+        # be sure the DB is loaded correctly bypassing the the unsupported
+        # entry.
+        import json
+
+        index_path = DB.accessor.index_path()
+        with open(index_path, "r") as f:
+            assert len(json.load(f)) == 5
+
+        assert len(DB.index) == 4
 
         r = DB.find_entry({"grid": [5, 5]}, {"grid": [10, 10]})
         assert r
@@ -37,7 +46,7 @@ def test_local_index():
         assert r
 
         r = DB.find_entry({"grid": "O64"}, {"grid": [10, 10]})
-        assert not r
+        assert r is None
 
 
 @pytest.mark.parametrize(
@@ -112,6 +121,8 @@ def test_local_gg_to_ll_2(_kwargs):
             {"grid": "N32", "global": 1, "area": [87.8638, 0, -87.8638, 357.188]},
             {"grid": [10, 10]},
         ),
+        ({"grid": "H128"}, {"grid": [1, 1]}),
+        ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
     ],
 )
 def test_local_gridspec_ok(gs_in, gs_out):
@@ -121,32 +132,50 @@ def test_local_gridspec_ok(gs_in, gs_out):
 
 
 @pytest.mark.parametrize(
-    "gs_in, gs_out",
+    "gs_in,gs_out,err",
     [
-        ({"grid": [1, 1]}, {"grid": [2, 2]}),
-        ({"grid": [5, 5], "area": [90, 0, -90, 350]}, {"grid": [10, 10]}),
-        ({"grid": [5, 5], "area": [90.001, 0, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": [5, 5], "area": [90, 0, -89.0001, 360]}, {"grid": [10, 10]}),
-        ({"grid": [5, 5], "area": [90, 0.001, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": [5, 5], "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}),
-        ({"grid": [5, 5], "area": [90, 10, -90, 370]}, {"grid": [10, 10]}),
-        ({"grid": "G1280", "shape": 6599680}, {"grid": [10, 10]}),
-        ({"grid": "O32", "shape": 6599680}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [87.8638, 0, -87.8638, 357.6]}, {"grid": [10, 10]}),
-        ({"grid": "O32", "area": [87.8638, 0.01, -87.8638, 357.5]}, {"grid": [10, 10]}),
-        ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}),
-        ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}),
-        ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}),
-        ({"grid": "N32", "area": [87.8638, 0, -87.8638, 357.189]}, {"grid": [10, 10]}),
+        ({"grid": [1, 1]}, {"grid": [2, 2]}, None),
+        ({"grid": [5, 5], "area": [90, 0, -90, 350]}, {"grid": [10, 10]}, None),
+        ({"grid": [5, 5], "area": [90.001, 0, -90, 360]}, {"grid": [10, 10]}, None),
+        ({"grid": [5, 5], "area": [90, 0, -89.0001, 360]}, {"grid": [10, 10]}, None),
+        ({"grid": [5, 5], "area": [90, 0.001, -90, 360]}, {"grid": [10, 10]}, None),
+        ({"grid": [5, 5], "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
+        ({"grid": [5, 5], "area": [90, 10, -90, 370]}, {"grid": [10, 10]}, None),
+        ({"grid": "G1280", "shape": 6599680}, {"grid": [10, 10]}, ValueError),
+        ({"grid": "O32", "shape": 6599680}, {"grid": [10, 10]}, None),
+        ({"grid": "O32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
+        ({"grid": "O32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
+        (
+            {"grid": "O32", "area": [87.8638, 0, -87.8638, 357.6]},
+            {"grid": [10, 10]},
+            None,
+        ),
+        (
+            {"grid": "O32", "area": [87.8638, 0.01, -87.8638, 357.5]},
+            {"grid": [10, 10]},
+            None,
+        ),
+        ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}, None),
+        ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
+        ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
+        (
+            {"grid": "N32", "area": [87.8638, 0, -87.8638, 357.189]},
+            {"grid": [10, 10]},
+            None,
+        ),
         (
             {"grid": "N32", "area": [87.8638, 0.01, -87.8638, 357.188]},
             {"grid": [10, 10]},
+            None,
         ),
+        ({"grid": "H128", "ordering": "any"}, {"grid": [1, 1]}, ValueError),
     ],
 )
-def test_local_gridspec_bad(gs_in, gs_out):
+def test_local_gridspec_bad(gs_in, gs_out, err):
     with _use_local_index(PATH):
-        r = DB.find_entry(gs_in, gs_out)
-        assert not r, f"gs_in={gs_in} gs_out={gs_out}"
+        if err:
+            with pytest.raises(err):
+                r = DB.find_entry(gs_in, gs_out)
+        else:
+            r = DB.find_entry(gs_in, gs_out)
+            assert r is None, f"gs_in={gs_in} gs_out={gs_out}"

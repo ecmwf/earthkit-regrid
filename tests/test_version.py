@@ -10,4 +10,6 @@ import earthkit.regrid
 
 
 def test_version() -> None:
-    assert earthkit.regrid.__version__ != "999"
+    v = earthkit.regrid.__version__
+    print(f"earthkit-regrid version: {v}")
+    assert v != "999"

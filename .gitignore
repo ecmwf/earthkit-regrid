@@ -363,6 +363,12 @@ _util
 tempCodeRunnerFile*
 dev/
 
+tools/grib
+tools/matrices*
+tools/index*
+tools/local*
+tools/_*
+
 # data and matrix files
 *.grib
 *.grib1

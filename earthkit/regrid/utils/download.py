@@ -31,6 +31,8 @@ def download_and_cache(
     update_if_out_of_date=False,
     fake_headers=None,  # When HEAD is not allowed but you know the size
     progress_bar=progress_bar,
+    maximum_retries=2,
+    retry_after=10,
     **kwargs,
 ):
     # TODO: re-enable this feature
@@ -53,6 +55,8 @@ def download_and_cache(
         resume_transfers=True,
         override_target_file=False,
         download_file_extension=".download",
+        maximum_retries=maximum_retries,
+        retry_after=retry_after,
     )
 
     if extension and extension[0] != ".":

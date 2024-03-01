@@ -110,5 +110,58 @@
             ],
             "global": 1
         }
+    },
+    "LL-1x1-90:0:-90:359-73bf2b28f8950515dba5c812c6957b2e": {
+        "name": "LL-1x1-90:0:-90:359-73bf2b28f8950515dba5c812c6957b2e",
+        "versions": [
+            "011901"
+        ],
+        "input": {
+            "grid": "H128",
+            "ordering": "ring"
+        },
+        "output": {
+            "grid": [
+                1,
+                1
+            ],
+            "shape": [
+                181,
+                360
+            ],
+            "area": [
+                90,
+                0,
+                -90,
+                359
+            ],
+            "global": 1
+        }
+    },
+    "_nonexisting_gridspec": {
+        "name": "_nonexisting",
+        "versions": [
+            "011901"
+        ],
+        "input": {
+            "grid": "_nonexisting"
+        },
+        "output": {
+            "grid": [
+                1,
+                1
+            ],
+            "shape": [
+                181,
+                360
+            ],
+            "area": [
+                90,
+                0,
+                -90,
+                359
+            ],
+            "global": 1
+        }
     }
 }

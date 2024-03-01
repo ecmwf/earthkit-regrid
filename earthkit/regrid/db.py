@@ -30,29 +30,45 @@ class UrlAccessor:
 
     def index_path(self):
         # checking the out of date status does not work for this file,
-        # so we have to force the download.
-        path = download_and_cache(
-            os.path.join(self.url, _INDEX_FILENAME),
-            owner="url",
-            verify=True,
-            force=True,
-            chunk_size=1024 * 1024,
-            http_headers=None,
-            update_if_out_of_date=True,
-            progress_bar=no_progress_bar,
-        )
+        # so we have to force the download using Force=True
+        try:
+            url = os.path.join(self.url, _INDEX_FILENAME)
+            path = download_and_cache(
+                url,
+                owner="url",
+                verify=True,
+                force=True,
+                chunk_size=1024 * 1024,
+                http_headers=None,
+                update_if_out_of_date=True,
+                progress_bar=no_progress_bar,
+                maximum_retries=5,
+                retry_after=10,
+            )
+        except Exception:
+            LOG.error(f"Could not download index file={url}")
+            raise
+
         return path
 
     def matrix_path(self, name):
-        path = download_and_cache(
-            os.path.join(self.url, name),
-            owner="url",
-            verify=True,
-            force=None,
-            chunk_size=1024 * 1024,
-            http_headers=None,
-            update_if_out_of_date=False,
-        )
+        try:
+            url = os.path.join(self.url, name)
+            path = download_and_cache(
+                url,
+                owner="url",
+                verify=True,
+                force=None,
+                chunk_size=1024 * 1024,
+                http_headers=None,
+                update_if_out_of_date=False,
+                maximum_retries=5,
+                retry_after=10,
+            )
+        except Exception:
+            LOG.error(f"Could not download matrix file={url}")
+            raise
+
         return path
 
 
@@ -101,11 +117,21 @@ class MatrixDb:
         with open(path, "r") as f:
             index = json.load(f)
             for name, entry in index.items():
-                entry["input"] = GridSpec.from_dict(entry["input"])
-                entry["output"] = GridSpec.from_dict(entry["output"])
-                # print("input=", entry["input"])
-                # print("output=", entry["output"])
-                self._index[name] = entry
+                # it is possible that the inventory is already updated with new
+                # a gridspecs type, but a given earthkit-regrid version is not
+                # yet supporting it. In this case loading the index should not crash.
+                try:
+                    in_gs = GridSpec.from_dict(entry["input"])
+                    out_gs = GridSpec.from_dict(entry["output"])
+                    entry["input"] = in_gs
+                    entry["output"] = out_gs
+                    # print(f"{in_gs=}")
+                    # print(f"{out_gs=}")
+                    self._index[name] = entry
+                # when the inventory is already updated with new a gridspecs type
+                # but the old code is not yet supporting it should not crash
+                except Exception:
+                    pass
 
     def clear_index(self):
         """For testing only"""
@@ -129,6 +155,9 @@ class MatrixDb:
     def find_entry(self, gridspec_in, gridspec_out):
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
+
+        if gridspec_in is None or gridspec_out is None:
+            return None
 
         for _, entry in self.index.items():
             if gridspec_in == entry["input"] and gridspec_out == entry["output"]:

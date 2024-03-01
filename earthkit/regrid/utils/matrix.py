@@ -43,8 +43,18 @@ def reduced_gg(entry):
     return d
 
 
+def healpix(entry):
+    d = {"grid": entry["grid"], "ordering": entry["ordering"]}
+    return d
+
+
 def make_matrix(
-    input_path, output_path, global_input=None, global_output=None, version=None
+    input_path,
+    output_path,
+    index_file=None,
+    global_input=None,
+    global_output=None,
+    version=None,
 ):
     with open(input_path) as f:
         entry = json.load(f)
@@ -66,7 +76,9 @@ def make_matrix(
 
     mir_cached_matrix_to_file(cache_file, npz_file)
 
-    index_file = os.path.join(output_path, "index.json")
+    if index_file is None:
+        index_file = os.path.join(output_path, "index.json")
+
     if os.path.exists(index_file):
         with open(index_file) as f:
             index = json.load(f)

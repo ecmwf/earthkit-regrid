@@ -8,12 +8,16 @@
 #
 
 import logging
+import re
 
 LOG = logging.getLogger(__name__)
 
 FULL_GLOBE = 360.0
 FULL_GLOBE_EPS = 1e-8
 DEGREE_EPS = 1e-8
+
+HEALPIX_PATTERN = re.compile(r"[Hh]\d+")
+RGG_PATTERN = re.compile(r"[OoNn]\d+")
 
 
 def same_coord(x, y):
@@ -44,53 +48,23 @@ class GridSpec(dict):
     def from_dict(d):
         gs = dict(GridSpec.DEFAULTS)
         gs.update(d)
-        gs["type"] = GridSpec._infer_spec_type(gs)
-        t = gridspecs.get(gs["type"], None)
+        t_name, t = GridSpec._infer_spec_type(gs)
         if t is None:
-            t = UnsupportedGridSpec
+            raise ValueError(f"Unsupported gridspec={d}")
+
+        gs["type"] = t_name
         return t(gs)
 
     @staticmethod
     def _infer_spec_type(spec):
         spec_type = spec.get("type", None)
-        # when no type specified the grid must be regular_ll or gaussian
         if spec_type is None:
             grid = spec["grid"]
-            # regular_ll: the grid is in the form of [dx, dy]
-            if isinstance(grid, list) and len(grid) == 2:
-                spec_type = "regular_ll"
-            # gaussian: the grid=N as a str or int
-            elif isinstance(grid, (str, int)):
-                spec_type = GridSpec._infer_gaussian_type(grid)
+            for k, gs in GRIDSPEC_TYPES.items():
+                if gs.type_match(grid):
+                    return k, gs
 
-        # if spec_type is None:
-        #     raise ValueError(f"Could not determine type of gridspec={spec}")
-
-        return spec_type
-
-    @staticmethod
-    def _infer_gaussian_type(grid):
-        """Determine gridspec type for Gaussian grids"""
-        grid_type = ""
-        if isinstance(grid, str) and len(grid) > 0:
-            try:
-                if grid[0] == "F":
-                    grid_type = "regular_gg"
-                elif grid[0] in ["N", "O"]:
-                    grid_type = "reduced_gg"
-                else:
-                    grid_type = "regular_gg"
-                    _ = int(grid)
-            except Exception:
-                # raise ValueError(f"Invalid Gaussian grid description str={grid}")
-                pass
-        elif isinstance(grid, int):
-            grid_type = "regular_gg"
-        else:
-            pass
-            # raise ValueError(f"Invalid Gaussian grid description={grid}")
-
-        return grid_type
+        return spec_type, GRIDSPEC_TYPES.get(spec_type, None)
 
     def __eq__(self, o):
         # print(f"__eq__ self={self} o={o}")
@@ -204,6 +178,12 @@ class LLGridSpec(GridSpec):
                 self._global_ew = True
         return self._global_ew
 
+    @staticmethod
+    def type_match(grid):
+        if isinstance(grid, list) and len(grid) == 2:
+            return True
+        return False
+
 
 class ReducedGGGridSpec(GridSpec):
     def __init__(self, gs):
@@ -224,7 +204,7 @@ class ReducedGGGridSpec(GridSpec):
         if self.same_area(self["area"], o["area"]):
             return True
 
-        # check if west the same fro global grids
+        # check if west the same for global grids
         if self.is_global() and o.is_global():
             west = self.normalise_lon(self.west, 0)
             west_o = self.normalise_lon(o.west, 0)
@@ -271,24 +251,21 @@ class ReducedGGGridSpec(GridSpec):
 
     def _inspect_grid(self):
         if self._N is None or self._octahedral is None:
-            N = self["grid"]
+            grid = self["grid"]
             octahedral = self.get("octahedral", 0)
-            if isinstance(N, str):
-                try:
-                    if N[0] == "N":
-                        N = int(N[1:])
-                        octahedral = 0
-                    elif N[0] == "O":
-                        N = int(N[1:])
-                        octahedral = 1
-                    else:
-                        N = int(N)
-                except Exception:
-                    raise ValueError(f"Invalid N={N}")
-            elif not isinstance(N, int):
-                raise ValueError(f"Invalid N={N}")
+            if not isinstance(grid, str) or not RGG_PATTERN.match(grid):
+                raise ValueError(f"Invalid {grid=}")
+            try:
+                if grid[0] == "N":
+                    N = int(grid[1:])
+                    octahedral = 0
+                elif grid[0] == "O":
+                    N = int(grid[1:])
+                    octahedral = 1
+            except Exception as e:
+                raise ValueError(f"Invalid {grid=} {e}")
             if N < 1 or N > 1000000:
-                raise ValueError(f"Invalid N={N}")
+                raise ValueError(f"Invalid {N=}")
             self._N = N
             self._octahedral = octahedral
 
@@ -304,9 +281,86 @@ class ReducedGGGridSpec(GridSpec):
             self._inspect_grid()
         return self._octahedral
 
+    @staticmethod
+    def type_match(grid):
+        if isinstance(grid, str):
+            if RGG_PATTERN.match(grid):
+                return True
+        return False
 
-class UnsupportedGridSpec(GridSpec):
-    pass
+
+class HealpixGridSpec(GridSpec):
+    def __init__(self, gs):
+        super().__init__(gs)
+
+        self._global_ew = True
+        self._global_ns = True
+        self.setdefault("area", self.DEFAULT_AREA)
+        self._ordering = None
+        self._N = None
+
+    @property
+    def west(self):
+        return self["area"][1]
+
+    @property
+    def east(self):
+        return self["area"][3]
+
+    @property
+    def dx(self):
+        if self.octahedral:
+            return FULL_GLOBE / (4 * self.N + 16)
+        else:
+            return FULL_GLOBE / (4 * self.N)
+
+    def __eq__(self, o):
+        if not super().__eq__(o):
+            return False
+
+        return self.ordering == o.ordering
+
+    def _inspect_grid(self):
+        if self._N is None or self._ordering is None:
+            grid = self["grid"]
+            if not self.type_match(grid):
+                raise ValueError(f"Invalid healpix {grid=}")
+
+            try:
+                N = int(grid[1:])
+            except Exception:
+                raise ValueError(f"Invalid healpix number in {grid=}")
+
+            ordering = self.get("ordering", "ring")
+            if ordering not in ["ring", "nested"]:
+                raise ValueError(f"Invalid {ordering=}, must be 'ring' or 'nested'")
+
+            if N < 1 or N > 1000000:
+                raise ValueError(f"Invalid healpix number in {grid=}")
+            self._N = N
+            self._ordering = ordering
+
+    @property
+    def N(self):
+        if self._N is None:
+            self._inspect_grid()
+        return self._N
+
+    @property
+    def ordering(self):
+        if self._ordering is None:
+            self._inspect_grid()
+        return self._ordering
+
+    @staticmethod
+    def type_match(grid):
+        if isinstance(grid, str):
+            return HEALPIX_PATTERN.match(grid)
+        return False
 
 
-gridspecs = {"regular_ll": LLGridSpec, "reduced_gg": ReducedGGGridSpec}
+GRIDSPEC_TYPES = {
+    "regular_ll": LLGridSpec,
+    "reduced_gg": ReducedGGGridSpec,
+    "healpix": HealpixGridSpec,
+}

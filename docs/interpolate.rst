@@ -1,7 +1,7 @@
 interpolate
 ==============
 
-.. py:function:: interpolate(values, source_gridspec, target_gridspec, matrix_version=None)
+.. py:function:: interpolate(values, source_gridspec, target_gridspec, matrix_source=None)
 
     Interpolate the ``values`` from the ``source_gridspec`` onto the ``target_gridspec``.
 
@@ -11,8 +11,9 @@ interpolate
     :type source_gridspec: dict
     :param target_gridspec: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type target_gridspec: dict
-    :param matrix_version: the version of the pre-generated interpolation matrix to be used. None means the latest version will be used.
-    :type matrix_version: str
+    :param matrix_source: the location of a user specified pre-generated matrix inventory. When it is None the default
+    matrix inventory hosted on an ECMWF download server is used.
+    :type matrix_source: str, None
     :return: the interpolated values
     :rtype: ndarray
     :raises ValueError: if a pre-generated interpolation matrix is not available

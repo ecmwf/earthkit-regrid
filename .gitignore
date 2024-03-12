@@ -368,6 +368,8 @@ tools/matrices*
 tools/index*
 tools/local*
 tools/_*
+tools/*.yaml
+tools/*.yml
 
 # data and matrix files
 *.grib
@@ -375,3 +377,6 @@ tools/_*
 *.grib2
 *.json
 *.npz
+
+# exceptions
+!tools/local_db_conf.yaml

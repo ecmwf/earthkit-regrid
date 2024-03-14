@@ -12,10 +12,10 @@ def pytest_runtest_setup(item):
 
     marks_in_items = list([m.name for m in item.iter_markers()])
 
-    from earthkit.regrid.db import DB
+    from earthkit.regrid.db import SYS_DB
     from earthkit.regrid.utils.caching import CACHE, SETTINGS
 
-    DB.clear_index()
+    SYS_DB._clear_index()
 
     if "tmp_cache" in marks_in_items:
         # ensure these tests use a temporary cache

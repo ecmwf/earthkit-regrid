@@ -7,11 +7,11 @@
 # nor does it submit to any jurisdiction.
 #
 
-from earthkit.regrid.db import DB
+from earthkit.regrid.db import find
 
 
-def interpolate(values, source_gridspec, target_gridspec, matrix_version=None):
-    z, shape = DB.find(source_gridspec, target_gridspec, matrix_version=matrix_version)
+def interpolate(values, source_gridspec, target_gridspec, **kwargs):
+    z, shape = find(source_gridspec, target_gridspec, **kwargs)
 
     if z is None:
         raise ValueError("No matrix found that matches the source and target gridspecs")

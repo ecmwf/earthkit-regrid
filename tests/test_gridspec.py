@@ -8,7 +8,7 @@
 
 import pytest
 
-from earthkit.regrid.db import DB
+from earthkit.regrid.db import SYS_DB
 
 
 @pytest.mark.parametrize(
@@ -49,7 +49,7 @@ from earthkit.regrid.db import DB
     ],
 )
 def test_gridspec_ok(gs_in, gs_out):
-    r = DB.find_entry(gs_in, gs_out)
+    r = SYS_DB.find_entry(gs_in, gs_out)
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
 
@@ -95,7 +95,7 @@ def test_gridspec_ok(gs_in, gs_out):
 def test_gridspec_bad(gs_in, gs_out, err):
     if err:
         with pytest.raises(err):
-            r = DB.find_entry(gs_in, gs_out)
+            r = SYS_DB.find_entry(gs_in, gs_out)
     else:
-        r = DB.find_entry(gs_in, gs_out)
+        r = SYS_DB.find_entry(gs_in, gs_out)
         assert r is None, f"gs_in={gs_in} gs_out={gs_out}"

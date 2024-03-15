@@ -82,7 +82,6 @@ def create_matrix_files(
     target_grid,
     options,
     grib_file,
-    version,
     index_file,
     add_to_index=True,
 ):
@@ -92,7 +91,7 @@ def create_matrix_files(
     else:
         kwargs = ""
 
-    matrix_json = f"{target_grid_label}-{src_grid_label}-{version}"
+    matrix_json = f"{target_grid_label}-{src_grid_label}"
     if MIR_INTERPOLATE_OPTION in options:
         matrix_json += "-" + options[MIR_INTERPOLATE_OPTION]
     matrix_json = os.path.join(matrix_dir, f"{matrix_json}.json")
@@ -118,7 +117,6 @@ def create_matrix_files(
             index_file=index_file,
             global_input=True,
             global_output=True,
-            version=version,
         )
 
 
@@ -156,7 +154,7 @@ def make_matrix(
     grib_file = os.path.join(GRIB_DIR, f"{src_grid}.grib")
     get_grib_file(src_grid, grib_file)
 
-    version = get_mir_version()
+    # version = get_mir_version()
 
     create_matrix_files(
         matrix_dir,
@@ -165,6 +163,5 @@ def make_matrix(
         target_grid,
         options,
         grib_file,
-        version,
         index_file,
     )

@@ -60,9 +60,9 @@ in_grids = {
 #     ]
 # }
 
-out_grids = {"ll": [1]}
+out_grids = {"ll": [1, 2]}
 
-matrix_dir = "matrices_11032024"
+matrix_dir = "matrices_20240314"
 # index_file = "index/index.json"
 
 in_grids = make_grid_id(in_grids)

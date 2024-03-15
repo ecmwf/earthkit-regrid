@@ -20,6 +20,8 @@ from earthkit.regrid.utils.download import download_and_cache
 
 LOG = logging.getLogger(__name__)
 
+VERSION = 1
+
 _SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/matrices"
 _INDEX_FILENAME = "index.json"
 
@@ -132,24 +134,42 @@ class SystemAccessor(UrlAccessor):
 #         DB.accessor = UrlAccessor(_URL)
 
 
-class MatrixDb:
-    def __init__(self, accessor):
-        self._index = None
-        self._accessor = accessor
+# class MatrixIndexItem(dict):
 
-    @property
-    def index(self):
-        if self._index is None:
-            self._load_index()
-        return self._index
+#     def __init__(self, inter, *args, **kwargs):
 
-    def _load_index(self):
-        self._index = {}
-        path = self._accessor.index_path()
+#     def match(self, gs_in, gs_out, method):
+#         if gs_in == self["input"] and gs_out == self["output"]:
+#             if self.interpolation[self["interpolation"]]["type"] == method:
+#                 return True
+#         return False
 
+#     def matrix_filename(self):
+#         return self["name"] + ".npz"
+
+#     def matrix_path(self):
+#         inter = ["interpolation"]
+#         m_dir = inter["engine"] + "_" + inter["version"] + "_" + inter["uid"]
+#         return os.path.join(m_dir, item["name"] + ".npz")
+
+#     return self._accessor.matrix_path(self.index.matrix_relative_path(entry))
+
+
+class MatrixIndex:
+    def __init__(self):
+        self.interpolation = None
+        self.matrix = {}
+
+    def load(self, path):
         with open(path, "r") as f:
             index = json.load(f)
-            for name, entry in index.items():
+            version = index.get("version", None)
+            if version != VERSION:
+                raise ValueError(
+                    f"Invalid index file version: expected={VERSION}, got {version}"
+                )
+            self.interpolate = index.pop("interpolate")
+            for name, entry in index["matrix"].items():
                 # it is possible that the inventory is already updated with new
                 # a gridspecs type, but a given earthkit-regrid version is not
                 # yet supporting it. In this case loading the index should not crash.
@@ -163,9 +183,107 @@ class MatrixDb:
                     entry["_raw"] = raw
                     # print(f"{in_gs=}")
                     # print(f"{out_gs=}")
-                    self._index[name] = entry
+                    self.matrix[name] = entry
                 except Exception:
                     pass
+
+    def matrix_path(self, item):
+        inter = item["interpolation"]
+        m_dir = inter["engine"] + "_" + inter["version"] + "_" + inter["uid"]
+        return os.path.join(m_dir, item["name"] + ".npz")
+
+    def find(self, gridspec_in, gridspec_out, method):
+        gridspec_in = GridSpec.from_dict(gridspec_in)
+        gridspec_out = GridSpec.from_dict(gridspec_out)
+
+        if gridspec_in is None or gridspec_out is None:
+            return None
+
+        for _, entry in self.index.matrix.items():
+            if self.match(entry, gridspec_in, gridspec_out, method):
+                return entry
+        return None
+
+    def match(self, item, gs_in, gs_out, method):
+        if gs_in == item["input"] and gs_out == item["output"]:
+            if self.interpolation[item["interpolation"]]["type"] == method:
+                return True
+        return False
+
+    @staticmethod
+    def matrix_filename(entry):
+        return entry["name"] + ".npz"
+
+    def subset(self, filters, fail_on_missing=True, raw=True):
+        res = MatrixIndex()
+        for i, item in enumerate(filters):
+            gs_in = item["input"]
+            gs_out = item["output"]
+            method = "linear"
+            LOG.info(f"ITEM[{i}]: {gs_in=} {gs_out=} {method=}")
+            entry = self.find(gs_in, gs_out, method)
+            if entry is not None:
+                LOG.info("  found DB entry:" + entry["name"])
+                if raw:
+                    res.matrix[entry["name"]] = entry["_raw"]
+                else:
+                    res.matrix[entry["name"]] = entry
+                key = entry["interpolation"]
+                res.interpolate[key] = self.interpolation[key]
+            else:
+                if fail_on_missing:
+                    raise ValueError("No DB entry found!")
+                else:
+                    LOG.warning("  no DB entry found!")
+        return res
+
+    def to_raw(self):
+        res = dict(interpolation=self.interpolation, matrix={})
+        for entry in self.matrix:
+            res["matrix"][entry["name"]] = entry["_raw"]
+        return res
+
+
+class MatrixDb:
+    def __init__(self, accessor):
+        self._index = None
+        self._accessor = accessor
+
+    @property
+    def index(self):
+        if self._index is None:
+            self._load_index()
+        return self._index
+
+    def _load_index(self):
+        self._index = MatrixIndex()
+        path = self._accessor.index_path()
+        self._index.load(path)
+        # with open(path, "r") as f:
+        #     index = json.load(f)
+        #     version = index.get("version", None)
+        #     if version != VERSION:
+        #         raise ValueError(
+        #             f"Invalid index file version: expected={VERSION}, got {version}"
+        #         )
+        #     self._index.interpolate = index.pop("interpolate")
+        #     for name, entry in index["matrix"].items():
+        #         # it is possible that the inventory is already updated with new
+        #         # a gridspecs type, but a given earthkit-regrid version is not
+        #         # yet supporting it. In this case loading the index should not crash.
+        #         try:
+        #             in_gs = GridSpec.from_dict(entry["input"])
+        #             out_gs = GridSpec.from_dict(entry["output"])
+        #             raw = entry
+        #             entry = dict(**entry)
+        #             entry["input"] = in_gs
+        #             entry["output"] = out_gs
+        #             entry["_raw"] = raw
+        #             # print(f"{in_gs=}")
+        #             # print(f"{out_gs=}")
+        #             self._index.matrix[name] = entry
+        #         except Exception:
+        #             pass
 
     def _clear_index(self):
         """For testing only"""
@@ -175,60 +293,69 @@ class MatrixDb:
         self,
         gridspec_in,
         gridspec_out,
-        matrix_version=None,
+        method="linear",
         **kwargs,
         # download_retries=0,
         # download_timeout=30,
         # download_retry_after=10,
     ):
-        entry = self.find_entry(gridspec_in, gridspec_out)
+        entry = self.find_entry(gridspec_in, gridspec_out, method)
 
         if entry is not None:
-            matrix_version = self._matrix_version(entry, matrix_version)
-            z = self.load_matrix(entry["name"], matrix_version)
+            z = self.load_matrix(self.index.matrix_relative_path(entry))
             return z, entry["output"]["shape"]
         return None, None
 
-    def find_entry(self, gridspec_in, gridspec_out):
-        gridspec_in = GridSpec.from_dict(gridspec_in)
-        gridspec_out = GridSpec.from_dict(gridspec_out)
+    def find_entry(self, gridspec_in, gridspec_out, method):
+        return self.index.find(gridspec_in, gridspec_out, method)
 
-        if gridspec_in is None or gridspec_out is None:
-            return None
+        # gridspec_in = GridSpec.from_dict(gridspec_in)
+        # gridspec_out = GridSpec.from_dict(gridspec_out)
 
-        for _, entry in self.index.items():
-            if gridspec_in == entry["input"] and gridspec_out == entry["output"]:
-                return entry
+        # if gridspec_in is None or gridspec_out is None:
+        #     return None
 
-        return None
+        # for _, entry in self.index.matrix.items():
+        #     if gridspec_in == entry["input"] and gridspec_out == entry["output"]:
+        #         if self.index.interpolation[entry["interpolation"]]["type"] == method:
+        #             return entry
 
-    def load_matrix(self, name, version):
-        path = self._matrix_path(name, version)
+        # return None
+
+    def load_matrix(self, entry):
+        path = self._matrix_path(entry)
         z = load_npz(path)
         return z
 
-    def _matrix_filename(self, name, version):
-        return f"{name}-{version}.npz"
+    def _matrix_index_filename(self, entry):
+        return self.index.matrix_filename(entry)
 
-    def _matrix_path(self, name, version):
-        return self._accessor.matrix_path(self._matrix_filename(name, version))
+    def _matrix_index_path(self, entry):
+        return self.index.matrix_path(entry)
 
-    def _matrix_version(self, entry, version):
-        versions = entry["versions"]
-        if version is not None:
-            if version not in versions:
-                raise ValueError(f"Unsupported matrix_version={version}")
-            return version
-        else:
-            return sorted(versions)[0]
+    def _matrix_fs_path(self, entry):
+        return self._accessor.matrix_path(self._matrix_index_path(entry))
+
+    # def _matrix_version(self, entry, version):
+    #     versions = entry["versions"]
+    #     if version is not None:
+    #         if version not in versions:
+    #             raise ValueError(f"Unsupported matrix_version={version}")
+    #         return version
+    #     else:
+    #         return sorted(versions)[0]
+
+    def subset_index(self, filters):
+        return self.index.subset(filters)
 
     def copy_matrix_file(self, entry, out_dir, exist_ok=False, dry_run=False):
         import shutil
 
-        version = self._matrix_version(entry, None)
-        matrix_filename = self._matrix_filename(entry["name"], version)
-        src_file = self._matrix_path(entry["name"], version)
-        target_file = os.path.join(out_dir, matrix_filename)
+        # version = self._matrix_version(entry, None)
+        matrix_index_path = self._matrix_index_path(entry)
+
+        src_file = self._matrix_fs_path(entry)
+        target_file = os.path.join(out_dir, matrix_index_path)
 
         if not exist_ok and os.path.exists(target_file):
             if not dry_run:
@@ -236,10 +363,13 @@ class MatrixDb:
             else:
                 LOG.warn("target file already exists! {target_file}")
 
+        target_dir = os.path.dirname(target_file)
+        os.path.makedirs(target_dir, exist_ok=True)
+
         if not dry_run:
             shutil.copyfile(src_file, target_file)
 
-        return matrix_filename
+        return target_file
 
     def index_file_path(self):
         return self._accessor.index_path()

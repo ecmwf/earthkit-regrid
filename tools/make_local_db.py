@@ -37,33 +37,49 @@ def build_local_db(
     with open(conf_file) as f:
         items = yaml.safe_load(f)
 
-    res = {}
-    for i, item in enumerate(items):
-        gs_in = item["input"]
-        gs_out = item["output"]
-        LOG.info(f"ITEM[{i}]: {gs_in=} {gs_out=}")
-        entry = DB.find_entry(gs_in, gs_out)
-        if entry is not None:
-            name = entry["name"]
-            LOG.info(f"  found DB entry: {name}")
-            res[name] = entry["_raw"]
+    # res = dict(matrix={})
+    # entries = []
+    # inter = {}
 
-            matrix_filename = DB.copy_matrix_file(
-                entry, out_dir, exist_ok=(not strict), dry_run=dry_run
-            )
-            LOG.info(f"  matrix_filename: {matrix_filename}")
-            LOG.info("  matrix copied to out_dir")
-        else:
-            if fail_on_missing:
-                raise ValueError("No DB entry found!")
-            else:
-                LOG.warning("  no DB entry found!")
+    index = DB.subset_index(items, fail_on_missing=fail_on_missing)
+
+    # copy matrices
+    for entry in index.matrix:
+        matrix_path = DB.copy_matrix_file(
+            entry, out_dir, exist_ok=(not strict), dry_run=dry_run
+        )
+
+        LOG.info(f"  matrix_file: {os.path.relpath(matrix_path, out_dir)}")
+        LOG.info("  matrix copied to out_dir")
+
+    # for i, item in enumerate(items):
+    #     gs_in = item["input"]
+    #     gs_out = item["output"]
+    #     method = "linear"
+    #     LOG.info(f"ITEM[{i}]: {gs_in=} {gs_out=} {method=}")
+    #     entry = DB.find_entry(gs_in, gs_out, method)
+    #     if entry is not None:
+
+    #         name = entry["name"]
+    #         LOG.info(f"  found DB entry: {name}")
+    #         res[name] = entry["_raw"]
+
+    #         matrix_path = DB.copy_matrix_file(
+    #             entry, out_dir, exist_ok=(not strict), dry_run=dry_run
+    #         )
+    #         LOG.info(f"  matrix_file: {os.path.relpath(matrix_path, out_dir)}")
+    #         LOG.info("  matrix copied to out_dir")
+    #     else:
+    #         if fail_on_missing:
+    #             raise ValueError("No DB entry found!")
+    #         else:
+    #             LOG.warning("  no DB entry found!")
 
     # save index file
     index_file = os.path.join(out_dir, "index.json")
     if not dry_run:
         with open(index_file, "w") as f:
-            json.dump(res, f, indent=4)
+            json.dump(index.to_raw(), f, indent=4)
 
     LOG.info(f"Index data saved to {index_file}")
 

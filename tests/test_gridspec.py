@@ -49,7 +49,7 @@ from earthkit.regrid.db import SYS_DB
     ],
 )
 def test_gridspec_ok(gs_in, gs_out):
-    r = SYS_DB.find_entry(gs_in, gs_out)
+    r = SYS_DB.find_entry(gs_in, gs_out, "linear")
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
 
@@ -95,7 +95,7 @@ def test_gridspec_ok(gs_in, gs_out):
 def test_gridspec_bad(gs_in, gs_out, err):
     if err:
         with pytest.raises(err):
-            r = SYS_DB.find_entry(gs_in, gs_out)
+            r = SYS_DB.find_entry(gs_in, gs_out, "linear")
     else:
-        r = SYS_DB.find_entry(gs_in, gs_out)
+        r = SYS_DB.find_entry(gs_in, gs_out, "linear")
         assert r is None, f"gs_in={gs_in} gs_out={gs_out}"

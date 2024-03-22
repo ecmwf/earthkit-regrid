@@ -11,6 +11,7 @@ import json
 import logging
 import os
 from abc import ABCMeta, abstractmethod
+from functools import cache
 
 from scipy.sparse import load_npz
 
@@ -22,8 +23,24 @@ LOG = logging.getLogger(__name__)
 
 VERSION = 1
 
-_SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/matrices"
+_SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/db/1/"
 _INDEX_FILENAME = "index.json"
+_INDEX_SHA_FILENAME = "index.json.sha256"
+_INDEX_GZ_FILENAME = "index.json.gz"
+
+
+_METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest", "nearest-neighbor")}
+
+
+def make_sha(data):
+    import hashlib
+
+    m = hashlib.sha256()
+    if isinstance(data, str):
+        m.update(data.encode("utf-8"))
+    else:
+        m.update(json.dumps(data).encode("utf-8"))
+    return m.hexdigest()
 
 
 class MatrixAccessor(metaclass=ABCMeta):
@@ -54,11 +71,75 @@ class UrlAccessor(MatrixAccessor):
     def is_local(self):
         False
 
+    @cache
     def index_path(self):
-        # checking the out of date status does not work for this file,
-        # so we have to force the download using Force=True
+        from earthkit.regrid.utils.caching import cache_file
+
+        url = os.path.join(self._url, _INDEX_FILENAME)
+
+        def _force(args, path, owner_data):
+            """Decide if the index file should be downloaded and cached again."""
+            LOG.info(f"UrlAccessor.index_path: cached entry {owner_data=}")
+            if owner_data is None:
+                return True
+            local_sha = owner_data.get("sha256", None)
+            LOG.info(f"UrlAccessor.index_path: local checksum={local_sha}")
+            if local_sha is None:
+                return True
+
+            remote_sha = self._remote_sha()
+            if local_sha != remote_sha:
+                LOG.info(
+                    (
+                        f"UrlAccessor.index_path: remote checksum={remote_sha} differs from "
+                        "local checksum. Downloading new index file"
+                    )
+                )
+                return True
+            else:
+                LOG.info(
+                    (
+                        f"UrlAccessor.index_path: remote checksum={remote_sha} is the same as "
+                        "local checksum. Use cached index file."
+                    )
+                )
+                return False
+
+        def _create(target, args):
+            """Download and cache gzipped index file, uncompress it and generate
+            checksum from contents
+            """
+            path_gz = self._gzip_file()
+            LOG.info(f"UrlAccessor.index_path: uncompress gzipped index file={path_gz}")
+            import gzip
+
+            with gzip.open(path_gz, "rb") as f:
+                data = f.read()
+                with open(target, "wb") as f_out:
+                    f_out.write(data)
+
+            with open(target, "r") as f:
+                data = f.read()
+                sha = make_sha(data)
+
+            # the returned data will be stored in the cache in the entry's owner_data
+            LOG.info(f"UrlAccessor.index_path: index file checksum={sha}")
+            return {"sha256": sha}
+
+        path = cache_file(
+            "regrid",
+            _create,
+            (url,),
+            force=_force,
+            extension=".cache",
+        )
+
+        LOG.info(f"UrlAccessor.index_path: will use index file={path}")
+        return path
+
+    def _remote_sha(self):
         try:
-            url = os.path.join(self._url, _INDEX_FILENAME)
+            url = os.path.join(self._url, _INDEX_SHA_FILENAME)
             path = download_and_cache(
                 url,
                 owner="url",
@@ -68,7 +149,30 @@ class UrlAccessor(MatrixAccessor):
                 http_headers=None,
                 update_if_out_of_date=True,
                 progress_bar=no_progress_bar,
-                maximum_retries=5,
+                maximum_retries=0,
+                retry_after=10,
+            )
+        except Exception:
+            LOG.error(f"Could not download index checksum file={url}")
+            raise
+
+        with open(path, "r") as f:
+            sha = f.read().strip()
+        return sha
+
+    def _gzip_file(self):
+        try:
+            url = os.path.join(self._url, _INDEX_GZ_FILENAME)
+            path = download_and_cache(
+                url,
+                owner="url",
+                verify=True,
+                force=True,
+                chunk_size=1024 * 1024,
+                http_headers=None,
+                update_if_out_of_date=True,
+                progress_bar=no_progress_bar,
+                maximum_retries=0,
                 retry_after=10,
             )
         except Exception:
@@ -120,55 +224,16 @@ class SystemAccessor(UrlAccessor):
         super().__init__(_SYSTEM_URL)
 
 
-# @contextmanager
-# def _use_local_index(path):
-#     """Context manager for testing only. Allow using local index
-#     file and matrices.
-#     """
-#     DB.clear_index()
-#     DB.accessor = LocalAccessor(path)
-#     try:
-#         yield None
-#     finally:
-#         DB.clear_index()
-#         DB.accessor = UrlAccessor(_URL)
-
-
-# class MatrixIndexItem(dict):
-
-#     def __init__(self, inter, *args, **kwargs):
-
-#     def match(self, gs_in, gs_out, method):
-#         if gs_in == self["input"] and gs_out == self["output"]:
-#             if self.interpolation[self["interpolation"]]["type"] == method:
-#                 return True
-#         return False
-
-#     def matrix_filename(self):
-#         return self["name"] + ".npz"
-
-#     def matrix_path(self):
-#         inter = ["interpolation"]
-#         m_dir = inter["engine"] + "_" + inter["version"] + "_" + inter["uid"]
-#         return os.path.join(m_dir, item["name"] + ".npz")
-
-#     return self._accessor.matrix_path(self.index.matrix_relative_path(entry))
-
-
-class MatrixIndex:
-    def __init__(self):
-        self.interpolation = None
-        self.matrix = {}
-
+class MatrixIndex(dict):
     def load(self, path):
         with open(path, "r") as f:
             index = json.load(f)
             version = index.get("version", None)
             if version != VERSION:
                 raise ValueError(
-                    f"Invalid index file version: expected={VERSION}, got {version}"
+                    f"Invalid index file version: expected {VERSION}, got {version}"
                 )
-            self.interpolate = index.pop("interpolate")
+
             for name, entry in index["matrix"].items():
                 # it is possible that the inventory is already updated with new
                 # a gridspecs type, but a given earthkit-regrid version is not
@@ -180,17 +245,35 @@ class MatrixIndex:
                     entry = dict(**entry)
                     entry["input"] = in_gs
                     entry["output"] = out_gs
+                    entry["_name"] = name
                     entry["_raw"] = raw
                     # print(f"{in_gs=}")
                     # print(f"{out_gs=}")
-                    self.matrix[name] = entry
+                    self[name] = entry
                 except Exception:
                     pass
 
-    def matrix_path(self, item):
+    @staticmethod
+    def make_interpolation_uid(item):
         inter = item["interpolation"]
-        m_dir = inter["engine"] + "_" + inter["version"] + "_" + inter["uid"]
-        return os.path.join(m_dir, item["name"] + ".npz")
+        method = inter["method"]
+        if set(inter.keys()) == {"method", "engine", "version"}:
+            uid = method
+        else:
+            uid = make_sha(inter)
+        return uid
+
+    @staticmethod
+    def matrix_dir_name(item):
+        inter = item["interpolation"]
+        engine = inter["engine"]
+        version = inter["version"]
+        uid = inter.get("_uid", inter["method"])
+        return f"{engine}_{version}_{uid}"
+
+    @staticmethod
+    def matrix_path(item):
+        return os.path.join(MatrixIndex.matrix_dir_name(item), item["_name"] + ".npz")
 
     def find(self, gridspec_in, gridspec_out, method):
         gridspec_in = GridSpec.from_dict(gridspec_in)
@@ -199,37 +282,40 @@ class MatrixIndex:
         if gridspec_in is None or gridspec_out is None:
             return None
 
-        for _, entry in self.index.matrix.items():
+        for _, entry in self.items():
             if self.match(entry, gridspec_in, gridspec_out, method):
                 return entry
         return None
 
-    def match(self, item, gs_in, gs_out, method):
-        if gs_in == item["input"] and gs_out == item["output"]:
-            if self.interpolation[item["interpolation"]]["type"] == method:
-                return True
+    @staticmethod
+    def match(item, gs_in, gs_out, method):
+        if (
+            item["interpolation"]["method"] == method
+            and item["input"] == gs_in
+            and item["output"] == gs_out
+        ):
+            return True
         return False
 
     @staticmethod
-    def matrix_filename(entry):
-        return entry["name"] + ".npz"
+    def matrix_filename(item):
+        return item["_name"] + ".npz"
 
-    def subset(self, filters, fail_on_missing=True, raw=True):
+    def subset(self, filters, fail_on_missing=True, raw=False):
         res = MatrixIndex()
+
         for i, item in enumerate(filters):
             gs_in = item["input"]
             gs_out = item["output"]
-            method = "linear"
+            method = item.get("method", "linear")
             LOG.info(f"ITEM[{i}]: {gs_in=} {gs_out=} {method=}")
             entry = self.find(gs_in, gs_out, method)
             if entry is not None:
-                LOG.info("  found DB entry:" + entry["name"])
+                LOG.info("  found DB entry:" + entry["_name"])
                 if raw:
-                    res.matrix[entry["name"]] = entry["_raw"]
+                    res[entry["_name"]] = entry["_raw"]
                 else:
-                    res.matrix[entry["name"]] = entry
-                key = entry["interpolation"]
-                res.interpolate[key] = self.interpolation[key]
+                    res[entry["_name"]] = entry
             else:
                 if fail_on_missing:
                     raise ValueError("No DB entry found!")
@@ -238,9 +324,9 @@ class MatrixIndex:
         return res
 
     def to_raw(self):
-        res = dict(interpolation=self.interpolation, matrix={})
-        for entry in self.matrix:
-            res["matrix"][entry["name"]] = entry["_raw"]
+        res = dict(version=VERSION, matrix={})
+        for _, entry in self.items():
+            res["matrix"][entry["_name"]] = entry["_raw"]
         return res
 
 
@@ -259,35 +345,16 @@ class MatrixDb:
         self._index = MatrixIndex()
         path = self._accessor.index_path()
         self._index.load(path)
-        # with open(path, "r") as f:
-        #     index = json.load(f)
-        #     version = index.get("version", None)
-        #     if version != VERSION:
-        #         raise ValueError(
-        #             f"Invalid index file version: expected={VERSION}, got {version}"
-        #         )
-        #     self._index.interpolate = index.pop("interpolate")
-        #     for name, entry in index["matrix"].items():
-        #         # it is possible that the inventory is already updated with new
-        #         # a gridspecs type, but a given earthkit-regrid version is not
-        #         # yet supporting it. In this case loading the index should not crash.
-        #         try:
-        #             in_gs = GridSpec.from_dict(entry["input"])
-        #             out_gs = GridSpec.from_dict(entry["output"])
-        #             raw = entry
-        #             entry = dict(**entry)
-        #             entry["input"] = in_gs
-        #             entry["output"] = out_gs
-        #             entry["_raw"] = raw
-        #             # print(f"{in_gs=}")
-        #             # print(f"{out_gs=}")
-        #             self._index.matrix[name] = entry
-        #         except Exception:
-        #             pass
 
     def _clear_index(self):
         """For testing only"""
         self._index = None
+
+    def _method_alias(self, method):
+        for k, v in _METHOD_ALIAS.items():
+            if method in v:
+                return k
+        return method
 
     def find(
         self,
@@ -302,28 +369,16 @@ class MatrixDb:
         entry = self.find_entry(gridspec_in, gridspec_out, method)
 
         if entry is not None:
-            z = self.load_matrix(self.index.matrix_relative_path(entry))
+            z = self.load_matrix(entry)
             return z, entry["output"]["shape"]
         return None, None
 
     def find_entry(self, gridspec_in, gridspec_out, method):
+        method = self._method_alias(method)
         return self.index.find(gridspec_in, gridspec_out, method)
 
-        # gridspec_in = GridSpec.from_dict(gridspec_in)
-        # gridspec_out = GridSpec.from_dict(gridspec_out)
-
-        # if gridspec_in is None or gridspec_out is None:
-        #     return None
-
-        # for _, entry in self.index.matrix.items():
-        #     if gridspec_in == entry["input"] and gridspec_out == entry["output"]:
-        #         if self.index.interpolation[entry["interpolation"]]["type"] == method:
-        #             return entry
-
-        # return None
-
     def load_matrix(self, entry):
-        path = self._matrix_path(entry)
+        path = self._matrix_fs_path(entry)
         z = load_npz(path)
         return z
 
@@ -336,24 +391,13 @@ class MatrixDb:
     def _matrix_fs_path(self, entry):
         return self._accessor.matrix_path(self._matrix_index_path(entry))
 
-    # def _matrix_version(self, entry, version):
-    #     versions = entry["versions"]
-    #     if version is not None:
-    #         if version not in versions:
-    #             raise ValueError(f"Unsupported matrix_version={version}")
-    #         return version
-    #     else:
-    #         return sorted(versions)[0]
-
-    def subset_index(self, filters):
-        return self.index.subset(filters)
+    def subset_index(self, filters, **kwargs):
+        return self.index.subset(filters, **kwargs)
 
     def copy_matrix_file(self, entry, out_dir, exist_ok=False, dry_run=False):
         import shutil
 
-        # version = self._matrix_version(entry, None)
         matrix_index_path = self._matrix_index_path(entry)
-
         src_file = self._matrix_fs_path(entry)
         target_file = os.path.join(out_dir, matrix_index_path)
 
@@ -364,9 +408,9 @@ class MatrixDb:
                 LOG.warn("target file already exists! {target_file}")
 
         target_dir = os.path.dirname(target_file)
-        os.path.makedirs(target_dir, exist_ok=True)
 
         if not dry_run:
+            os.makedirs(target_dir, exist_ok=True)
             shutil.copyfile(src_file, target_file)
 
         return target_file
@@ -380,6 +424,9 @@ class MatrixDb:
     @staticmethod
     def from_path(path):
         return MatrixDb(LocalAccessor(path))
+
+    def __len__(self):
+        return len(self.index)
 
 
 SYS_DB = MatrixDb(SystemAccessor())

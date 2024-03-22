@@ -1034,7 +1034,9 @@ def cache_file(
                 force = force(args, path, owner_data)
 
             if force:
+                LOG.info(f"decache file by force: {path=}")
                 CACHE._decache_file(path)
+                record = CACHE._register_cache_file(path, owner, args)
 
         if not os.path.exists(path):
             lock = path + ".lock"
@@ -1045,6 +1047,7 @@ def cache_file(
                 ):  # Check again, another thread/process may have created the file
                     owner_data = create(path + ".tmp", args)
                     os.rename(path + ".tmp", path)
+                    LOG.info(f"cache file created: {path=}")
                     CACHE._update_entry(path, owner_data)
                     CACHE.check_size()
 

@@ -22,12 +22,19 @@ MIR_INTERPOLATE_OPTION = "interpolation"
 def download_index_file(target):
     import requests
 
-    from earthkit.regrid.db import _INDEX_FILENAME, _URL
+    from earthkit.regrid.db import _INDEX_GZ_FILENAME, _SYSTEM_URL
 
-    path = os.path.join(_URL, _INDEX_FILENAME)
+    path = os.path.join(_SYSTEM_URL, _INDEX_GZ_FILENAME)
     requests.get(path)
     r = requests.get(path, allow_redirects=True)
-    open(target, "wb").write(r.content)
+    target_gz = target + ".gz"
+    open(target_gz, "wb").write(r.content)
+    import gzip
+
+    with gzip.open(target_gz, "rb") as f:
+        data = f.read()
+        with open(target, "wb") as f_out:
+            f_out.write(data)
 
 
 def adjust_grid_name(name):
@@ -65,7 +72,7 @@ def get_grib_file(grid, grib_file):
             {
                 "levtype": "sfc",
                 "param": "2t",
-                "grid": "$1",
+                "grid": grid,
                 "class": _class,
                 "expver": expver,
                 "type": "fc",
@@ -84,6 +91,7 @@ def create_matrix_files(
     grib_file,
     index_file,
     add_to_index=True,
+    delete_tmp_json=False,
 ):
     # generate interpolation matrix
     if options:
@@ -119,9 +127,18 @@ def create_matrix_files(
             global_output=True,
         )
 
+    if delete_tmp_json:
+        os.remove(matrix_json)
+
 
 def make_matrix(
-    src_grid, target_grid, matrix_dir, index_file=None, download_index=False
+    src_grid,
+    target_grid,
+    method,
+    matrix_dir,
+    index_file=None,
+    download_index=False,
+    delete_tmp_json=False,
 ):
     LOG.debug(f"{src_grid=} {target_grid=} {matrix_dir=} {index_file=}")
 
@@ -130,10 +147,12 @@ def make_matrix(
     src_grid_label = src_grid
     target_grid_label = target_grid
 
-    if re.match(r"[Hh]\d+_[A-z]+", src_grid):
-        if src_grid.endswith("_nested"):
-            options[MIR_INTERPOLATE_OPTION] = "nearest-neighbor"
-    else:
+    options[MIR_INTERPOLATE_OPTION] = method
+
+    if not re.match(r"[Hh]\d+_[A-z]+", src_grid):
+        #     if src_grid.endswith("_nested"):
+        #         options[MIR_INTERPOLATE_OPTION] = "nearest-neighbor"
+        # else:
         src_grid_label = adjust_grid_name(src_grid)
 
     if not re.match(r"[Hh]\d+_[A-z]+", target_grid):
@@ -151,7 +170,7 @@ def make_matrix(
         download_index_file(index_file)
         assert os.path.exists(index_file)
 
-    grib_file = os.path.join(GRIB_DIR, f"{src_grid}.grib")
+    grib_file = os.path.join(GRIB_DIR, f"{src_grid_label}.grib")
     get_grib_file(src_grid, grib_file)
 
     # version = get_mir_version()
@@ -164,4 +183,6 @@ def make_matrix(
         options,
         grib_file,
         index_file,
+        add_to_index=True,
+        delete_tmp_json=delete_tmp_json,
     )

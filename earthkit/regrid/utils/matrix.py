@@ -11,9 +11,9 @@ import hashlib
 import json
 import os
 
-from .mir import mir_cached_matrix_to_file
+from earthkit.regrid.db import VERSION, MatrixIndex
 
-VERSION = 1
+from .mir import mir_cached_matrix_to_file
 
 
 def regular_ll(entry):
@@ -51,35 +51,39 @@ def healpix(entry):
     return d
 
 
+def make_sha(d):
+    m = hashlib.sha256()
+    m.update(json.dumps(d, sort_keys=True).encode("utf-8"))
+    return m.hexdigest()
+
+
 def make_matrix(
     input_path, output_path, index_file=None, global_input=None, global_output=None
 ):
     with open(input_path) as f:
         entry = json.load(f)
 
-    inter_entry = entry.pop("interpolation")
-    engine = inter_entry["engine"]
-    version = inter_entry["version"]
-    uid = inter_entry["uid"]
+    inter_ori = dict(entry["interpolation"])
+    method = entry["interpolation"]["method"]
+    uid = MatrixIndex.make_interpolation_uid(entry)
+    if uid != method:
+        entry["interpolation"]["_uid"] = uid
 
-    # print(f"MATRICES={MATRICES}")
-
-    # if version is None:
-    #     version = "0" * 6
-    # else:
-    #     version = "".join([f"{int(x):02d}" for x in version.split(".")])
-
-    matrix_output_path = os.path.join(output_path, f"{engine}_{version}_{uid}")
+    # create output folder
+    matrix_output_path = os.path.join(
+        output_path,
+        MatrixIndex.matrix_dir_name(entry),
+        # f"{inter_engine}_{inter_version}_{inter_uid}"
+    )
     os.makedirs(matrix_output_path, exist_ok=True)
 
-    cache_file = entry.pop("cache_file")
-    _, name_src_part = os.path.split(os.path.dirname(cache_file))
-    name_target_part, _ = os.path.splitext(os.path.basename(cache_file))
-    # name = f"{name_src_part}_{name_target_part}"
-    key = f"{name_src_part}_{name_target_part}_{uid}"
-
-    m = hashlib.sha256()
-    key = m.hexdigest()
+    # create matrix
+    cache_file = entry["matrix"].pop("cache_file")
+    m = {}
+    m["input"] = entry["input"]
+    m["output"] = entry["output"]
+    m["interpolation"] = inter_ori
+    key = make_sha(m)
     name = key
 
     print(f"entry={entry}")
@@ -97,7 +101,6 @@ def make_matrix(
     else:
         index = {}
         index["version"] = VERSION
-        index["interpolation"] = {}
         index["matrix"] = {}
 
     def convert(x):
@@ -111,14 +114,10 @@ def make_matrix(
         entry["output"]["global"] = 1 if global_output else 0
 
     index["matrix"][key] = dict(
-        # name=name,
-        # versions=[version],
         input=convert(entry["input"]),
         output=convert(entry["output"]),
-        interpolation=uid,
+        interpolation=entry["interpolation"],
     )
-
-    index["interpolation"][uid] = inter_entry
 
     with open(index_file, "w") as f:
         json.dump(index, f, indent=4)

@@ -14,82 +14,109 @@ import pytest
 from earthkit.regrid import interpolate
 from earthkit.regrid.db import add_matrix_source
 
-MATRIX_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
-
-MATRIX_VERSION = "011801"
+DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
 
 
 def file_in_testdir(filename):
-    return os.path.join(MATRIX_PATH, filename)
+    return os.path.join(DATA_PATH, filename)
 
 
 def test_local_index():
-    DB = add_matrix_source(MATRIX_PATH)
+    DB = add_matrix_source(DB_PATH)
     # we have an extra unsupported entry in the index file. We have
-    # be sure the DB is loaded correctly bypassing the the unsupported
+    # to be sure the DB is loaded correctly bypassing the unsupported
     # entry.
     import json
 
+    method = "linear"
+
     index_path = DB.index_file_path()
     with open(index_path, "r") as f:
-        assert len(json.load(f)) == 5
+        d = json.load(f)
+        assert len(d["matrix"]) == 11
 
-    assert len(DB.index) == 4
+    assert len(DB) == 10
 
-    r = DB.find_entry({"grid": [5, 5]}, {"grid": [10, 10]})
+    # r = DB.find_entry({"grid": [5, 5]}, {"grid": [10, 10]}, method)
+    # assert r
+
+    r = DB.find_entry({"grid": "O32"}, {"grid": [10, 10]}, method)
     assert r
 
-    r = DB.find_entry({"grid": "O32"}, {"grid": [10, 10]})
+    r = DB.find_entry({"grid": "N32"}, {"grid": [10, 10]}, method)
     assert r
 
-    r = DB.find_entry({"grid": "N32"}, {"grid": [10, 10]})
-    assert r
-
-    r = DB.find_entry({"grid": "O64"}, {"grid": [10, 10]})
+    r = DB.find_entry({"grid": "O64"}, {"grid": [10, 10]}, method)
     assert r is None
 
 
-@pytest.mark.parametrize(
-    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
-)
-def test_local_ll_to_ll(_kwargs):
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_local_ll_to_ll(method):
     v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{method}.npz"))["arr_0"]
     v_res = interpolate(
-        v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, matrix_source=MATRIX_PATH, **_kwargs
+        v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method
     )
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize(
-    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
-)
-def test_local_gg_to_ll_1(_kwargs):
-    # with use_local_db(PATH):
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_local_ogg_to_ll(method):
     v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_O32_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_O32_10x10_{method}.npz"))["arr_0"]
     v_res = interpolate(
-        v_in, {"grid": "O32"}, {"grid": [10, 10]}, matrix_source=MATRIX_PATH, **_kwargs
+        v_in, {"grid": "O32"}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method
     )
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize(
-    "_kwargs", [({"matrix_version": MATRIX_VERSION}), ({"matrix_version": None}), ({})]
-)
-def test_local_gg_to_ll_2(_kwargs):
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_local_ngg_to_ll(method):
     v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_N32_10x10_{MATRIX_VERSION}.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
     v_res = interpolate(
         v_in,
         {"grid": "N32"},
         {"grid": [10, 10]},
-        matrix_source=MATRIX_PATH,
-        **_kwargs,
+        matrix_source=DB_PATH,
+        method=method,
+    )
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_local_healpix_ring_to_ll(method):
+    v_in = np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{method}.npz"))["arr_0"]
+    v_res = interpolate(
+        v_in,
+        {"grid": "H4", "ordering": "ring"},
+        {"grid": [10, 10]},
+        matrix_source=DB_PATH,
+        method=method,
+    )
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_local_healpix_nested_to_ll(method):
+    v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{method}.npz"))["arr_0"]
+    v_res = interpolate(
+        v_in,
+        {"grid": "H4", "ordering": "nested"},
+        {"grid": [10, 10]},
+        matrix_source=DB_PATH,
+        method=method,
     )
 
     assert v_res.shape == (19, 36)
@@ -129,13 +156,13 @@ def test_local_gg_to_ll_2(_kwargs):
             {"grid": "N32", "global": 1, "area": [87.8638, 0, -87.8638, 357.188]},
             {"grid": [10, 10]},
         ),
-        ({"grid": "H128"}, {"grid": [1, 1]}),
-        ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
+        ({"grid": "H4"}, {"grid": [10, 10]}),
+        ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
     ],
 )
 def test_local_gridspec_ok(gs_in, gs_out):
-    DB = add_matrix_source(MATRIX_PATH)
-    r = DB.find_entry(gs_in, gs_out)
+    DB = add_matrix_source(DB_PATH)
+    r = DB.find_entry(gs_in, gs_out, "linear")
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
 
@@ -176,14 +203,14 @@ def test_local_gridspec_ok(gs_in, gs_out):
             {"grid": [10, 10]},
             None,
         ),
-        ({"grid": "H128", "ordering": "any"}, {"grid": [1, 1]}, ValueError),
+        ({"grid": "H4", "ordering": "any"}, {"grid": [10, 10]}, ValueError),
     ],
 )
 def test_local_gridspec_bad(gs_in, gs_out, err):
-    DB = add_matrix_source(MATRIX_PATH)
+    DB = add_matrix_source(DB_PATH)
     if err:
         with pytest.raises(err):
-            r = DB.find_entry(gs_in, gs_out)
+            r = DB.find_entry(gs_in, gs_out, "linear")
     else:
-        r = DB.find_entry(gs_in, gs_out)
+        r = DB.find_entry(gs_in, gs_out, "linear")
         assert r is None, f"gs_in={gs_in} gs_out={gs_out}"

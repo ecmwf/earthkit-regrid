@@ -1,0 +1,17 @@
+_*
+*.yaml
+*.yml
+grib*
+matrices*
+index*
+local*
+
+# data and matrix files
+*.grib
+*.grib1
+*.grib2
+*.json
+*.npz
+
+# exceptions
+!local_db_conf.yaml

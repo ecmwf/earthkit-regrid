@@ -44,7 +44,7 @@ def build_local_db(
     index = DB.subset_index(items, fail_on_missing=fail_on_missing)
 
     # copy matrices
-    for entry in index.matrix:
+    for _, entry in index.items():
         matrix_path = DB.copy_matrix_file(
             entry, out_dir, exist_ok=(not strict), dry_run=dry_run
         )

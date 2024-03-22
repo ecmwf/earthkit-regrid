@@ -14,4 +14,4 @@ local*
 *.npz
 
 # exceptions
-!local_db_conf.yaml
+!subset_db_conf.yaml

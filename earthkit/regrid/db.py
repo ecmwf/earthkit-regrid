@@ -39,7 +39,7 @@ def make_sha(data):
     if isinstance(data, str):
         m.update(data.encode("utf-8"))
     else:
-        m.update(json.dumps(data).encode("utf-8"))
+        m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
     return m.hexdigest()
 
 

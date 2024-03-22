@@ -19,7 +19,7 @@ from utils.matrix import make_matrix  # noqa
 logging.basicConfig(level=logging.DEBUG)
 
 grids = [
-    # ["5/5", "10/10"],
+    ["5/5", "10/10"],
     ["N32", "10/10"],
     ["O32", "10/10"],
     ["H4_ring", "10/10"],
@@ -27,7 +27,9 @@ grids = [
 ]
 
 methods = ["linear", "nearest-neighbour"]
-matrix_dir = "_test_local_data_20240302"
+build_dir = "_test_local_data_20240302"
+
+index_file = os.path.join(build_dir, "index.json")
 
 for method in methods:
     for g_in, g_out in grids:
@@ -35,8 +37,8 @@ for method in methods:
             g_in,
             g_out,
             method,
-            matrix_dir,
-            index_file=None,
+            build_dir,
+            index_file=index_file,
             download_index=False,
             delete_tmp_json=True,
         )

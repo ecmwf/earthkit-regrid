@@ -29,7 +29,7 @@ _INDEX_SHA_FILENAME = "index.json.sha256"
 _INDEX_GZ_FILENAME = "index.json.gz"
 
 
-_METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest", "nearest-neighbor")}
+_METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest-neighbor")}
 
 
 def make_sha(data):

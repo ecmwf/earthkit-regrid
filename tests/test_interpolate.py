@@ -56,7 +56,6 @@ def get_test_data(filename, subfolder="global_0_360"):
         ({"method": "linear"}, "linear"),
         ({"method": "nearest-neighbour"}, "nearest-neighbour"),
         ({"method": "nn"}, "nearest-neighbour"),
-        ({"method": "nearest"}, "nearest-neighbour"),
         ({"method": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )

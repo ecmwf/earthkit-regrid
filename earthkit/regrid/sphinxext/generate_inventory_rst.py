@@ -94,6 +94,7 @@ This page contains all the available target gridspecs for a given
 
 """
 
+    # print(f"{grid=}\n")
     for _, v in specs.items():
         source = v.source
         target = v.target
@@ -101,21 +102,10 @@ This page contains all the available target gridspecs for a given
         if source["type"] != grid["type"]:
             continue
 
-        # for name, val in grid.items():
-        #     if name == "type":
-        #         continue
-        #     if hasattr(source, name):
-        #         if getattr(source, name) != val:
-        #             break
-        #     else:
-        #         break
-        # # print(source["type"])
-        # if source["type"] != grid_type or (
-        #     hasattr(source, "octahedral") and source.octahedral != octahedral
-        # ):
-        #     continue
-
         if match(source, grid):
+            # print(f"->{source=}\n")
+            # for t in target:
+            # print(f"    {t=}\n")
             txt += make_gs_block(source, target)
 
     return txt
@@ -128,15 +118,17 @@ def load_matrix_index_file():
         gs_in = GridSpec.from_dict(entry["input"])
         gs_out = GridSpec.from_dict(entry["output"])
 
-        key = dict(grid=gs_in["grid"])
-        m = hashlib.sha256()
-        m.update(json.dumps(key).encode("utf-8"))
-        gs_id = m.hexdigest()
+        if entry["interpolation"]["method"] == "linear":
+            # key = dict(grid=gs_in["grid"])
+            key = dict(gs_in)
+            m = hashlib.sha256()
+            m.update(json.dumps(key).encode("utf-8"))
+            gs_id = m.hexdigest()
 
-        if gs_id not in specs:
-            specs[gs_id] = Specs(gs_in, [gs_out])
-        else:
-            specs[gs_id].target.append(gs_out)
+            if gs_id not in specs:
+                specs[gs_id] = Specs(gs_in, [gs_out])
+            else:
+                specs[gs_id].target.append(gs_out)
 
     return specs
 
@@ -165,6 +157,7 @@ def execute(*args):
     else:
         long_name = grid_type
 
+    # print(f"{gs=}\n")
     txt = build_gs_page(specs, gs, long_name)
     print(txt)
 

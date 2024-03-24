@@ -360,11 +360,8 @@ class MatrixDb:
         self,
         gridspec_in,
         gridspec_out,
-        method="linear",
+        method,
         **kwargs,
-        # download_retries=0,
-        # download_timeout=30,
-        # download_retry_after=10,
     ):
         entry = self.find_entry(gridspec_in, gridspec_out, method)
 
@@ -443,9 +440,9 @@ def add_matrix_source(path):
     return db
 
 
-def find(gridspec_in, gridspec_out, matrix_source=None, **kwargs):
+def find(*args, matrix_source=None, **kwargs):
     if matrix_source is None:
-        return SYS_DB.find(gridspec_in, gridspec_out, **kwargs)
+        return SYS_DB.find(*args, **kwargs)
     else:
         db = add_matrix_source(matrix_source)
-        return db.find(gridspec_in, gridspec_out, **kwargs)
+        return db.find(*args, **kwargs)

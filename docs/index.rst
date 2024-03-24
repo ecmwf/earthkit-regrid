@@ -14,7 +14,7 @@ Welcome to earthkit-regrids's documentation
    :caption: Examples
    :titlesonly:
 
-   examples
+   examples/index
 
 .. toctree::
    :maxdepth: 1

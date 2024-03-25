@@ -94,17 +94,19 @@ out_grids = {
     ]
 }
 
-# in_grids = {
-#     "ll": [1],
-# }
+in_grids = {
+    "H_ring": [8],
+    "H_nested": [8],
+}
 
-# out_grids = {
-#     "ll": [5],
-# }
+out_grids = {
+    "ll": [5],
+}
 
-build_dir = "_build_20240322_a"
+build_dir = "_build_20240324"
 
-extra = [["0.25x0.25", "N320"], ["O1280", "N320"], ["5x5", "10x10"]]
+# extra = [["0.25x0.25", "N320"], ["O1280", "N320"], ["5x5", "10x10"]]
+extra = []
 
 in_grids = make_grid_id(in_grids)
 out_grids = make_grid_id(out_grids)

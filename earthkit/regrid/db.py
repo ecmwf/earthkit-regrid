@@ -11,7 +11,7 @@ import json
 import logging
 import os
 from abc import ABCMeta, abstractmethod
-from functools import cache
+from functools import lru_cache
 
 from scipy.sparse import load_npz
 
@@ -71,7 +71,7 @@ class UrlAccessor(MatrixAccessor):
     def is_local(self):
         False
 
-    @cache
+    @lru_cache
     def index_path(self):
         from earthkit.regrid.utils.caching import cache_file
 

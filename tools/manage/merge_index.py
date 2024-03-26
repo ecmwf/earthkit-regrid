@@ -37,19 +37,30 @@ def merge(input_dir, result_file, system_file=None, dry_run=False):
             total_num = len(db_res["matrix"])
         LOG.info(f"system index file: {system_file} number of entries={total_num}")
 
-    LOG.info("load index files")
-    for f in os.scandir(input_dir):
-        if f.is_dir() and f.name.startswith("matrices_"):
-            index_file = os.path.join(f.path, "index.json")
-            with open(index_file) as f:
-                db = json.load(f)
-                n = len(db["matrix"])
-                total_num += n
-                if not db_res:
-                    db_res = db
-                else:
-                    db_res["matrix"].update(db["matrix"])
-                LOG.info(f" loaded index file: {index_file} number of entries={n}")
+    LOG.info("load index file")
+    # for f in os.scandir(input_dir):
+    #     if f.is_dir() and f.name.startswith("matrices_"):
+    #         index_file = os.path.join(f.path, "index.json")
+    #         with open(index_file) as f:
+    #             db = json.load(f)
+    #             n = len(db["matrix"])
+    #             total_num += n
+    #             if not db_res:
+    #                 db_res = db
+    #             else:
+    #                 db_res["matrix"].update(db["matrix"])
+    #             LOG.info(f" loaded index file: {index_file} number of entries={n}")
+
+    index_file = os.path.join(input_dir, "index.json")
+    with open(index_file) as f:
+        db = json.load(f)
+        n = len(db["matrix"])
+        total_num += n
+        if not db_res:
+            db_res = db
+        else:
+            db_res["matrix"].update(db["matrix"])
+        LOG.info(f" loaded index file: {index_file} number of entries={n}")
 
     LOG.info(f"final index file: {result_file} number of entries={total_num}")
     if not dry_run:

@@ -60,9 +60,9 @@ in_grids_N_gg = gg_res
 
 in_grids = {
     "ll": [],
-    "O_rgg": [2560] + gg_res,
-    "N_rgg": gg_res,
-    "H_ring": [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2],
+    # "O_rgg": [2560] + gg_res,
+    # "N_rgg": gg_res,
+    # "H_ring": [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2],
     "H_nested": [1024, 512, 256, 128, 64, 32, 16, 8, 4, 2],
 }
 out_grids = {
@@ -94,16 +94,16 @@ out_grids = {
     ]
 }
 
-in_grids = {
-    "H_ring": [8],
-    "H_nested": [8],
-}
+# in_grids = {
+#     "H_ring": [8],
+#     "H_nested": [8],
+# }
 
-out_grids = {
-    "ll": [5],
-}
+# out_grids = {
+#     "ll": [5],
+# }
 
-build_dir = "_build_20240324"
+build_dir = "_build_20240325"
 
 # extra = [["0.25x0.25", "N320"], ["O1280", "N320"], ["5x5", "10x10"]]
 extra = []

@@ -279,6 +279,7 @@ class MatrixIndex(dict):
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
 
+        # print(f"{gridspec_in=} {gridspec_out=} {method=}")
         if gridspec_in is None or gridspec_out is None:
             return None
 

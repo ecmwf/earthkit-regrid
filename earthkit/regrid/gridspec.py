@@ -20,6 +20,10 @@ HEALPIX_PATTERN = re.compile(r"[Hh]\d+")
 RGG_PATTERN = re.compile(r"[OoNn]\d+")
 
 
+# NOTE: this is a temporary code until the full gridspec
+# implementation is available via earthkit-geo.
+
+
 def same_coord(x, y):
     return abs(x - y) < DEGREE_EPS
 
@@ -31,6 +35,7 @@ class GridSpec(dict):
         "j_scans_positively": 0,
     }
     DEFAULT_AREA = [90, 0, -90, 360]
+
     COMPARE_KEYS = {
         "type",
         "grid",
@@ -72,7 +77,7 @@ class GridSpec(dict):
             return False
 
         for k in self.COMPARE_KEYS:
-            if self[k] != o[k]:
+            if str(self[k]) != str(o[k]):
                 return False
 
         if "shape" in self and "shape" in o:
@@ -114,10 +119,44 @@ class GridSpec(dict):
 
 
 class LLGridSpec(GridSpec):
+    GLOBAL_AREAS = {
+        (0.1, 0.1): [90, 0, -90, 359.9],
+        (0.125, 0.125): [90, 0, -90, 359.875],
+        (0.15, 0.15): [90, 0, -90, 359.85],
+        (0.2, 0.2): [90, 0, -90, 359.8],
+        (0.25, 0.25): [90, 0, -90, 359.75],
+        (0.3, 0.3): [90, 0, -90, 359.7],
+        (0.4, 0.4): [90, 0, -90, 359.6],
+        (0.5, 0.5): [90, 0, -90, 359.5],
+        (0.6, 0.6): [90, 0, -90, 359.4],
+        (0.7, 0.7): [89.6, 0, -89.6, 359.8],
+        (0.75, 0.75): [90, 0, -90, 359.25],
+        (0.8, 0.8): [89.6, 0, -89.6, 359.2],
+        (0.9, 0.9): [90, 0, -90, 359.1],
+        (1, 1): [90, 0, -90, 359],
+        (1.2, 1.2): [90, 0, -90, 358.8],
+        (1.25, 1.25): [90, 0, -90, 358.75],
+        (1.4, 1.4): [89.6, 0, -89.6, 359.8],
+        (1.5, 1.5): [90, 0, -90, 358.5],
+        (1.6, 1.6): [89.6, 0, -89.6, 358.4],
+        (1.8, 1.8): [90, 0, -90, 358.2],
+        (2, 2): [90, 0, -90, 358],
+        (2.5, 2.5): [90, 0, -90, 357.5],
+        (5, 5): [90, 0, -90, 355],
+        (10, 10): [90, 0, -90, 350],
+    }
+
     def __init__(self, gs):
         super().__init__(gs)
 
+        if "global" not in gs and "area" not in gs:
+            self["global"] = 1
+            self["area"] = LLGridSpec.GLOBAL_AREAS.get(
+                (self["grid"][0], self["grid"][1]), self.DEFAULT_AREA
+            )
+
         self.setdefault("area", self.DEFAULT_AREA)
+
         if self.get("global", 0) or self.has_default_area():
             self._global_ew = True
             self._global_ns = True

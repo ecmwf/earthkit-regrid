@@ -41,7 +41,7 @@ CACHE = None
 SETTINGS = {
     "cache-policy": "user",
     "user-cache-directory": os.path.join(
-        tempfile.gettempdir(), f"regrid_{getpass.getuser()}"
+        tempfile.gettempdir(), f"earthkit-regrid-{getpass.getuser()}"
     ),
     "maximum-cache-size": 5 * 1024 * 1024 * 1024,
     "maximum-cache-disk-usage": 99,

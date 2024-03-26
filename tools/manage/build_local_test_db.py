@@ -18,23 +18,17 @@ from utils.matrix import make_matrix  # noqa
 
 logging.basicConfig(level=logging.DEBUG)
 
-# grids = [
-#     ["5/5", "10/10"],
-#     ["N32", "10/10"],
-#     ["O32", "10/10"],
-#     ["H4_ring", "10/10"],
-#     ["H4_nested", "10/10"],
-# ]
-
-
 grids = [
-    ["H8_ring", "5/5"],
-    ["H8_nested", "5/5"],
+    # ["5/5", "10/10"],
+    # ["N32", "10/10"],
+    # ["O32", "10/10"],
+    # ["H4_ring", "10/10"],
+    ["H4_nested", "10/10"],
 ]
 
 
 methods = ["linear", "nearest-neighbour"]
-build_dir = "_test_local_data_20240324"
+build_dir = "_test_local_data_20240325"
 
 index_file = os.path.join(build_dir, "index.json")
 

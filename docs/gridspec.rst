@@ -47,7 +47,7 @@ The ``grid`` format is::
 
     [DX, DY]
 
-where *DX* and *DY* are the increments in degrees in longitudes and latitudes, respectively.
+where *DX* and *DY* are the increments in degrees in longitudes and latitudes, respectively. This grid definition uses the default scanning mode used at ECMWF: values start at North-West and follow in consecutive rows from West to East
 
 Example:
 

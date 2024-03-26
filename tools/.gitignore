@@ -1,0 +1,18 @@
+_*
+*.yaml
+*.yml
+grib*
+matrices*
+index*
+local*
+
+# data and matrix files
+*.grib
+*.grib1
+*.grib2
+*.json
+*.npz
+
+# exceptions
+!subset/subset_db_conf.yaml
+!subset/eccharts_subset_db_conf.yaml

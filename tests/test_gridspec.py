@@ -26,6 +26,29 @@ from earthkit.regrid.db import SYS_DB
         ({"grid": [5, 5], "shape": [37, 72]}, {"grid": [10, 10], "shape": [19, 36]}),
         ({"grid": [5, 5], "shape": [37, 72]}, {"grid": [10, 10]}),
         ({"grid": [5, 5]}, {"grid": [10, 10], "shape": [19, 36]}),
+        ({"grid": "O32"}, {"grid": [0.1, 0.1]}),
+        ({"grid": "O32"}, {"grid": [0.125, 0.125]}),
+        ({"grid": "O32"}, {"grid": [0.15, 0.15]}),
+        ({"grid": "O32"}, {"grid": [0.2, 0.2]}),
+        ({"grid": "O32"}, {"grid": [0.25, 0.25]}),
+        ({"grid": "O32"}, {"grid": [0.3, 0.3]}),
+        ({"grid": "O32"}, {"grid": [0.4, 0.4]}),
+        ({"grid": "O32"}, {"grid": [0.5, 0.5]}),
+        ({"grid": "O32"}, {"grid": [0.6, 0.6]}),
+        ({"grid": "O32"}, {"grid": [0.7, 0.7]}),
+        ({"grid": "O32"}, {"grid": [0.75, 0.75]}),
+        ({"grid": "O32"}, {"grid": [0.8, 0.8]}),
+        ({"grid": "O32"}, {"grid": [0.9, 0.9]}),
+        ({"grid": "O32"}, {"grid": [1, 1]}),
+        ({"grid": "O32"}, {"grid": [1.2, 1.2]}),
+        ({"grid": "O32"}, {"grid": [1.25, 1.25]}),
+        ({"grid": "O32"}, {"grid": [1.4, 1.4]}),
+        ({"grid": "O32"}, {"grid": [1.5, 1.5]}),
+        ({"grid": "O32"}, {"grid": [1.6, 1.6]}),
+        ({"grid": "O32"}, {"grid": [1.8, 1.8]}),
+        ({"grid": "O32"}, {"grid": [2, 2]}),
+        ({"grid": "O32"}, {"grid": [2.5, 2.5]}),
+        ({"grid": "O32"}, {"grid": [5, 5]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
         ({"grid": "O32", "shape": [5248]}, {"grid": [10, 10]}),
         ({"grid": "O32", "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
@@ -49,7 +72,7 @@ from earthkit.regrid.db import SYS_DB
     ],
 )
 def test_gridspec_ok(gs_in, gs_out):
-    r = SYS_DB.find_entry(gs_in, gs_out)
+    r = SYS_DB.find_entry(gs_in, gs_out, "linear")
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
 
@@ -95,7 +118,7 @@ def test_gridspec_ok(gs_in, gs_out):
 def test_gridspec_bad(gs_in, gs_out, err):
     if err:
         with pytest.raises(err):
-            r = SYS_DB.find_entry(gs_in, gs_out)
+            r = SYS_DB.find_entry(gs_in, gs_out, "linear")
     else:
-        r = SYS_DB.find_entry(gs_in, gs_out)
+        r = SYS_DB.find_entry(gs_in, gs_out, "linear")
         assert r is None, f"gs_in={gs_in} gs_out={gs_out}"

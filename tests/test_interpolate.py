@@ -17,8 +17,6 @@ PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
-MATRIX_VERSION = "011801"
-
 
 def simple_download(url, target):
     import requests
@@ -49,36 +47,39 @@ def get_test_data(filename, subfolder="global_0_360"):
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-def test_ll_to_ll():
-    f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{MATRIX_VERSION}.npz"])
+@pytest.mark.parametrize(
+    "_kwarg,method",
+    [
+        ({}, "linear"),
+        ({"method": "linear"}, "linear"),
+        ({"method": "nearest-neighbour"}, "nearest-neighbour"),
+        ({"method": "nn"}, "nearest-neighbour"),
+        ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+    ],
+)
+def test_method_kwarg(_kwarg, method):
+    f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{method}.npz"])
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]}, **_kwarg)
+
+    assert v_res.shape == (19, 36), 1
+    assert np.allclose(v_res.flatten(), v_ref), 1
+
+
+def _ll_to_ll(method):
+    f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{method}.npz"])
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36), 1
     assert np.allclose(v_res.flatten(), v_ref), 1
 
     # repeated use
-    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
-
-    assert v_res.shape == (19, 36), 1
-    assert np.allclose(v_res.flatten(), v_ref), 1
-
-
-@pytest.mark.download
-def test_ll_to_ll_user_cache():
-    f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{MATRIX_VERSION}.npz"])
-
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
-
-    assert v_res.shape == (19, 36), 1
-    assert np.allclose(v_res.flatten(), v_ref), 1
-
-    # repeated use
-    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36), 1
     assert np.allclose(v_res.flatten(), v_ref), 1
@@ -86,12 +87,56 @@ def test_ll_to_ll_user_cache():
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-def test_gg_to_ll_1():
-    f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{MATRIX_VERSION}.npz"])
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_ll_to_ll(method):
+    _ll_to_ll(method)
+
+    # f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{method}.npz"])
+
+    # v_in = np.load(f_in)["arr_0"]
+    # v_ref = np.load(f_out)["arr_0"]
+    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
+
+    # assert v_res.shape == (19, 36), 1
+    # assert np.allclose(v_res.flatten(), v_ref), 1
+
+    # # repeated use
+    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
+
+    # assert v_res.shape == (19, 36), 1
+    # assert np.allclose(v_res.flatten(), v_ref), 1
+
+
+@pytest.mark.download
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_ll_to_ll_user_cache(method):
+    _ll_to_ll(method)
+
+    # f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{MATRIX_VERSION}.npz"])
+
+    # v_in = np.load(f_in)["arr_0"]
+    # v_ref = np.load(f_out)["arr_0"]
+    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+
+    # assert v_res.shape == (19, 36), 1
+    # assert np.allclose(v_res.flatten(), v_ref), 1
+
+    # # repeated use
+    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
+
+    # assert v_res.shape == (19, 36), 1
+    # assert np.allclose(v_res.flatten(), v_ref), 1
+
+
+@pytest.mark.download
+@pytest.mark.tmp_cache
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_ogg_to_ll(method):
+    f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{method}.npz"])
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]})
+    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -99,12 +144,47 @@ def test_gg_to_ll_1():
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-def test_gg_to_ll_2():
-    f_in, f_out = get_test_data(["in_N32.npz", f"out_N32_10x10_{MATRIX_VERSION}.npz"])
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_ngg_to_ll(method):
+    f_in, f_out = get_test_data(["in_N32.npz", f"out_N32_10x10_{method}.npz"])
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]})
+    v_res = interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]}, method=method)
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.download
+@pytest.mark.tmp_cache
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_healpix_ring_to_ll(method):
+    f_in, f_out = get_test_data(["in_H4_ring.npz", f"out_H4_ring_10x10_{method}.npz"])
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(
+        v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, method=method
+    )
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.download
+@pytest.mark.tmp_cache
+@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+def test_healpix_nested_to_ll(method):
+    f_in, f_out = get_test_data(
+        ["in_H4_nested.npz", f"out_H4_nested_10x10_{method}.npz"]
+    )
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+    v_res = interpolate(
+        v_in, {"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}, method=method
+    )
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -114,11 +194,11 @@ def test_gg_to_ll_2():
 def test_unsupported_input_grid() -> None:
     a = np.ones(91 * 180)
     with pytest.raises(ValueError):
-        _ = interpolate(a, {"grid": [2.2333424, 2]}, {"grid": [1, 1]})
+        _ = interpolate(a, {"grid": [2.2333424, 2]}, {"grid": [1, 1]}, method="linear")
 
 
 @pytest.mark.tmp_cache
 def test_unsupported_output_grid() -> None:
     a = np.ones(181 * 360)
     with pytest.raises(ValueError):
-        _ = interpolate(a, {"grid": [1.11323424, 1]}, {"grid": [5, 5]})
+        _ = interpolate(a, {"grid": [1.11323424, 1]}, {"grid": [5, 5]}, method="linear")

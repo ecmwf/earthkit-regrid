@@ -31,7 +31,7 @@ def download_and_cache(
     update_if_out_of_date=False,
     fake_headers=None,  # When HEAD is not allowed but you know the size
     progress_bar=progress_bar,
-    maximum_retries=2,
+    maximum_retries=0,
     retry_after=10,
     **kwargs,
 ):

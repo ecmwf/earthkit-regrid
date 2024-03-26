@@ -17,8 +17,6 @@ PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
-MATRIX_VERSION = "011801"
-
 
 def simple_download(url, target):
     import requests

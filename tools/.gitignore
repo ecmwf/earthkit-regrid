@@ -14,4 +14,5 @@ local*
 *.npz
 
 # exceptions
-!subset_db_conf.yaml
+!subset/subset_db_conf.yaml
+!subset/eccharts_subset_db_conf.yaml

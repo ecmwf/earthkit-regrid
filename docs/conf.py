@@ -70,6 +70,10 @@ xref_links = {
         "earthkit-data",
         "https://earthkit-data.readthedocs.io/en/latest/",
     ),
+    "earthkit-maps": (
+        "earthkit-maps",
+        "https://earthkit-maps.readthedocs.io/en/latest/",
+    ),
     "fieldlist": (
         "fieldlist",
         "https://earthkit-data.readthedocs.io/en/latest/guide/data_format/grib.html",

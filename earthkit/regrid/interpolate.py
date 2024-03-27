@@ -7,14 +7,31 @@
 # nor does it submit to any jurisdiction.
 #
 
-from earthkit.regrid.db import DB
+from earthkit.regrid.db import find
 
 
-def interpolate(values, source_gridspec, target_gridspec, matrix_version=None):
-    z, shape = DB.find(source_gridspec, target_gridspec, matrix_version=matrix_version)
+def interpolate(values, in_grid=None, out_grid=None, method="linear", **kwargs):
+    interpolator = _find_interpolator(values)
+    if interpolator is None:
+        raise ValueError(f"Cannot interpolate data with type={type(values)}")
+
+    return interpolator(
+        values, in_grid=in_grid, out_grid=out_grid, method=method, **kwargs
+    )
+
+
+def _find_interpolator(values):
+    for interpolator in INTERPOLATORS:
+        if interpolator.match(values):
+            return interpolator
+    return None
+
+
+def _interpolate(values, in_grid, out_grid, method, **kwargs):
+    z, shape = find(in_grid, out_grid, method, **kwargs)
 
     if z is None:
-        raise ValueError("No matrix found that matches the source and target gridspecs")
+        raise ValueError(f"No matrix found! {in_grid=} {out_grid=} {method=}")
 
     # This should check for 1D (GG) and 2D (LL) matrices
     values = values.reshape(-1, 1)
@@ -22,3 +39,56 @@ def interpolate(values, source_gridspec, target_gridspec, matrix_version=None):
     values = z @ values
 
     return values.reshape(shape)
+
+
+class NumpyInterpolator:
+    @staticmethod
+    def match(values):
+        import numpy as np
+
+        return isinstance(values, np.ndarray)
+
+    def __call__(self, values, **kwargs):
+        in_grid = kwargs.pop("in_grid")
+        out_grid = kwargs.pop("out_grid")
+        method = kwargs.pop("method")
+        return _interpolate(values, in_grid, out_grid, method, **kwargs)
+
+
+class FieldListInterpolator:
+    @staticmethod
+    def match(values):
+        try:
+            import earthkit.data
+
+            return isinstance(values, earthkit.data.FieldList)
+        except ImportError:
+            return False
+
+    def __call__(self, values, **kwargs):
+        import earthkit.data
+
+        ds = values
+        in_grid = kwargs.pop("in_grid")
+        if in_grid is not None:
+            raise ValueError("in_grid cannot be used for FieldList interpolation")
+        out_grid = kwargs.pop("out_grid")
+        method = kwargs.pop("method")
+
+        r = earthkit.data.FieldList()
+        for f in ds:
+            vv = f.to_numpy(flatten=True)
+            v_res = _interpolate(
+                vv,
+                f.metadata().gridspec,
+                out_grid,
+                method,
+                **kwargs,
+            )
+            md_res = f.metadata().override(gridspec=out_grid)
+            r += ds.from_numpy(v_res, md_res)
+
+        return r
+
+
+INTERPOLATORS = [NumpyInterpolator(), FieldListInterpolator()]

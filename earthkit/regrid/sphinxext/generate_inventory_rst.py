@@ -11,7 +11,7 @@ import hashlib
 import json
 from collections import defaultdict, namedtuple
 
-from earthkit.regrid.db import DB
+from earthkit.regrid.db import SYS_DB as DB
 from earthkit.regrid.gridspec import GridSpec
 
 Specs = namedtuple("Specs", ["source", "target"])
@@ -72,7 +72,19 @@ Target :ref:`gridspec <gridspec>`\s available for source:
     return txt
 
 
-def build_gs_page(specs, grid_type, octahedral, long_name):
+def match(gs, grid):
+    for name, val in grid.items():
+        if name == "type":
+            continue
+        if hasattr(gs, name):
+            if getattr(gs, name) != val:
+                return False
+        else:
+            return False
+    return True
+
+
+def build_gs_page(specs, grid, long_name):
     txt = f"""
 
 .. include:: pre_gen_warn.rst
@@ -82,16 +94,19 @@ This page contains all the available target gridspecs for a given
 
 """
 
+    # print(f"{grid=}\n")
     for _, v in specs.items():
         source = v.source
         target = v.target
-        # print(source["type"])
-        if source["type"] != grid_type or (
-            hasattr(source, "octahedral") and source.octahedral != octahedral
-        ):
+
+        if source["type"] != grid["type"]:
             continue
 
-        txt += make_gs_block(source, target)
+        if match(source, grid):
+            # print(f"->{source=}\n")
+            # for t in target:
+            # print(f"    {t=}\n")
+            txt += make_gs_block(source, target)
 
     return txt
 
@@ -103,15 +118,17 @@ def load_matrix_index_file():
         gs_in = GridSpec.from_dict(entry["input"])
         gs_out = GridSpec.from_dict(entry["output"])
 
-        key = dict(grid=gs_in["grid"])
-        m = hashlib.sha256()
-        m.update(json.dumps(key).encode("utf-8"))
-        gs_id = m.hexdigest()
+        if entry["interpolation"]["method"] == "linear":
+            # key = dict(grid=gs_in["grid"])
+            key = dict(gs_in)
+            m = hashlib.sha256()
+            m.update(json.dumps(key).encode("utf-8"))
+            gs_id = m.hexdigest()
 
-        if gs_id not in specs:
-            specs[gs_id] = Specs(gs_in, [gs_out])
-        else:
-            specs[gs_id].target.append(gs_out)
+            if gs_id not in specs:
+                specs[gs_id] = Specs(gs_in, [gs_out])
+            else:
+                specs[gs_id].target.append(gs_out)
 
     return specs
 
@@ -120,10 +137,19 @@ def execute(*args):
     specs = load_matrix_index_file()
 
     grid_type = args[0]
-    octahedral = False
+
+    gs = {}
     if grid_type == "reduced_gg_o":
-        octahedral = True
-        grid_type = "reduced_gg"
+        gs["type"] = "reduced_gg"
+        gs["octahedral"] = True
+    elif grid_type == "healpix_ring":
+        gs["type"] = "healpix"
+        gs["ordering"] = "ring"
+    elif grid_type == "healpix_nested":
+        gs["type"] = "healpix"
+        gs["ordering"] = "nested"
+    else:
+        gs["type"] = grid_type
 
     if len(args) >= 2:
         long_name = " ".join(args[1:])
@@ -131,7 +157,8 @@ def execute(*args):
     else:
         long_name = grid_type
 
-    txt = build_gs_page(specs, grid_type, octahedral, long_name)
+    # print(f"{gs=}\n")
+    txt = build_gs_page(specs, gs, long_name)
     print(txt)
 
 

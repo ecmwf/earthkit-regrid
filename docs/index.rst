@@ -6,7 +6,9 @@ Welcome to earthkit-regrids's documentation
     This project is **BETA** and will be **Experimental** for the foreseeable future. Interfaces and functionality are likely to change, and the project itself may be scrapped. **DO NOT** use this software in any project/software that is operational.
 
 
-**earthkit-regrid** is a Python package for regridding. It features the :func:`interpolate` function to regrid values stored in an ndarray. At the moment, regridding is only available for a **pre-defined** set of source and target global grid combinations.
+**earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.
+
+The **earthkit-regrid** API features the :func:`interpolate` function to regrid values stored in an ndarray or earthkit-data GRIB :xref:`fieldlist`. At the moment, regridding is only available for a **pre-defined** set of source and target global grid combinations.
 
 
 .. toctree::
@@ -14,7 +16,7 @@ Welcome to earthkit-regrids's documentation
    :caption: Examples
    :titlesonly:
 
-   examples
+   examples/index
 
 .. toctree::
    :maxdepth: 1
@@ -29,8 +31,16 @@ Welcome to earthkit-regrids's documentation
    :caption: Installation
 
    install
+   release_notes/index
    development
    licence
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Projects
+
+   earthkit <https://earthkit.readthedocs.io/en/latest>
 
 
 Indices and tables

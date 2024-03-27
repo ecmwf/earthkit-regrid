@@ -12,4 +12,6 @@ The pages below contain all the **source and target gridspec** combinations for 
 
     reduced_gg_o
     reduced_gg
+    healpix_ring
+    healpix_nested
     regular_ll

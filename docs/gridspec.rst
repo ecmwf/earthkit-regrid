@@ -45,9 +45,9 @@ global regular latitude-longitude grid
 
 The ``grid`` format is::
 
-    [DX, DY]
+    [DLON, DLAT]
 
-where *DX* and *DY* are the increments in degrees in longitudes and latitudes, respectively.
+where *DLON* and *DLAT* are the increments in degrees in longitudes and latitudes, respectively. This grid definition uses the default scanning mode used at ECMWF: values start at North-West and follow in consecutive rows from West to East, where West is always the 0° meridian.
 
 Example:
 

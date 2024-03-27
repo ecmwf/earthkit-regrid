@@ -33,6 +33,7 @@ copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (
 extensions = [
     "sphinx_rtd_theme",
     "nbsphinx",
+    "earthkit.regrid.sphinxext.xref",
     "earthkit.regrid.sphinxext.module_output",
 ]
 
@@ -61,3 +62,16 @@ html_static_path = ["_static"]
 html_css_files = ["style.css"]
 
 # html_logo = "_static/earthkit-regrid.png"
+
+
+xref_links = {
+    "earthkit": ("earthkit", "https://earthkit.readthedocs.io/en/latest/"),
+    "earthkit-data": (
+        "earthkit-data",
+        "https://earthkit-data.readthedocs.io/en/latest/",
+    ),
+    "fieldlist": (
+        "fieldlist",
+        "https://earthkit-data.readthedocs.io/en/latest/guide/data_format/grib.html",
+    ),
+}

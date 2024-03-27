@@ -1,0 +1,17 @@
+Version 0.3 Updates
+/////////////////////////
+
+
+Version 0.3.0
+===============
+
+
+New features
+++++++++++++++++
+- restructured and regenerated matrix inventory
+- allow using the ``method`` keyword in :func:`interpolate` to specify the interpolation method
+- allow using earthkit-data GRIB :xref:`fieldlist` in :func:`interpolate` as input data. This only works when  the output grid is regular latitude-longitude grid.
+- added notebook examples:
+
+   - :ref:`/examples/healpix_fieldlist.ipynb`
+   - :ref:`/examples/octahedral_fieldlist.ipynb`

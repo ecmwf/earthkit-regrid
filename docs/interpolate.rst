@@ -1,25 +1,26 @@
 interpolate
 ==============
 
-.. py:function:: interpolate(values, source_gridspec, target_gridspec, matrix_source=None, method='linear')
+.. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear')
 
-    Interpolate the ``values`` from the ``source_gridspec`` onto the ``target_gridspec``.
+    Interpolate the ``values`` from the ``in_grid`` onto the ``out_grid``.
 
-    :param values: the input values
-    :type values: ndarray
-    :param source_gridspec: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on
-    :type source_gridspec: dict
-    :param target_gridspec: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
-    :type target_gridspec: dict
+    :param values: the input data. It can be an ndarray or an earthkit-data GRIB :xref:`fieldlist`. ndarrays are assumed to be defined on the ``in_grid``.
+    :type values: ndarray, :xref:`fieldlist`
+    :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. When ``values`` is a :xref:`fieldlist` the input grid is automatically detected and ``in_grid`` cannot be specified.
+    :type in_grid: dict
+    :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
+    :type out_grid: dict
     :param method: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
     :type method: str
     :param matrix_source: (experimental) the location of a user specified pre-generated matrix inventory. When it is None the default matrix inventory hosted on an ECMWF download server is used.
     :type matrix_source: str, None
-    :return: the interpolated values
-    :rtype: ndarray
+    :return: The same type of data as ``values`` containing the interpolated values.
+    :rtype: ndarray, :xref:`fieldlist`
     :raises ValueError: if a pre-generated interpolation matrix is not available
+    :raises ValueError: if ``in_grid`` is specified for a :xref:`fieldlist` input
 
-    The interpolation only works when a pre-generated interpolation matrix is available for the given ``source_gridspec``, ``target_gridspec`` and ``method`` combination.
+    The interpolation only works when a pre-generated interpolation matrix is available for the given ``in_grid``, ``out_grid`` and ``method`` combination.
 
     When ``matrix_source`` is None (default) the interpolation matrix is automatically downloaded and stored in a local cache and when it is needed again the cached version is used.
 

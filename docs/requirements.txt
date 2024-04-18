@@ -5,7 +5,7 @@ scipy
 ipykernel
 docutils
 Pygments>=2.6.1
-Sphinx
+Sphinx<=7.3.1
 sphinx-rtd-theme
 setuptools
 nbsphinx

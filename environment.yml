@@ -14,7 +14,7 @@ dependencies:
 - pydata-sphinx-theme
 - pytest
 - pytest-cov
-- sphinx
+- sphinx<=7.3.1
 - sphinx-autoapi
 - sphinx_rtd_theme
 - sphinxcontrib-apidoc

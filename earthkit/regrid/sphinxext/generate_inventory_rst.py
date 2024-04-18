@@ -142,6 +142,9 @@ def execute(*args):
     if grid_type == "reduced_gg_o":
         gs["type"] = "reduced_gg"
         gs["octahedral"] = True
+    elif grid_type == "reduced_gg":
+        gs["type"] = "reduced_gg"
+        gs["octahedral"] = False
     elif grid_type == "healpix_ring":
         gs["type"] = "healpix"
         gs["ordering"] = "ring"

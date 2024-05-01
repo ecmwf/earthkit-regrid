@@ -357,12 +357,8 @@ class MatrixDb:
         return MEMORY_CACHE.get(
             gridspec_in, gridspec_out, method, create=self._create_matrix
         )
-        # entry = self.find_entry(gridspec_in, gridspec_out, method)
 
-        # if entry is not None:
-        #     z = self.load_matrix(entry)
-        #     return z, entry["output"]["shape"]
-        # return None, None
+        # return self._create_matrix(gridspec_in, gridspec_out, method)
 
     def _create_matrix(self, gridspec_in, gridspec_out, method):
         entry = self.find_entry(gridspec_in, gridspec_out, method)

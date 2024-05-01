@@ -18,6 +18,7 @@ from scipy.sparse import load_npz
 from earthkit.regrid.gridspec import GridSpec
 from earthkit.regrid.utils import no_progress_bar
 from earthkit.regrid.utils.download import download_and_cache
+from earthkit.regrid.utils.hash import make_sha
 
 LOG = logging.getLogger(__name__)
 
@@ -27,20 +28,7 @@ _SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/db/1/"
 _INDEX_FILENAME = "index.json"
 _INDEX_SHA_FILENAME = "index.json.sha256"
 _INDEX_GZ_FILENAME = "index.json.gz"
-
-
 _METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest-neighbor")}
-
-
-def make_sha(data):
-    import hashlib
-
-    m = hashlib.sha256()
-    if isinstance(data, str):
-        m.update(data.encode("utf-8"))
-    else:
-        m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
-    return m.hexdigest()
 
 
 class MatrixAccessor(metaclass=ABCMeta):
@@ -364,6 +352,19 @@ class MatrixDb:
         method,
         **kwargs,
     ):
+        from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+        return MEMORY_CACHE.get(
+            gridspec_in, gridspec_out, method, create=self._create_matrix
+        )
+        # entry = self.find_entry(gridspec_in, gridspec_out, method)
+
+        # if entry is not None:
+        #     z = self.load_matrix(entry)
+        #     return z, entry["output"]["shape"]
+        # return None, None
+
+    def _create_matrix(self, gridspec_in, gridspec_out, method):
         entry = self.find_entry(gridspec_in, gridspec_out, method)
 
         if entry is not None:

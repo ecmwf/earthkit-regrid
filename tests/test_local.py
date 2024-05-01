@@ -22,6 +22,18 @@ def file_in_testdir(filename):
     return os.path.join(DATA_PATH, filename)
 
 
+def run_interpolate(mode):
+    v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
+    np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
+    interpolate(
+        v_in,
+        {"grid": "N32"},
+        {"grid": [10, 10]},
+        matrix_source=DB_PATH,
+        method=mode,
+    )
+
+
 def test_local_index():
     DB = add_matrix_source(DB_PATH)
     # we have an extra unsupported entry in the index file. We have
@@ -214,3 +226,157 @@ def test_local_gridspec_bad(gs_in, gs_out, err):
     else:
         r = DB.find_entry(gs_in, gs_out, "linear")
         assert r is None, f"gs_in={gs_in} gs_out={gs_out}"
+
+
+def test_local_memcache_default():
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.max_mem == 300 * 1024 * 1024
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, 300 * 1024 * 1024, 0, 0)
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 300 * 1024 * 1024
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 1
+    info = MEMORY_CACHE.info()
+    assert info.hits == 0
+    assert info.misses == 1
+    assert info.maxsize == 300 * 1024 * 1024
+    assert info.currsize > 0
+    assert info.count == 1
+    mem_linear = MEMORY_CACHE.curr_mem
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 300 * 1024 * 1024
+    assert MEMORY_CACHE.hits == 1
+    assert MEMORY_CACHE.misses == 1
+    assert MEMORY_CACHE.info() == (1, 1, 300 * 1024 * 1024, mem_linear, 1)
+
+    run_interpolate("nearest-neighbour")
+    assert MEMORY_CACHE.max_mem == 300 * 1024 * 1024
+    assert MEMORY_CACHE.hits == 1
+    assert MEMORY_CACHE.misses == 2
+    mem_nn = MEMORY_CACHE.curr_mem - mem_linear
+    MEMORY_CACHE.info() == (1, 2, 300 * 1024 * 1024, MEMORY_CACHE.curr_mem, 2)
+
+    run_interpolate("nearest-neighbour")
+    assert MEMORY_CACHE.max_mem == 300 * 1024 * 1024
+    assert MEMORY_CACHE.hits == 2
+    assert MEMORY_CACHE.misses == 2
+    assert MEMORY_CACHE.info() == (2, 2, 300 * 1024 * 1024, MEMORY_CACHE.curr_mem, 2)
+
+    # reduce max size so that only the second matrix fits.
+    # The first matrix should be evicted.
+    from earthkit.regrid.utils.caching import SETTINGS
+
+    max_mem = mem_nn + 10
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
+
+    MEMORY_CACHE.update()
+    assert MEMORY_CACHE.info() == (2, 2, max_mem, mem_nn, 1)
+
+
+def test_local_memcache_small():
+    from earthkit.regrid.utils.caching import SETTINGS
+
+    SETTINGS["maximum-matrix-memory-cache-size"] = 1
+
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.max_mem == 1
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, 1, 0, 0)
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 1
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 1
+    info = MEMORY_CACHE.info()
+    assert info.hits == 0
+    assert info.misses == 1
+    assert info.maxsize == 1
+    assert info.currsize == 0
+    assert info.count == 0
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 1
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 2
+    assert MEMORY_CACHE.info() == (0, 2, 1, 0, 0)
+
+
+def test_local_memcache_zero():
+    from earthkit.regrid.utils.caching import SETTINGS
+
+    SETTINGS["maximum-matrix-memory-cache-size"] = 0
+
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.info()
+
+    assert MEMORY_CACHE.max_mem == 0
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, 0, 0, 0)
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 0
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    info = MEMORY_CACHE.info()
+    assert info.hits == 0
+    assert info.misses == 0
+    assert info.maxsize == 0
+    assert info.currsize == 0
+    assert info.count == 0
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == 0
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, 0, 0, 0)
+
+
+def test_local_memcache_nolimit():
+    from earthkit.regrid.utils.caching import SETTINGS
+
+    SETTINGS["maximum-matrix-memory-cache-size"] = None
+
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.max_mem is None
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, None, 0, 0)
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem is None
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 1
+    info = MEMORY_CACHE.info()
+    assert info.hits == 0
+    assert info.misses == 1
+    assert info.maxsize is None
+    assert info.currsize > 0
+    assert info.count == 1
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem is None
+    assert MEMORY_CACHE.hits == 1
+    assert MEMORY_CACHE.misses == 1
+    assert MEMORY_CACHE.info() == (1, 1, None, MEMORY_CACHE.curr_mem, 1)

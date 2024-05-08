@@ -1,3 +1,10 @@
+# setuptools-scm
+version.py
+_version.py
+
+# Sphinx automatic generation of API
+docs/_api/
+
 _*
 *.yaml
 *.yml
@@ -12,6 +19,43 @@ local*
 *.grib2
 *.json
 *.npz
+
+
+### VisualStudioCode ###
+.vscode/
+# .vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
+# !.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# Support for Project snippet scope
+.vscode/*.code-snippets
+
+# Ignore code-workspaces
+*.code-workspace
+
+# Ignore cruft update files
+*.rej
+
+# mac
+.DS_Store
+
+# local code
+_dev
+
 
 # exceptions
 !subset/subset_db_conf.yaml

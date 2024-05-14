@@ -2,9 +2,16 @@ Version 0.3 Updates
 /////////////////////////
 
 
-Version 0.3.0
+Version 0.3.1
 ===============
 
+Fixes
+++++++++++++++++
+- fixed issue when failed to interpolate from certain reduced Gaussian grids (e.g. O2560, O1280) to regular latitude-longitude grids when the input was an earthkit-data GRIB :xref:`fieldlist`
+
+
+Version 0.3.0
+===============
 
 New features
 ++++++++++++++++

@@ -24,8 +24,8 @@ RGG_PATTERN = re.compile(r"[OoNn]\d+")
 # implementation is available via earthkit-geo.
 
 
-def same_coord(x, y):
-    return abs(x - y) < DEGREE_EPS
+def same_coord(x, y, eps=DEGREE_EPS):
+    return abs(x - y) < eps
 
 
 class GridSpec(dict):
@@ -86,9 +86,9 @@ class GridSpec(dict):
         return True
 
     @staticmethod
-    def same_area(area1, area2):
+    def same_area(area1, area2, eps=DEGREE_EPS):
         if len(area1) == len(area2):
-            return all(same_coord(v1, v2) for v1, v2 in zip(area1, area2))
+            return all(same_coord(v1, v2, eps=eps) for v1, v2 in zip(area1, area2))
         return False
 
     def has_default_area(self):
@@ -235,19 +235,20 @@ class ReducedGGGridSpec(GridSpec):
 
         self._octahedral = None
         self._N = None
+        self._eps = 0.12
 
     def __eq__(self, o):
         if not super().__eq__(o):
             return False
 
-        if self.same_area(self["area"], o["area"]):
+        if self.same_area(self["area"], o["area"], eps=self._eps):
             return True
 
         # check if west the same for global grids
         if self.is_global() and o.is_global():
             west = self.normalise_lon(self.west, 0)
             west_o = self.normalise_lon(o.west, 0)
-            if same_coord(west, west_o):
+            if same_coord(west, west_o, eps=self._eps):
                 return True
 
         # TODO: add code for non global grids

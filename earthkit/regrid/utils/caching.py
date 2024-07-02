@@ -46,8 +46,8 @@ SETTINGS = {
     "maximum-cache-size": 5 * 1024 * 1024 * 1024,
     "maximum-cache-disk-usage": 99,
     "url-download-timeout": 30,
-    "check-out-of-date-urls": True,
-    "download-out-of-date-urls": True,
+    "check-out-of-date-urls": False,
+    "download-out-of-date-urls": False,
     "temporary-cache-directory-root": None,
 }
 

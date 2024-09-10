@@ -10,6 +10,8 @@
 import logging
 import re
 
+import numpy as np
+
 LOG = logging.getLogger(__name__)
 
 FULL_GLOBE = 360.0
@@ -77,13 +79,28 @@ class GridSpec(dict):
             return False
 
         for k in self.COMPARE_KEYS:
-            if str(self[k]) != str(o[k]):
+            if not self.compare_key(k, self[k], o[k]):
                 return False
 
         if "shape" in self and "shape" in o:
             if self["shape"] != o["shape"]:
                 return False
         return True
+
+    @staticmethod
+    def compare_key(key, v1, v2):
+        if isinstance(v1, str) and isinstance(v2, str):
+            return v1 == v2
+        elif key == "grid" and isinstance(v1, list) and isinstance(v2, list):
+            return np.allclose(np.array(v1), np.array(v2), atol=1e-6)
+        elif isinstance(v1, list) and isinstance(v2, list):
+            return v1 == v2
+        elif isinstance(v1, float) and isinstance(v2, float):
+            return np.isclose(v1, v2)
+        elif isinstance(v1, int) and isinstance(v2, int):
+            return v1 == v2
+        else:
+            return str(v1) == str(v2)
 
     @staticmethod
     def same_area(area1, area2, eps=DEGREE_EPS):

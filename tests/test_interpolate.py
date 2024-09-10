@@ -7,42 +7,16 @@
 # nor does it submit to any jurisdiction.
 
 import os
+import sys
 
 import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
 
-PATH = os.path.dirname(__file__)
-
-URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
-
-
-def simple_download(url, target):
-    import requests
-
-    r = requests.get(url, allow_redirects=True)
-    r.raise_for_status()
-    open(target, "wb").write(r.content)
-
-
-def get_test_data(filename, subfolder="global_0_360"):
-    if not isinstance(filename, list):
-        filename = [filename]
-
-    res = []
-    for fn in filename:
-        d_path = os.path.join(PATH, "data", subfolder)
-        os.makedirs(d_path, exist_ok=True)
-        f_path = os.path.join(d_path, fn)
-        if not os.path.exists(f_path):
-            simple_download(url=f"{URL_ROOT}/{subfolder}/{fn}", target=f_path)
-        res.append(f_path)
-
-    if len(res) == 1:
-        return res[0]
-    else:
-        return res
+here = os.path.dirname(__file__)
+sys.path.insert(0, here)
+from testing import get_test_data  # noqa: E402
 
 
 @pytest.mark.download

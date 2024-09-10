@@ -10,27 +10,45 @@
 import logging
 import threading
 import time
-from collections import namedtuple
+from collections import OrderedDict, namedtuple
 
 from earthkit.regrid.utils.hash import make_sha
 
 LOG = logging.getLogger(__name__)
 
 
-_MatrixMemoryItem = namedtuple("MatrixMemoryItem", ["data", "size", "last"])
+_MemoryItem = namedtuple("MemoryItem", ["data", "size", "last"])
 _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize", "count"])
 
 
-class MatrixMemoryCache:
+def matrix_size(m):
+    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
+    m = m[0]
+    try:
+        # TODO: This works for bsr, csc and csr matrices but not for other types.
+        return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
+
+    except Exception as e:
+        print(e)
+        return 0
+
+
+class MemoryLRUCache:
     """Memory bound LRU cache for interpolation matrices"""
 
-    def __init__(self, max_mem=0):
+    def __init__(self, max_mem=0, size_fn=None, size_settings_key=None):
         """Create a new cache with a maximum memory size in bytes. 0 means no cache."""
-        self.items = {}
+        self.items = OrderedDict()
         self.max_mem = max_mem
         self.curr_mem = 0
         self.hits = 0
         self.misses = 0
+
+        if size_fn is None:
+            raise ValueError("size_fn must be provided")
+        self.size_fn = size_fn
+        self.size_settings_key = size_settings_key
+
         self.lock = threading.Lock()
         self.update()
 
@@ -44,43 +62,33 @@ class MatrixMemoryCache:
 
             key = make_sha(args)
             if key in self.items:
-                self.hits += 1
                 item = self.items[key]
-                self.items[key] = _MatrixMemoryItem(item.data, item.size, time.time())
+                self.items.move_to_end(key)
+                self.hits += 1
+                # item = self.items[key]
+                # self.items[key] = _MatrixMemoryItem(item.data, item.size, time.time())
                 return item.data
 
             data = create(*args)
-            self.items[key] = _MatrixMemoryItem(
-                data, MatrixMemoryCache._matrix_size(data), time.time()
-            )
+            self.items[key] = _MemoryItem(data, self.size_fn(data), time.time())
+            self.curr_mem += self.items[key].size
 
             self.misses += 1
             self._manage()
 
             return data
 
-    @staticmethod
-    def _matrix_size(m):
-        # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
-
-        m = m[0]
-        try:
-            # TODO: This works for bsr, csc and csr matrices but not for other types.
-            return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
-
-        except Exception:
-            return 0
-
     def update(self):
         """Called when settings change"""
-        from earthkit.regrid.utils.caching import SETTINGS
+        if self.size_settings_key:
+            from earthkit.regrid.utils.caching import SETTINGS
 
-        max_mem = SETTINGS.get("maximum-matrix-memory-cache-size", 0)
+            max_mem = SETTINGS.get(self.size_settings_key, self.max_mem)
 
-        with self.lock:
-            if self.max_mem != max_mem:
-                self.max_mem = max_mem
-                self._manage()
+            with self.lock:
+                if self.max_mem != max_mem:
+                    self.max_mem = max_mem
+                    self._manage()
 
     def _manage(self):
         # must be called within a lock
@@ -90,13 +98,18 @@ class MatrixMemoryCache:
             self.curr_mem = self._curr_mem()
 
             while self.curr_mem >= self.max_mem:
-                (
-                    _,
-                    oldest_key,
-                    oldest_item,
-                ) = min((v.last, k, v) for k, v in self.items.items())
-                self.curr_mem -= oldest_item.size
-                del self.items[oldest_key]
+                _, item = self.items.popitem(0)
+                self.curr_mem -= item.size
+                del item
+
+            # while self.curr_mem >= self.max_mem:
+            #     (
+            #         _,
+            #         oldest_key,
+            #         oldest_item,
+            #     ) = min((v.last, k, v) for k, v in self.items.items())
+            #     self.curr_mem -= oldest_item.size
+            #     del self.items[oldest_key]
         else:
             self.curr_mem = self._curr_mem()
 
@@ -122,6 +135,16 @@ class MatrixMemoryCache:
             return _CacheInfo(
                 self.hits, self.misses, self.max_mem, self.curr_mem, len(self.items)
             )
+
+
+class MatrixMemoryCache(MemoryLRUCache):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            size_fn=matrix_size,
+            size_settings_key="maximum-matrix-memory-cache-size",
+            **kwargs,
+        )
 
 
 MEMORY_CACHE = MatrixMemoryCache()

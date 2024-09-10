@@ -11,7 +11,6 @@ import json
 import logging
 import os
 from abc import ABCMeta, abstractmethod
-from functools import lru_cache
 
 from scipy.sparse import load_npz
 
@@ -52,6 +51,7 @@ class MatrixAccessor(metaclass=ABCMeta):
 class UrlAccessor(MatrixAccessor):
     def __init__(self, url):
         self._url = url
+        self._index_path = None
 
     def path(self):
         return self._url
@@ -59,8 +59,12 @@ class UrlAccessor(MatrixAccessor):
     def is_local(self):
         False
 
-    @lru_cache
     def index_path(self):
+        if self._index_path is None or not os.path.exists(self._index_path):
+            self._index_path = self.__index_path()
+        return self._index_path
+
+    def __index_path(self):
         from earthkit.regrid.utils.caching import cache_file
 
         url = os.path.join(self._url, _INDEX_FILENAME)
@@ -267,12 +271,11 @@ class MatrixIndex(dict):
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
 
-        # print(f"{gridspec_in=} {gridspec_out=} {method=}")
         if gridspec_in is None or gridspec_out is None:
             return None
 
         for _, entry in self.items():
-            if self.match(entry, gridspec_in, gridspec_out, method):
+            if MatrixIndex.match(entry, gridspec_in, gridspec_out, method):
                 return entry
         return None
 

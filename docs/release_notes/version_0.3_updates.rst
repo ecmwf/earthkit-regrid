@@ -2,12 +2,20 @@ Version 0.3 Updates
 /////////////////////////
 
 
+Version 0.3.3
+===============
+
+Fixes
+++++++++++++++++
+- fixed issue when failed to interpolate earthkit-data :xref:`fieldlist`\ s containing a regular latitude-longitude grid
+
+
 Version 0.3.2
 ===============
 
 Fixes
 ++++++++++++++++
-- fixed issue when  reading an interpolation matrix from the cache unnecessarily invoked checking of remote matrix files on download server
+- fixed issue when reading an interpolation matrix from the cache unnecessarily invoked checking of remote matrix files on download server
 
 
 Version 0.3.1

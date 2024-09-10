@@ -65,8 +65,6 @@ class MemoryLRUCache:
                 item = self.items[key]
                 self.items.move_to_end(key)
                 self.hits += 1
-                # item = self.items[key]
-                # self.items[key] = _MatrixMemoryItem(item.data, item.size, time.time())
                 return item.data
 
             data = create(*args)
@@ -101,15 +99,6 @@ class MemoryLRUCache:
                 _, item = self.items.popitem(0)
                 self.curr_mem -= item.size
                 del item
-
-            # while self.curr_mem >= self.max_mem:
-            #     (
-            #         _,
-            #         oldest_key,
-            #         oldest_item,
-            #     ) = min((v.last, k, v) for k, v in self.items.items())
-            #     self.curr_mem -= oldest_item.size
-            #     del self.items[oldest_key]
         else:
             self.curr_mem = self._curr_mem()
 

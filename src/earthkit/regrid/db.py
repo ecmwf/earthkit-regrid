@@ -268,8 +268,13 @@ class MatrixIndex(dict):
         return os.path.join(MatrixIndex.matrix_dir_name(item), item["_name"] + ".npz")
 
     def find(self, gridspec_in, gridspec_out, method):
-        gridspec_in = GridSpec.from_dict(gridspec_in)
-        gridspec_out = GridSpec.from_dict(gridspec_out)
+        if gridspec_in is None or gridspec_out is None:
+            return None
+
+        if not isinstance(gridspec_in, GridSpec):
+            gridspec_in = GridSpec.from_dict(gridspec_in)
+        if not isinstance(gridspec_out, GridSpec):
+            gridspec_out = GridSpec.from_dict(gridspec_out)
 
         if gridspec_in is None or gridspec_out is None:
             return None
@@ -356,6 +361,11 @@ class MatrixDb:
         **kwargs,
     ):
         from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+        gridspec_in = GridSpec.from_dict(gridspec_in)
+        gridspec_out = GridSpec.from_dict(gridspec_out)
+        if gridspec_in is None or gridspec_out is None:
+            return None, None
 
         return MEMORY_CACHE.get(
             gridspec_in, gridspec_out, method, create=self._create_matrix

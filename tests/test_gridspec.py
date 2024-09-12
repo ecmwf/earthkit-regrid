@@ -82,6 +82,7 @@ from earthkit.regrid.db import SYS_DB
         ),
         ({"grid": "H128"}, {"grid": [1, 1]}),
         ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
+        ({"grid": (5, 5)}, {"grid": (10, 10)}),
     ],
 )
 def test_gridspec_ok(gs_in, gs_out):

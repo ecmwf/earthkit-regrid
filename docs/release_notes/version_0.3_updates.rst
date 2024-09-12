@@ -6,7 +6,7 @@ Version 0.3.4
 
 Fixes
 ++++++++++++++++
-- fixed issue when the "grid" value in a gridspec cannot be specified as a tuple
+- fixed issue when the "grid" value in a gridspec could not be specified as a tuple
 
 
 Version 0.3.3

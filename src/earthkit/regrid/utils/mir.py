@@ -63,3 +63,14 @@ def mir_cached_matrix_to_file(path, target):
 
     z = mir_cached_matrix_to_array(path)
     save_npz(target, z)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Convert MIR matrix to npz")
+    parser.add_argument("input", help="Path to MIR matrix")
+    parser.add_argument("output", help="Path to output npz file")
+    args = parser.parse_args()
+
+    mir_cached_matrix_to_file(args.input, args.output)

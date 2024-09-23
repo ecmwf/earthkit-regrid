@@ -7,6 +7,7 @@
 # nor does it submit to any jurisdiction.
 #
 
+import functools
 from earthkit.regrid.db import find
 
 
@@ -53,6 +54,60 @@ class NumpyInterpolator:
         out_grid = kwargs.pop("out_grid")
         method = kwargs.pop("method")
         return _interpolate(values, in_grid, out_grid, method, **kwargs)
+    
+class XarrayInterpolator:
+    @staticmethod
+    def match(values):
+        try:
+            import xarray as xr
+
+            return isinstance(values, xr.DataArray) or isinstance(values, xr.Dataset)
+        except ImportError:
+            return False
+    
+    def __call__(self, values, **kwargs):
+        import xarray as xr
+        import numpy as np
+        
+        default_in_dims = None
+        match len(values.dims):
+            case 1:
+                default_in_dims = ["values"]
+            case 2:
+                default_in_dims = ['latitude', 'longitude']
+            case _:
+                if 'in_dims' not in kwargs:
+                    raise ValueError(f"Unknown number of dimensions: {len(values.dims)}")
+        
+        in_dims = kwargs.pop("in_dims", default_in_dims)
+        in_dims = [in_dims] if not isinstance(in_dims, list) else in_dims
+        out_dims = kwargs.pop("out_dims", ["latitude", "longitude"])
+        
+        in_grid = kwargs.pop("in_grid")
+        out_grid = kwargs.pop("out_grid")
+
+        assert in_grid is not None, "in_grid must be provided"
+        assert out_grid is not None, "out_grid must be provided"
+
+        if 'output_sizes' in kwargs:
+            output_sizes = kwargs.pop('output_sizes')
+        else:
+            xarray_shape = [values.sizes[dim] for dim in in_dims]
+            output_sizes = NumpyInterpolator()(np.zeros(xarray_shape), in_grid = in_grid, out_grid = out_grid, **kwargs).shape
+
+        return xr.apply_ufunc(
+            functools.partial(NumpyInterpolator(), in_grid = in_grid, out_grid = out_grid, **kwargs),
+            values,
+            input_core_dims=[in_dims],
+            output_core_dims=[out_dims],
+            vectorize=True,
+            dask = 'parallelized',
+            dask_gufunc_kwargs={
+                'output_sizes': {dim: output_sizes[i] for i, dim in enumerate(out_dims)},
+                'allow_rechunk': True,
+                },
+            output_dtypes=[values.dtype],
+        )
 
 
 class FieldListInterpolator:
@@ -91,4 +146,4 @@ class FieldListInterpolator:
         return r
 
 
-INTERPOLATORS = [NumpyInterpolator(), FieldListInterpolator()]
+INTERPOLATORS = [NumpyInterpolator(), FieldListInterpolator(), XarrayInterpolator()]

@@ -67,25 +67,17 @@ class XarrayInterpolator:
         except ImportError:
             return False
 
-    def __call__(self, values, **kwargs):
-        import numpy as np
-        import xarray as xr
-
-        default_in_dims = None
-        match len(values.dims):
+    def _find_dim_names(self, size):
+        match size:
             case 1:
-                default_in_dims = ["values"]
+                return ["values"]
             case 2:
-                default_in_dims = ["latitude", "longitude"]
+                return ["latitude", "longitude"]
             case _:
-                if "in_dims" not in kwargs:
-                    raise ValueError(
-                        f"Unknown number of dimensions: {len(values.dims)}"
-                    )
+                return None
 
-        in_dims = kwargs.pop("in_dims", default_in_dims)
-        in_dims = [in_dims] if not isinstance(in_dims, list) else in_dims
-        out_dims = kwargs.pop("out_dims", ["latitude", "longitude"])
+    def __call__(self, values, **kwargs):
+        import xarray as xr
 
         in_grid = kwargs.pop("in_grid")
         out_grid = kwargs.pop("out_grid")
@@ -93,13 +85,21 @@ class XarrayInterpolator:
         assert in_grid is not None, "in_grid must be provided"
         assert out_grid is not None, "out_grid must be provided"
 
-        if "output_sizes" in kwargs:
-            output_sizes = kwargs.pop("output_sizes")
-        else:
-            xarray_shape = [values.sizes[dim] for dim in in_dims]
-            output_sizes = NumpyInterpolator()(
-                np.zeros(xarray_shape), in_grid=in_grid, out_grid=out_grid, **kwargs
-            ).shape
+        _, shape = find(in_grid, out_grid, **kwargs)
+
+        default_in_dims = self._find_dim_names(len(values.dims))
+        if "in_dims" not in kwargs and default_in_dims is None:
+            raise ValueError(f"Unknown number of input dimensions: {len(values.dims)}")
+
+        in_dims = kwargs.pop("in_dims", default_in_dims)
+        in_dims = [in_dims] if not isinstance(in_dims, list) else in_dims
+
+        default_out_dims = self._find_dim_names(len(shape))
+        if "out_dims" not in kwargs and default_out_dims is None:
+            raise ValueError("Unknown number of output dimensions.")
+
+        out_dims = kwargs.pop("out_dims", default_out_dims)
+        out_dims = [out_dims] if not isinstance(out_dims, list) else out_dims
 
         return xr.apply_ufunc(
             functools.partial(
@@ -111,9 +111,7 @@ class XarrayInterpolator:
             vectorize=True,
             dask="parallelized",
             dask_gufunc_kwargs={
-                "output_sizes": {
-                    dim: output_sizes[i] for i, dim in enumerate(out_dims)
-                },
+                "output_sizes": {dim: shape[i] for i, dim in enumerate(out_dims)},
                 "allow_rechunk": True,
             },
             output_dtypes=[values.dtype],

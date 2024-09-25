@@ -79,7 +79,10 @@ class XarrayInterpolator:
     def __call__(self, values, **kwargs):
         import xarray as xr
 
-        in_grid = kwargs.pop("in_grid")
+        in_grid = kwargs.pop("in_grid", None)
+        if in_grid is None:
+            in_grid = values.attrs.get("gridspec", None)
+
         out_grid = kwargs.pop("out_grid")
 
         assert in_grid is not None, "in_grid must be provided"

@@ -52,9 +52,17 @@ class GridSpec(dict):
         super().__init__(gs)
 
     @staticmethod
+    def _normalise(d):
+        for k, v in d.items():
+            if isinstance(v, tuple):
+                d[k] = list(v)
+
+    @staticmethod
     def from_dict(d):
         gs = dict(GridSpec.DEFAULTS)
         gs.update(d)
+        GridSpec._normalise(gs)
+
         t_name, t = GridSpec._infer_spec_type(gs)
         if t is None:
             raise ValueError(f"Unsupported gridspec={d}")

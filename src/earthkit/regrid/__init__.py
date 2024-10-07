@@ -17,8 +17,10 @@ except ImportError:  # pragma: no cover
 
 
 from earthkit.regrid.interpolate import interpolate
+from earthkit.regrid.utils.memcache import set_memory_cache
 
 __all__ = [
     "interpolate",
+    "set_memory_cache",
     "__version__",
 ]

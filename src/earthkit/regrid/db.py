@@ -326,6 +326,11 @@ class MatrixIndex(dict):
             res["matrix"][entry["_name"]] = entry["_raw"]
         return res
 
+    def estimate_memory(self):
+        # gs_in = self["input"]
+        # gs_out = self["output"]
+        return 0
+
 
 class MatrixDb:
     def __init__(self, accessor):
@@ -368,14 +373,23 @@ class MatrixDb:
             return None, None
 
         return MEMORY_CACHE.get(
-            gridspec_in, gridspec_out, method, create=self._create_matrix
+            gridspec_in,
+            gridspec_out,
+            method,
+            create=self._create_matrix,
+            find_entry=self.find_entry,
+            create_from_entry=self._create_matrix_from_entry,
+            **kwargs,
         )
 
         # return self._create_matrix(gridspec_in, gridspec_out, method)
 
     def _create_matrix(self, gridspec_in, gridspec_out, method):
-        entry = self.find_entry(gridspec_in, gridspec_out, method)
+        return self._create_matrix_from_entry(
+            self.find_entry(gridspec_in, gridspec_out, method)
+        )
 
+    def _create_matrix_from_entry(self, entry):
         if entry is not None:
             z = self.load_matrix(entry)
             return z, entry["output"]["shape"]
@@ -413,7 +427,7 @@ class MatrixDb:
             if not dry_run:
                 raise FileExistsError(f"target file already exists! {target_file}")
             else:
-                LOG.warn("target file already exists! {target_file}")
+                LOG.warning("target file already exists! {target_file}")
 
         target_dir = os.path.dirname(target_file)
 

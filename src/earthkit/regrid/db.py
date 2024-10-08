@@ -326,11 +326,6 @@ class MatrixIndex(dict):
             res["matrix"][entry["_name"]] = entry["_raw"]
         return res
 
-    def estimate_memory(self):
-        # gs_in = self["input"]
-        # gs_out = self["output"]
-        return 0
-
 
 class MatrixDb:
     def __init__(self, accessor):

@@ -14,8 +14,8 @@ import pytest
 from earthkit.regrid import interpolate
 from earthkit.regrid.utils.caching import SETTINGS
 
-DEFAULT_MAX_MEM = SETTINGS["maximum-matrix-in-memory-cache-size"]
-DEFAULT_POLICY = SETTINGS["matrix-in-memory-cache-policy"]
+DEFAULT_MAX_MEM = SETTINGS["maximum-matrix-memory-cache-size"]
+DEFAULT_POLICY = SETTINGS["matrix-memory-cache-policy"]
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
@@ -40,6 +40,16 @@ def run_interpolate(mode):
     )
 
 
+@pytest.fixture
+def patch_estimate_matrix_memory(monkeypatch):
+    from earthkit.regrid.db import MatrixIndex
+
+    def patched_estimate_memory(self):
+        return 200000
+
+    monkeypatch.setattr(MatrixIndex, "estimate_memory", patched_estimate_memory)
+
+
 @pytest.mark.parametrize(
     "policy,adjust_to, evict",
     [("lru", "second", "first"), ("largest", "second", "first")],
@@ -50,8 +60,8 @@ def test_local_memcache_core_1(policy, adjust_to, evict):
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
     max_mem = 300 * 1024 * 1024
-    SETTINGS["matrix-in-memory-cache-policy"] = policy
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -103,7 +113,7 @@ def test_local_memcache_core_1(policy, adjust_to, evict):
     else:
         raise ValueError(f"Invalid adjust_to value: {adjust_to}")
 
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.update()
     if evict == "first":
@@ -124,8 +134,8 @@ def test_local_memcache_core_2(policy, adjust_to, evict):
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
     max_mem = 300 * 1024 * 1024
-    SETTINGS["matrix-in-memory-cache-policy"] = policy
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -176,7 +186,7 @@ def test_local_memcache_core_2(policy, adjust_to, evict):
     else:
         raise ValueError(f"Invalid adjust_to value: {adjust_to}")
 
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.update()
     if evict == "first":
@@ -194,8 +204,8 @@ def test_local_memcache_small(policy):
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
     max_mem = 1
-    SETTINGS["matrix-in-memory-cache-policy"] = policy
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -229,8 +239,8 @@ def test_local_memcache_off_policy():
 
     policy = "off"
     max_mem = 0
-    SETTINGS["matrix-in-memory-cache-policy"] = policy
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = max_mem
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -265,8 +275,8 @@ def test_local_memcache_unlimited():
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
     policy = "unlimited"
-    SETTINGS["matrix-in-memory-cache-policy"] = policy
-    SETTINGS["maximum-matrix-in-memory-cache-size"] = None
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = None
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -292,3 +302,89 @@ def test_local_memcache_unlimited():
     assert MEMORY_CACHE.hits == 1
     assert MEMORY_CACHE.misses == 1
     assert MEMORY_CACHE.info() == (1, 1, None, MEMORY_CACHE.curr_mem, 1, policy)
+
+
+def test_local_memcache_ensure_pre_check_1(monkeypatch):
+    """Test the cache with a memory limit that is too small to hold any estimated matrix size"""
+    from earthkit.regrid.utils.caching import SETTINGS
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    policy = "largest"
+    max_mem = 300 * 1024 * 1024
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
+    SETTINGS["pre-check-matrix-size"] = True
+    SETTINGS["ensure-matrix-memory-cache-capacity"] = True
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.max_mem == max_mem
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, max_mem, 0, 0, policy)
+
+    def _estimate_memory(entry):
+        return max_mem + 1
+
+    from earthkit.regrid.utils import memcache
+
+    monkeypatch.setattr(memcache, "estimate_matrix_size", _estimate_memory)
+
+    with pytest.raises(ValueError):
+        run_interpolate("linear")
+
+
+def test_local_memcache_pre_check_2(monkeypatch):
+    """Test the cache with a memory limit that can only hold one estimated matrix size"""
+    from earthkit.regrid.utils.caching import SETTINGS
+    from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
+    policy = "largest"
+    max_mem = 300 * 1024 * 1024
+    SETTINGS["matrix-memory-cache-policy"] = policy
+    SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
+    SETTINGS["pre-check-matrix-size"] = True
+    SETTINGS["ensure-matrix-memory-cache-capacity"] = True
+
+    MEMORY_CACHE.clear()
+    MEMORY_CACHE.update()
+
+    assert MEMORY_CACHE.max_mem == max_mem
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 0
+    assert MEMORY_CACHE.info() == (0, 0, max_mem, 0, 0, policy)
+
+    def _estimate_memory(entry):
+        return max_mem - 1
+
+    from earthkit.regrid.utils import memcache
+
+    monkeypatch.setattr(memcache, "estimate_matrix_size", _estimate_memory)
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == max_mem
+    assert MEMORY_CACHE.hits == 0
+    assert MEMORY_CACHE.misses == 1
+    info = MEMORY_CACHE.info()
+    assert info.hits == 0
+    assert info.misses == 1
+    assert info.maxsize == max_mem
+    assert info.currsize > 0
+    assert info.count == 1
+    mem_first = info.currsize
+
+    run_interpolate("linear")
+    assert MEMORY_CACHE.max_mem == max_mem
+    assert MEMORY_CACHE.hits == 1
+    assert MEMORY_CACHE.misses == 1
+    assert MEMORY_CACHE.info() == (1, 1, max_mem, MEMORY_CACHE.curr_mem, 1, policy)
+
+    # The first matrix should be evicted
+    run_interpolate("nearest-neighbour")
+    assert MEMORY_CACHE.max_mem == max_mem
+    assert MEMORY_CACHE.hits == 1
+    assert MEMORY_CACHE.misses == 2
+    info = MEMORY_CACHE.info()
+    assert info.currsize < mem_first
+    assert MEMORY_CACHE.info() == (1, 2, max_mem, MEMORY_CACHE.curr_mem, 1, policy)

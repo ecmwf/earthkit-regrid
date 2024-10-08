@@ -49,9 +49,10 @@ SETTINGS = {
     "check-out-of-date-urls": False,
     "download-out-of-date-urls": False,
     "temporary-cache-directory-root": None,
-    "maximum-matrix-in-memory-cache-size": 300 * 1024 * 1024,
-    "matrix-in-memory-cache-policy": "largest",
-    "ensure-matrix-fits-in-memory-cache": False,
+    "maximum-matrix-memory-cache-size": 300 * 1024 * 1024,
+    "matrix-memory-cache-policy": "largest",
+    "pre-check-matrix-size": False,
+    "ensure-matrix-memory-cache-capacity": False,
 }
 
 

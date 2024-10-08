@@ -23,7 +23,7 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
    :caption: Documentation
 
    interpolate
-   set_memory_cache
+   memory_cache
    gridspec
    inventory/index
 

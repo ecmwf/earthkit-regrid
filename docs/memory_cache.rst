@@ -27,7 +27,7 @@ Memory cache
 
     *New in version 0.4.0.*
 
-    Clears the in-memory cache used to store interpolation matrices.
+    Clear the in-memory cache used to store interpolation matrices.
 
 
 .. py:function:: memory_cache_info()

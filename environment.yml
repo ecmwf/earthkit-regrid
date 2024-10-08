@@ -22,3 +22,4 @@ dependencies:
 - nbconvert
 - nbsphinx
 - ipykernel
+- sphinx-issues

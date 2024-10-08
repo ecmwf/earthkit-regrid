@@ -33,9 +33,15 @@ copyright = "%s, European Centre for Medium-Range Weather Forecasts (ECMWF)" % (
 extensions = [
     "sphinx_rtd_theme",
     "nbsphinx",
+    "sphinx_issues",
     "earthkit.regrid.sphinxext.xref",
     "earthkit.regrid.sphinxext.module_output",
 ]
+
+
+# Path to GitHub repo {group}/{project}  (note that `group` is the GitHub user or organization)
+issues_github_path = "ecmwf/earthkit-regrid"
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

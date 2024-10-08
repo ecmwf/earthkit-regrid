@@ -17,6 +17,7 @@ from scipy.sparse import load_npz
 from earthkit.regrid.gridspec import GridSpec
 from earthkit.regrid.utils import no_progress_bar
 from earthkit.regrid.utils.download import download_and_cache
+from earthkit.regrid.utils.hash import make_sha
 
 LOG = logging.getLogger(__name__)
 
@@ -26,20 +27,7 @@ _SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/db/1/"
 _INDEX_FILENAME = "index.json"
 _INDEX_SHA_FILENAME = "index.json.sha256"
 _INDEX_GZ_FILENAME = "index.json.gz"
-
-
 _METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest-neighbor")}
-
-
-def make_sha(data):
-    import hashlib
-
-    m = hashlib.sha256()
-    if isinstance(data, str):
-        m.update(data.encode("utf-8"))
-    else:
-        m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
-    return m.hexdigest()
 
 
 class MatrixAccessor(metaclass=ABCMeta):
@@ -280,8 +268,13 @@ class MatrixIndex(dict):
         return os.path.join(MatrixIndex.matrix_dir_name(item), item["_name"] + ".npz")
 
     def find(self, gridspec_in, gridspec_out, method):
-        gridspec_in = GridSpec.from_dict(gridspec_in)
-        gridspec_out = GridSpec.from_dict(gridspec_out)
+        if gridspec_in is None or gridspec_out is None:
+            return None
+
+        if not isinstance(gridspec_in, GridSpec):
+            gridspec_in = GridSpec.from_dict(gridspec_in)
+        if not isinstance(gridspec_out, GridSpec):
+            gridspec_out = GridSpec.from_dict(gridspec_out)
 
         if gridspec_in is None or gridspec_out is None:
             return None
@@ -367,8 +360,31 @@ class MatrixDb:
         method,
         **kwargs,
     ):
-        entry = self.find_entry(gridspec_in, gridspec_out, method)
+        from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
+        gridspec_in = GridSpec.from_dict(gridspec_in)
+        gridspec_out = GridSpec.from_dict(gridspec_out)
+        if gridspec_in is None or gridspec_out is None:
+            return None, None
+
+        return MEMORY_CACHE.get(
+            gridspec_in,
+            gridspec_out,
+            method,
+            create=self._create_matrix,
+            find_entry=self.find_entry,
+            create_from_entry=self._create_matrix_from_entry,
+            **kwargs,
+        )
+
+        # return self._create_matrix(gridspec_in, gridspec_out, method)
+
+    def _create_matrix(self, gridspec_in, gridspec_out, method):
+        return self._create_matrix_from_entry(
+            self.find_entry(gridspec_in, gridspec_out, method)
+        )
+
+    def _create_matrix_from_entry(self, entry):
         if entry is not None:
             z = self.load_matrix(entry)
             return z, entry["output"]["shape"]
@@ -406,7 +422,7 @@ class MatrixDb:
             if not dry_run:
                 raise FileExistsError(f"target file already exists! {target_file}")
             else:
-                LOG.warn("target file already exists! {target_file}")
+                LOG.warning("target file already exists! {target_file}")
 
         target_dir = os.path.dirname(target_file)
 

@@ -11,3 +11,4 @@ Here is a list of example notebooks to illustrate how to use earthkit-regrid.
     numpy_arrays.ipynb
     healpix_fieldlist.ipynb
     octahedral_fieldlist.ipynb
+    memory_cache.ipynb

@@ -77,7 +77,7 @@ class NoPolicy(MemoryCachePolicy):
     def check(self):
         self.cache.max_mem = 0
         self.cache.pre_check_matrix_size = False
-        self.ensure_capacity = False
+        self.cache.ensure_capacity = False
 
     def reduce(self, *args, **kwargs):
         self.cache._clear()
@@ -95,7 +95,7 @@ class UnlimitedPolicy(MemoryCachePolicy):
     def check(self):
         self.cache.max_mem = None
         self.cache.pre_check_matrix_size = False
-        self.ensure_capacity = False
+        self.cache.ensure_capacity = False
 
     def reduce(self, *args, **kwargs):
         # must be called within a lock

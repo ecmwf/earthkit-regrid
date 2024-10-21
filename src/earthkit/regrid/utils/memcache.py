@@ -349,6 +349,7 @@ class MemoryCache:
             )
 
     def _capacity(self):
+        # must be called within a lock
         return self.max_mem - self.curr_mem
 
 
@@ -364,6 +365,7 @@ class MatrixMemoryCache(MemoryCache):
 MEMORY_CACHE = MatrixMemoryCache()
 
 
+# TODO: enable the commented out options when estimate_matrix_size is implemented
 def set_memory_cache(
     policy="largest",
     max_size=300 * 1024 * 1024,

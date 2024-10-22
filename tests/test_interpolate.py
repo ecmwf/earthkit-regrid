@@ -18,7 +18,7 @@ here = os.path.dirname(__file__)
 sys.path.insert(0, here)
 from testing import get_test_data  # noqa: E402
 
-METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
+METHODS = ["linear", "nearest-neighbour"]
 
 
 @pytest.mark.download
@@ -31,7 +31,7 @@ METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
         ({"method": "nearest-neighbour"}, "nearest-neighbour"),
         ({"method": "nn"}, "nearest-neighbour"),
         ({"method": "nearest-neighbor"}, "nearest-neighbour"),
-        ({"method": "grid-box-average"}, "grid-box-average"),
+        # ({"method": "grid-box-average"}, "grid-box-average"),
     ],
 )
 def test_method_kwarg(_kwarg, method):

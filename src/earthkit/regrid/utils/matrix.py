@@ -94,7 +94,6 @@ def make_matrix(
     m["output"] = entry["output"]
     m["interpolation"] = inter_ori
     key = make_sha(m)
-    print("key=", key)
     name = key
 
     print(f"entry={entry}")

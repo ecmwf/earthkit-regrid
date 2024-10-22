@@ -44,8 +44,8 @@ _GRIDBOX_DEFAULT = {
 def is_gridbox_default(inter):
     """Check if the interpolation method is the default grid-box-average.
 
-    In this case the should be just the string "grid-box-average" but it
-    contains a dictionary. Until it is fixed in MIR we have to check if
+    In this case it should be just the string "grid-box-average" but now it
+    is a dictionary. Until it is fixed in MIR we need this check.
     """
     method = inter["method"]
     if isinstance(method, dict):

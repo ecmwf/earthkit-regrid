@@ -369,6 +369,177 @@
                 "version": 16,
                 "method": "linear"
             }
+        },
+        "cbacaaaea92d359ae4871bba749efc065d5e82120cfe5913b55c301b721a28ca": {
+            "input": {
+                "grid": [
+                    5,
+                    5
+                ],
+                "shape": [
+                    37,
+                    72
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    355
+                ],
+                "global": 1
+            },
+            "output": {
+                "grid": [
+                    10,
+                    10
+                ],
+                "shape": [
+                    19,
+                    36
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    350
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "grid-box-average"
+            }
+        },
+        "c8674db3eefc03c3585882ea19701cba805302ce9dfd4793056ebe8397823dc9": {
+            "input": {
+                "grid": "N32",
+                "shape": [
+                    6114
+                ],
+                "area": [
+                    87.8638,
+                    0,
+                    -87.8638,
+                    357.188
+                ],
+                "global": 1
+            },
+            "output": {
+                "grid": [
+                    10,
+                    10
+                ],
+                "shape": [
+                    19,
+                    36
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    350
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "grid-box-average"
+            }
+        },
+        "81c23fef9d6ec78d5d1ea6dca11a1efed4baa1f30a7e4acaecb4f749b302ebd3": {
+            "input": {
+                "grid": "O32",
+                "shape": [
+                    5248
+                ],
+                "area": [
+                    87.8638,
+                    0,
+                    -87.8638,
+                    357.5
+                ],
+                "global": 1
+            },
+            "output": {
+                "grid": [
+                    10,
+                    10
+                ],
+                "shape": [
+                    19,
+                    36
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    350
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "grid-box-average"
+            }
+        },
+        "866c6b1ab08188f5aff1e4f4970bc645db96221efd00eb2c39a09e41358d336f": {
+            "input": {
+                "grid": "H4",
+                "ordering": "ring"
+            },
+            "output": {
+                "grid": [
+                    10,
+                    10
+                ],
+                "shape": [
+                    19,
+                    36
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    350
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "grid-box-average"
+            }
+        },
+        "8657a45f767860b06a1a4fd5d31f2c96b4a77b75f12868fa6d190ae334342a64": {
+            "input": {
+                "grid": "H4",
+                "ordering": "nested"
+            },
+            "output": {
+                "grid": [
+                    10,
+                    10
+                ],
+                "shape": [
+                    19,
+                    36
+                ],
+                "area": [
+                    90,
+                    0,
+                    -90,
+                    350
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "grid-box-average"
+            }
         }
     }
 }

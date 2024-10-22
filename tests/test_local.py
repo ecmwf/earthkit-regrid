@@ -16,6 +16,7 @@ from earthkit.regrid.db import add_matrix_source
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
+METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
 def file_in_testdir(filename):
@@ -34,9 +35,9 @@ def test_local_index():
     index_path = DB.index_file_path()
     with open(index_path, "r") as f:
         d = json.load(f)
-        assert len(d["matrix"]) == 11
+        assert len(d["matrix"]) == 16
 
-    assert len(DB) == 10
+    assert len(DB) == 15
 
     # r = DB.find_entry({"grid": [5, 5]}, {"grid": [10, 10]}, method)
     # assert r
@@ -51,7 +52,7 @@ def test_local_index():
     assert r is None
 
 
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_local_ll_to_ll(method):
     v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{method}.npz"))["arr_0"]
@@ -63,7 +64,7 @@ def test_local_ll_to_ll(method):
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_local_ogg_to_ll(method):
     v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_O32_10x10_{method}.npz"))["arr_0"]
@@ -75,7 +76,7 @@ def test_local_ogg_to_ll(method):
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_local_ngg_to_ll(method):
     v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
@@ -91,7 +92,7 @@ def test_local_ngg_to_ll(method):
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_local_healpix_ring_to_ll(method):
     v_in = np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{method}.npz"))["arr_0"]
@@ -107,7 +108,7 @@ def test_local_healpix_ring_to_ll(method):
     assert np.allclose(v_res.flatten(), v_ref)
 
 
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_local_healpix_nested_to_ll(method):
     v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{method}.npz"))["arr_0"]

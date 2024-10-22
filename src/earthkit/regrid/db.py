@@ -30,6 +30,31 @@ _INDEX_GZ_FILENAME = "index.json.gz"
 
 _METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest-neighbor")}
 
+_GRIDBOX_DEFAULT = {
+    "type": "grid-box-average",
+    "nonLinear": [{"type": "missing-if-heaviest-missing"}],
+    "solver": {"type": "multiply"},
+    "cropping": False,
+    "lsmWeightAdjustment": 0.2,
+    "pruneEpsilon": 1e-10,
+    "poleDisplacement": 0,
+}
+
+
+def is_gridbox_default(inter):
+    """Check if the interpolation method is the default grid-box-average.
+
+    In this case it should be just the string "grid-box-average" but now it
+    is a dictionary. Until it is fixed in MIR we need this check.
+    """
+    method = inter["method"]
+    if isinstance(method, dict):
+        return method == _GRIDBOX_DEFAULT
+    elif isinstance(method, str):
+        return method == "grid-box-average"
+    else:
+        return False
+
 
 def make_sha(data):
     import hashlib
@@ -258,10 +283,30 @@ class MatrixIndex(dict):
                     pass
 
     @staticmethod
-    def make_interpolation_uid(item):
+    def interpolation_method_name(item):
         inter = item["interpolation"]
         method = inter["method"]
-        if set(inter.keys()) == {"method", "engine", "version"}:
+        if isinstance(method, str):
+            return method
+        if isinstance(method, dict):
+            return method["type"]
+
+        raise ValueError(f"Invalid interpolation method: {method}")
+
+    @staticmethod
+    def interpolation_method(item):
+        return item["interpolation"]["method"]
+
+    @staticmethod
+    def make_interpolation_uid(item):
+        inter = item["interpolation"]
+        method = MatrixIndex.interpolation_method_name(item)
+        # TODO: remove this when MIR is fixed
+        if method == "grid-box-average" and is_gridbox_default(inter):
+            uid = method
+        elif isinstance(MatrixIndex.interpolation_method(item), dict):
+            uid = make_sha(inter)
+        elif set(inter.keys()) == {"method", "engine", "version"}:
             uid = method
         else:
             uid = make_sha(inter)
@@ -269,11 +314,15 @@ class MatrixIndex(dict):
 
     @staticmethod
     def matrix_dir_name(item):
+        # TODO: review this logic when non-default interpolation options will
+        # be available for a given method
         inter = item["interpolation"]
         engine = inter["engine"]
         version = inter["version"]
-        uid = inter.get("_uid", inter["method"])
-        return f"{engine}_{version}_{uid}"
+        method_name = MatrixIndex.interpolation_method_name(item)
+        # uid =  inter.get("_uid", method_name)
+        # uid = inter.get("_uid", inter["method"])
+        return f"{engine}_{version}_{method_name}"
 
     @staticmethod
     def matrix_path(item):
@@ -282,7 +331,6 @@ class MatrixIndex(dict):
     def find(self, gridspec_in, gridspec_out, method):
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
-
         if gridspec_in is None or gridspec_out is None:
             return None
 
@@ -294,7 +342,7 @@ class MatrixIndex(dict):
     @staticmethod
     def match(item, gs_in, gs_out, method):
         if (
-            item["interpolation"]["method"] == method
+            MatrixIndex.interpolation_method_name(item) == method
             and item["input"] == gs_in
             and item["output"] == gs_out
         ):
@@ -368,7 +416,6 @@ class MatrixDb:
         **kwargs,
     ):
         entry = self.find_entry(gridspec_in, gridspec_out, method)
-
         if entry is not None:
             z = self.load_matrix(entry)
             return z, entry["output"]["shape"]

@@ -57,6 +57,13 @@ def make_sha(d):
     return m.hexdigest()
 
 
+def get_method_name(entry):
+    method = entry["interpolation"]["method"]
+    if isinstance(method, dict):
+        method = method["type"]
+    return method
+
+
 def make_matrix(
     input_path, output_path, index_file=None, global_input=None, global_output=None
 ):
@@ -64,10 +71,13 @@ def make_matrix(
         entry = json.load(f)
 
     inter_ori = dict(entry["interpolation"])
-    method = entry["interpolation"]["method"]
+    method_name = MatrixIndex.interpolation_method_name(entry)
+
     uid = MatrixIndex.make_interpolation_uid(entry)
-    if uid != method:
+    if uid != method_name:
         entry["interpolation"]["_uid"] = uid
+    else:
+        entry["interpolation"]["method"] = method_name
 
     # create output folder
     matrix_output_path = os.path.join(
@@ -84,6 +94,7 @@ def make_matrix(
     m["output"] = entry["output"]
     m["interpolation"] = inter_ori
     key = make_sha(m)
+    print("key=", key)
     name = key
 
     print(f"entry={entry}")

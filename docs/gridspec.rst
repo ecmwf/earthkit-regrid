@@ -54,3 +54,37 @@ Example:
 .. code-block::
 
     {"grid": [1, 1]}
+
+
+
+HEALPix nested grid
+------------------------------------------
+
+The ``grid`` format is::
+
+    HXXX
+
+The ``ordering`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+
+Example:
+
+.. code-block::
+
+    {"grid": "H512", "ordering": "nested"}
+
+
+HEALPix ring grid
+------------------------------------------
+
+The ``grid`` format is::
+
+    HXXX
+
+The ``ordering`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+
+Example:
+
+.. code-block::
+
+    {"grid": "H512", "ordering": "ring"}
+    {"grid": "H512"}

@@ -70,9 +70,9 @@ xref_links = {
         "earthkit-data",
         "https://earthkit-data.readthedocs.io/en/latest/",
     ),
-    "earthkit-maps": (
-        "earthkit-maps",
-        "https://earthkit-maps.readthedocs.io/en/latest/",
+    "earthkit-plots": (
+        "earthkit-plots",
+        "https://earthkit-plots.readthedocs.io/en/latest/",
     ),
     "fieldlist": (
         "fieldlist",

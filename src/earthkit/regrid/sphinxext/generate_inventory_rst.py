@@ -23,7 +23,12 @@ BLOCK_COL_NUM = 3
 def to_str(gs):
     if isinstance(gs, str):
         return gs
-    return {"grid": gs["grid"]}
+
+    grid = gs["grid"]
+    if isinstance(grid, str) and grid.startswith("H"):
+        return {"grid": gs["grid"], "ordering": gs["ordering"]}
+    else:
+        return {"grid": gs["grid"]}
 
 
 def make_gs_block(source, target):

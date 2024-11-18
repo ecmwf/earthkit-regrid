@@ -123,6 +123,8 @@ def load_matrix_index_file():
         gs_in = GridSpec.from_dict(entry["input"])
         gs_out = GridSpec.from_dict(entry["output"])
 
+        # only entires available for interpolation will
+        # be considered for the inventory
         if entry["interpolation"]["method"] == "linear":
             # key = dict(grid=gs_in["grid"])
             key = dict(gs_in)

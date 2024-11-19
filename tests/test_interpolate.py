@@ -18,6 +18,8 @@ here = os.path.dirname(__file__)
 sys.path.insert(0, here)
 from testing import get_test_data  # noqa: E402
 
+METHODS = ["linear", "nearest-neighbour"]
+
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
@@ -29,6 +31,7 @@ from testing import get_test_data  # noqa: E402
         ({"method": "nearest-neighbour"}, "nearest-neighbour"),
         ({"method": "nn"}, "nearest-neighbour"),
         ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+        # ({"method": "grid-box-average"}, "grid-box-average"),
     ],
 )
 def test_method_kwarg(_kwarg, method):
@@ -61,50 +64,20 @@ def _ll_to_ll(method):
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_ll_to_ll(method):
     _ll_to_ll(method)
 
-    # f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{method}.npz"])
-
-    # v_in = np.load(f_in)["arr_0"]
-    # v_ref = np.load(f_out)["arr_0"]
-    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
-
-    # assert v_res.shape == (19, 36), 1
-    # assert np.allclose(v_res.flatten(), v_ref), 1
-
-    # # repeated use
-    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, method=method)
-
-    # assert v_res.shape == (19, 36), 1
-    # assert np.allclose(v_res.flatten(), v_ref), 1
-
 
 @pytest.mark.download
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_ll_to_ll_user_cache(method):
     _ll_to_ll(method)
-
-    # f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{MATRIX_VERSION}.npz"])
-
-    # v_in = np.load(f_in)["arr_0"]
-    # v_ref = np.load(f_out)["arr_0"]
-    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
-
-    # assert v_res.shape == (19, 36), 1
-    # assert np.allclose(v_res.flatten(), v_ref), 1
-
-    # # repeated use
-    # v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]})
-
-    # assert v_res.shape == (19, 36), 1
-    # assert np.allclose(v_res.flatten(), v_ref), 1
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_ogg_to_ll(method):
     f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{method}.npz"])
 
@@ -118,7 +91,7 @@ def test_ogg_to_ll(method):
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_ngg_to_ll(method):
     f_in, f_out = get_test_data(["in_N32.npz", f"out_N32_10x10_{method}.npz"])
 
@@ -132,7 +105,7 @@ def test_ngg_to_ll(method):
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_healpix_ring_to_ll(method):
     f_in, f_out = get_test_data(["in_H4_ring.npz", f"out_H4_ring_10x10_{method}.npz"])
 
@@ -148,7 +121,7 @@ def test_healpix_ring_to_ll(method):
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-@pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+@pytest.mark.parametrize("method", METHODS)
 def test_healpix_nested_to_ll(method):
     f_in, f_out = get_test_data(
         ["in_H4_nested.npz", f"out_H4_nested_10x10_{method}.npz"]

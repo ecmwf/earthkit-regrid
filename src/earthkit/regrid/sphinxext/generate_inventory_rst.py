@@ -23,7 +23,12 @@ BLOCK_COL_NUM = 3
 def to_str(gs):
     if isinstance(gs, str):
         return gs
-    return {"grid": gs["grid"]}
+
+    grid = gs["grid"]
+    if isinstance(grid, str) and grid.startswith("H"):
+        return {"grid": gs["grid"], "ordering": gs["ordering"]}
+    else:
+        return {"grid": gs["grid"]}
 
 
 def make_gs_block(source, target):
@@ -118,6 +123,8 @@ def load_matrix_index_file():
         gs_in = GridSpec.from_dict(entry["input"])
         gs_out = GridSpec.from_dict(entry["output"])
 
+        # only entires available for interpolation will
+        # be considered for the inventory
         if entry["interpolation"]["method"] == "linear":
             # key = dict(grid=gs_in["grid"])
             key = dict(gs_in)

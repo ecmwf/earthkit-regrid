@@ -17,7 +17,6 @@ from scipy.sparse import load_npz
 from earthkit.regrid.gridspec import GridSpec
 from earthkit.regrid.utils import no_progress_bar
 from earthkit.regrid.utils.download import download_and_cache
-from earthkit.regrid.utils.hash import make_sha
 
 LOG = logging.getLogger(__name__)
 
@@ -28,6 +27,42 @@ _INDEX_FILENAME = "index.json"
 _INDEX_SHA_FILENAME = "index.json.sha256"
 _INDEX_GZ_FILENAME = "index.json.gz"
 _METHOD_ALIAS = {"nearest-neighbour": ("nn", "nearest-neighbor")}
+
+_GRIDBOX_DEFAULT = {
+    "type": "grid-box-average",
+    "nonLinear": [{"type": "missing-if-heaviest-missing"}],
+    "solver": {"type": "multiply"},
+    "cropping": False,
+    "lsmWeightAdjustment": 0.2,
+    "pruneEpsilon": 1e-10,
+    "poleDisplacement": 0,
+}
+
+
+def is_gridbox_default(inter):
+    """Check if the interpolation method is the default grid-box-average.
+
+    In this case it should be just the string "grid-box-average" but now it
+    is a dictionary. Until it is fixed in MIR we need this check.
+    """
+    method = inter["method"]
+    if isinstance(method, dict):
+        return method == _GRIDBOX_DEFAULT
+    elif isinstance(method, str):
+        return method == "grid-box-average"
+    else:
+        return False
+
+
+def make_sha(data):
+    import hashlib
+
+    m = hashlib.sha256()
+    if isinstance(data, str):
+        m.update(data.encode("utf-8"))
+    else:
+        m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
+    return m.hexdigest()
 
 
 class MatrixAccessor(metaclass=ABCMeta):
@@ -246,10 +281,30 @@ class MatrixIndex(dict):
                     pass
 
     @staticmethod
-    def make_interpolation_uid(item):
+    def interpolation_method_name(item):
         inter = item["interpolation"]
         method = inter["method"]
-        if set(inter.keys()) == {"method", "engine", "version"}:
+        if isinstance(method, str):
+            return method
+        if isinstance(method, dict):
+            return method["type"]
+
+        raise ValueError(f"Invalid interpolation method: {method}")
+
+    @staticmethod
+    def interpolation_method(item):
+        return item["interpolation"]["method"]
+
+    @staticmethod
+    def make_interpolation_uid(item):
+        inter = item["interpolation"]
+        method = MatrixIndex.interpolation_method_name(item)
+        # TODO: remove this when MIR is fixed
+        if method == "grid-box-average" and is_gridbox_default(inter):
+            uid = method
+        elif isinstance(MatrixIndex.interpolation_method(item), dict):
+            uid = make_sha(inter)
+        elif set(inter.keys()) == {"method", "engine", "version"}:
             uid = method
         else:
             uid = make_sha(inter)
@@ -257,24 +312,23 @@ class MatrixIndex(dict):
 
     @staticmethod
     def matrix_dir_name(item):
+        # TODO: review this logic when non-default interpolation options will
+        # be available for a given method
         inter = item["interpolation"]
         engine = inter["engine"]
         version = inter["version"]
-        uid = inter.get("_uid", inter["method"])
-        return f"{engine}_{version}_{uid}"
+        method_name = MatrixIndex.interpolation_method_name(item)
+        # uid =  inter.get("_uid", method_name)
+        # uid = inter.get("_uid", inter["method"])
+        return f"{engine}_{version}_{method_name}"
 
     @staticmethod
     def matrix_path(item):
         return os.path.join(MatrixIndex.matrix_dir_name(item), item["_name"] + ".npz")
 
     def find(self, gridspec_in, gridspec_out, method):
-        if gridspec_in is None or gridspec_out is None:
-            return None
-
-        if not isinstance(gridspec_in, GridSpec):
-            gridspec_in = GridSpec.from_dict(gridspec_in)
-        if not isinstance(gridspec_out, GridSpec):
-            gridspec_out = GridSpec.from_dict(gridspec_out)
+        gridspec_in = GridSpec.from_dict(gridspec_in)
+        gridspec_out = GridSpec.from_dict(gridspec_out)
 
         if gridspec_in is None or gridspec_out is None:
             return None
@@ -287,7 +341,7 @@ class MatrixIndex(dict):
     @staticmethod
     def match(item, gs_in, gs_out, method):
         if (
-            item["interpolation"]["method"] == method
+            MatrixIndex.interpolation_method_name(item) == method
             and item["input"] == gs_in
             and item["output"] == gs_out
         ):
@@ -422,7 +476,7 @@ class MatrixDb:
             if not dry_run:
                 raise FileExistsError(f"target file already exists! {target_file}")
             else:
-                LOG.warning("target file already exists! {target_file}")
+                LOG.warn("target file already exists! {target_file}")
 
         target_dir = os.path.dirname(target_file)
 

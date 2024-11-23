@@ -11,6 +11,8 @@ import hashlib
 import json
 import os
 
+from scipy.sparse import load_npz
+
 from earthkit.regrid.db import VERSION, MatrixIndex
 
 from .mir import mir_cached_matrix_to_file
@@ -64,6 +66,17 @@ def get_method_name(entry):
     return method
 
 
+def matrix_memory_size(m):
+    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
+    try:
+        # TODO: This works for bsr, csc and csr matrices but not for other types.
+        return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
+
+    except Exception as e:
+        print(e)
+        return 0
+
+
 def make_matrix(
     input_path, output_path, index_file=None, global_input=None, global_output=None
 ):
@@ -93,6 +106,7 @@ def make_matrix(
     m["input"] = entry["input"]
     m["output"] = entry["output"]
     m["interpolation"] = inter_ori
+
     key = make_sha(m)
     name = key
 
@@ -123,10 +137,17 @@ def make_matrix(
     if global_output is not None and "global" not in entry["output"]:
         entry["output"]["global"] = 1 if global_output else 0
 
+    # get matrix size
+    z = load_npz(npz_file)
+    mem_size = matrix_memory_size(z)
+    z = None
+
     index["matrix"][key] = dict(
         input=convert(entry["input"]),
         output=convert(entry["output"]),
         interpolation=entry["interpolation"],
+        nnz=entry["matrix"]["nnz"],
+        memory=mem_size,
     )
 
     with open(index_file, "w") as f:

@@ -377,13 +377,10 @@ class CacheManager(threading.Thread):
             except OSError:
                 pass
 
-        if entry["size"] is None:
-            entry["size"] = 0
-
-        path, size = (
-            entry["path"],
-            entry["size"],
-        )
+        path = entry["path"]
+        size = entry["size"]
+        if size is None:
+            size = 0
 
         # path, size, owner, args = (
         #     entry["path"],

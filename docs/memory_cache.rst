@@ -3,7 +3,7 @@
 Memory cache
 ==================
 
-.. py:function:: set_memory_cache(policy="largest", max_size=300 * 1024**2, ensure_capacity=False)
+.. py:function:: set_memory_cache(policy="largest", max_size=300 * 1024**2, strict=False)
 
     *New in version 0.4.0.*
 
@@ -11,14 +11,16 @@ Memory cache
 
     :param str policy: The matrix in-memory cache policy. The possible values are as follows:
 
-        - ``"off"``: no cache
+        - ``"off"``: no cache, the matrices are always loaded from disk
         - ``"unlimited"``: keep all matrices in memory
         - ``"largest"``: first evict the largest matrices from the cache (default)
         - ``"lru"``: first evict the least recently used matrices from the cache
 
-    :param int max_size: The maximum memory size of the in-memory cache in bytes. Only used when the policy is not ``off`` or ``"unlimited"``.
-    :param bool ensure_capacity: If True, estimate the matrix size and try to ensure it fits into the cache by evicting items according to the policy. If the cache capacity is not enough to hold the matrix raises ValueError. Only used when ``policy`` is no ``"off"`` or ``"unlimited"``. If False, the matrix is loaded into the cache without checking the size, then the cache is evicted according to the policy.
-    :raises ValueError: if the estimated size of the matrix to be loaded does not fit into the cache. Only raised when ``ensure_capacity=True`` and  ``policy`` is not ``"off"`` or ``"unlimited"``.
+    :param int max_size: The maximum memory size of the in-memory cache in bytes. Only used when ``policy`` is ``"largest"`` or ``"lru"``.
+    :param bool strict: If ``True``, raises ValueError if the matrix cannot be fit into the cache. If ``False``, the matrix is not loaded into the cache under the same conditions. Only used when ``policy`` is ``"largest"`` or ``"lru"``.
+    :raises ValueError: if the estimated size of the matrix to be loaded does not fit into the cache. Only raised when ``strict=True`` and  ``policy`` is ``"largest"`` or ``"lru"``.
+
+    When ``policy`` is ``"largest"`` or ``"lru"`` the cache eviction policy is applied before loading the matrix to ensure that it will fit into the cache. When it is not possible the behaviour depends on the ``strict`` option.
 
 
 .. py:function:: clear_memory_cache()

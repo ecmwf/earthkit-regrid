@@ -77,7 +77,7 @@ class NoPolicy(MemoryCachePolicy):
 
     def check(self):
         self.cache.max_mem = 0
-        self.cache.ensure_capacity = False
+        self.cache.strict = False
 
     def reduce(self, *args, **kwargs):
         self.cache._clear()
@@ -94,7 +94,7 @@ class UnlimitedPolicy(MemoryCachePolicy):
 
     def check(self):
         self.cache.max_mem = None
-        self.cache.ensure_capacity = False
+        self.cache.strict = False
 
     def reduce(self, *args, **kwargs):
         # must be called within a lock
@@ -174,14 +174,14 @@ CACHE_POLICIES = {
 class MemoryCache:
     MAX_SIZE_KEY = "maximum-matrix-memory-cache-size"
     POLICY_KEY = "matrix-memory-cache-policy"
-    ENSURE_CAPACITY_KEY = "ensure-matrix-memory-cache-capacity"
+    STRICT_KEY = "matrix-memory-cache-strict-mode"
 
     def __init__(
         self,
         max_mem=300 * 1024 * 1024,
         size_fn=None,
         policy="largest",
-        ensure_capacity=False,
+        strict=False,
     ):
         """
         Memory bound in-memory cache for interpolation matrices.
@@ -206,7 +206,7 @@ class MemoryCache:
         if size_fn is None:
             raise ValueError("size_fn must be provided")
         self.size_fn = size_fn
-        self.ensure_capacity = ensure_capacity
+        self.strict = strict
 
         self.policy = MemoryCachePolicy.make("largest" if policy is None else policy)(
             self
@@ -267,7 +267,7 @@ class MemoryCache:
                 assert target_size >= 0
                 self._reduce(target_size=target_size)
 
-            if self.ensure_capacity and self._capacity() < estimated_memory:
+            if self.strict and self._capacity() < estimated_memory:
                 raise ValueError(
                     (
                         "Matrix too large to fit in memory cache. "
@@ -303,7 +303,7 @@ class MemoryCache:
                 if any(
                     [
                         _update("max_mem", self.MAX_SIZE_KEY),
-                        _update("ensure_capacity", self.ENSURE_CAPACITY_KEY),
+                        _update("strict", self.STRICT_KEY),
                         _update_policy(),
                     ]
                 ):
@@ -370,13 +370,13 @@ MEMORY_CACHE = MatrixMemoryCache()
 def set_memory_cache(
     policy="largest",
     max_size=300 * 1024 * 1024,
-    ensure_capacity=False,
+    strict=False,
 ):
     from earthkit.regrid.utils.caching import SETTINGS
 
     SETTINGS[MEMORY_CACHE.MAX_SIZE_KEY] = max_size
     SETTINGS[MEMORY_CACHE.POLICY_KEY] = policy
-    SETTINGS[MEMORY_CACHE.ENSURE_CAPACITY_KEY] = ensure_capacity
+    SETTINGS[MEMORY_CACHE.STRICT_KEY] = strict
     MEMORY_CACHE.update()
 
 

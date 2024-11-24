@@ -51,7 +51,7 @@ SETTINGS = {
     "temporary-cache-directory-root": None,
     "maximum-matrix-memory-cache-size": 300 * 1024 * 1024,
     "matrix-memory-cache-policy": "largest",
-    "ensure-matrix-memory-cache-capacity": False,
+    "matrix-memory-cache-strict-mode": False,
 }
 
 

@@ -206,7 +206,6 @@ def test_local_memcache_small(policy):
     max_mem = 1
     SETTINGS["matrix-memory-cache-policy"] = policy
     SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
-    SETTINGS["ensure-matrix-memory-cache-capacity"] = False
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -305,7 +304,7 @@ def test_local_memcache_unlimited():
     assert MEMORY_CACHE.info() == (1, 1, None, MEMORY_CACHE.curr_mem, 1, policy)
 
 
-def test_local_memcache_ensure_pre_check_1(monkeypatch):
+def test_local_memcache_ensure_strict_1(monkeypatch):
     """Test the cache with a memory limit that is too small to hold any estimated matrix size"""
     from earthkit.regrid.utils.caching import SETTINGS
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
@@ -314,8 +313,8 @@ def test_local_memcache_ensure_pre_check_1(monkeypatch):
     max_mem = 300 * 1024 * 1024
     SETTINGS["matrix-memory-cache-policy"] = policy
     SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
-    SETTINGS["pre-check-matrix-size"] = True
-    SETTINGS["ensure-matrix-memory-cache-capacity"] = True
+    # SETTINGS["pre-check-matrix-size"] = True
+    SETTINGS["matrix-memory-cache-strict-mode"] = True
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()
@@ -336,7 +335,7 @@ def test_local_memcache_ensure_pre_check_1(monkeypatch):
         run_interpolate("linear")
 
 
-def test_local_memcache_pre_check_2(monkeypatch):
+def test_local_memcache_strict_2(monkeypatch):
     """Test the cache with a memory limit that can only hold one estimated matrix size"""
     from earthkit.regrid.utils.caching import SETTINGS
     from earthkit.regrid.utils.memcache import MEMORY_CACHE
@@ -345,8 +344,8 @@ def test_local_memcache_pre_check_2(monkeypatch):
     max_mem = 300 * 1024 * 1024
     SETTINGS["matrix-memory-cache-policy"] = policy
     SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
-    SETTINGS["pre-check-matrix-size"] = True
-    SETTINGS["ensure-matrix-memory-cache-capacity"] = True
+    # SETTINGS["pre-check-matrix-size"] = True
+    SETTINGS["matrix-memory-cache-strict-mode"] = True
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()

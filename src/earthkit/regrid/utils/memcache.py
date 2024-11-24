@@ -13,6 +13,7 @@ from abc import ABCMeta, abstractmethod
 from collections import OrderedDict, namedtuple
 
 from earthkit.regrid.utils.hash import make_sha
+from earthkit.regrid.utils.matrix import matrix_memory_size
 
 LOG = logging.getLogger(__name__)
 
@@ -24,21 +25,21 @@ _CacheInfo = namedtuple(
 
 
 def matrix_size(m):
-    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
     m = m[0]
     try:
-        # TODO: This works for bsr, csc and csr matrices but not for other types.
-        return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
-
+        return matrix_memory_size(m)
     except Exception as e:
-        print(e)
+        LOG.warning("Could not compute matrix memory size", e)
         return 0
 
 
 def estimate_matrix_size(entry):
     """Estimate the size of a matrix entry"""
-    # TODO: to be implemented
-    return 0
+    try:
+        return entry["_raw"]["memory"]
+    except Exception as e:
+        LOG.warning(f"Could not estimate matrix memory size from entry={entry}. {e}")
+        return 0
 
 
 class MemoryCachePolicy(metaclass=ABCMeta):
@@ -76,7 +77,6 @@ class NoPolicy(MemoryCachePolicy):
 
     def check(self):
         self.cache.max_mem = 0
-        self.cache.pre_check_matrix_size = False
         self.cache.ensure_capacity = False
 
     def reduce(self, *args, **kwargs):
@@ -94,7 +94,6 @@ class UnlimitedPolicy(MemoryCachePolicy):
 
     def check(self):
         self.cache.max_mem = None
-        self.cache.pre_check_matrix_size = False
         self.cache.ensure_capacity = False
 
     def reduce(self, *args, **kwargs):
@@ -119,6 +118,9 @@ class LRUPolicy(MemoryCachePolicy):
 
     def reduce(self, target_size):
         # must be called within a lock
+        if not self.cache.items:
+            return
+
         while self.cache.curr_mem >= target_size:
             _, item = self.cache.items.popitem(0)
             self.cache.curr_mem -= item.size
@@ -144,6 +146,9 @@ class LargestPolicy(MemoryCachePolicy):
 
     def reduce(self, target_size):
         # must be called within a lock
+        if not self.cache.items:
+            return
+
         while self.cache.curr_mem >= target_size:
             _, largest = max((v.size, k) for k, v in self.cache.items.items())
             self.cache.curr_mem -= self.cache.items[largest].size
@@ -169,7 +174,6 @@ CACHE_POLICIES = {
 class MemoryCache:
     MAX_SIZE_KEY = "maximum-matrix-memory-cache-size"
     POLICY_KEY = "matrix-memory-cache-policy"
-    PRE_CHECK_KEY = "pre-check-matrix-size"
     ENSURE_CAPACITY_KEY = "ensure-matrix-memory-cache-capacity"
 
     def __init__(
@@ -177,7 +181,6 @@ class MemoryCache:
         max_mem=300 * 1024 * 1024,
         size_fn=None,
         policy="largest",
-        pre_check_matrix_size=False,
         ensure_capacity=False,
     ):
         """
@@ -203,7 +206,6 @@ class MemoryCache:
         if size_fn is None:
             raise ValueError("size_fn must be provided")
         self.size_fn = size_fn
-        self.pre_check_matrix_size = pre_check_matrix_size
         self.ensure_capacity = ensure_capacity
 
         self.policy = MemoryCachePolicy.make("largest" if policy is None else policy)(
@@ -231,12 +233,12 @@ class MemoryCache:
                 self.hits += 1
                 return item.data
 
-            if self.policy.has_limit() and self.pre_check_matrix_size:
+            if self.policy.has_limit():
                 data = self._create_with_pre_check(find_entry, create_from_entry, *args)
             else:
                 data = self._create(create, *args)
 
-            self.items[key] = _MemoryItem(data, self.size_fn(data), time.time())
+            self.items[key] = _MemoryItem(data, self.size_fn(data[0]), time.time())
             self.curr_mem += self.items[key].size
 
             self.misses += 1
@@ -301,7 +303,6 @@ class MemoryCache:
                 if any(
                     [
                         _update("max_mem", self.MAX_SIZE_KEY),
-                        _update("pre_check_matrix_size", self.PRE_CHECK_KEY),
                         _update("ensure_capacity", self.ENSURE_CAPACITY_KEY),
                         _update_policy(),
                     ]
@@ -357,7 +358,7 @@ class MatrixMemoryCache(MemoryCache):
     def __init__(self, *args, **kwargs):
         super().__init__(
             *args,
-            size_fn=matrix_size,
+            size_fn=matrix_memory_size,
             **kwargs,
         )
 
@@ -369,15 +370,13 @@ MEMORY_CACHE = MatrixMemoryCache()
 def set_memory_cache(
     policy="largest",
     max_size=300 * 1024 * 1024,
-    # pre_check_matrix_size=False,
-    # ensure_capacity=False,
+    ensure_capacity=False,
 ):
     from earthkit.regrid.utils.caching import SETTINGS
 
     SETTINGS[MEMORY_CACHE.MAX_SIZE_KEY] = max_size
     SETTINGS[MEMORY_CACHE.POLICY_KEY] = policy
-    # SETTINGS[MEMORY_CACHE.PRE_CHECK_KEY] = pre_check_matrix_size
-    # SETTINGS[MEMORY_CACHE.ENSURE_CAPACITY_KEY] = ensure_capacity
+    SETTINGS[MEMORY_CACHE.ENSURE_CAPACITY_KEY] = ensure_capacity
     MEMORY_CACHE.update()
 
 

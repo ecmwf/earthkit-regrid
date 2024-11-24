@@ -206,6 +206,7 @@ def test_local_memcache_small(policy):
     max_mem = 1
     SETTINGS["matrix-memory-cache-policy"] = policy
     SETTINGS["maximum-matrix-memory-cache-size"] = max_mem
+    SETTINGS["ensure-matrix-memory-cache-capacity"] = False
 
     MEMORY_CACHE.clear()
     MEMORY_CACHE.update()

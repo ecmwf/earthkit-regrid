@@ -331,8 +331,10 @@ def test_local_memcache_ensure_strict_1(monkeypatch):
 
     monkeypatch.setattr(memcache, "estimate_matrix_size", _estimate_memory)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as excinfo:
         run_interpolate("linear")
+
+    assert "Matrix too large" in str(excinfo.value)
 
 
 def test_local_memcache_strict_2(monkeypatch):

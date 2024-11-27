@@ -9,3 +9,4 @@ Sphinx>=7.2.6
 sphinx-rtd-theme
 setuptools
 nbsphinx
+sphinx-issues

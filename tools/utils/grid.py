@@ -28,6 +28,10 @@ def make_H_nested(g):
     return f"H{g}_nested"
 
 
+def make_other(g):
+    return f"{g}"
+
+
 makers = {
     k: globals()[f"make_{k}"] for k in ["ll", "O_rgg", "N_rgg", "H_ring", "H_nested"]
 }
@@ -36,7 +40,7 @@ makers = {
 def make_grid_id(grids):
     r = []
     for k, v in grids.items():
-        m = makers[k]
+        m = makers.get(k, make_other)
         for x in v:
             r.append(m(x))
     return r

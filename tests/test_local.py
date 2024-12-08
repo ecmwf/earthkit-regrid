@@ -35,9 +35,9 @@ def test_local_index():
     index_path = DB.index_file_path()
     with open(index_path, "r") as f:
         d = json.load(f)
-        assert len(d["matrix"]) == 16
+        assert len(d["matrix"]) == 17
 
-    assert len(DB) == 15
+    assert len(DB) == 16
 
     # r = DB.find_entry({"grid": [5, 5]}, {"grid": [10, 10]}, method)
     # assert r
@@ -50,6 +50,9 @@ def test_local_index():
 
     r = DB.find_entry({"grid": "O64"}, {"grid": [10, 10]}, method)
     assert r is None
+
+    r = DB.find_entry({"grid": "eORCA025_T"}, {"grid": "O96"}, method)
+    assert r
 
 
 @pytest.mark.parametrize("method", METHODS)
@@ -124,6 +127,23 @@ def test_local_healpix_nested_to_ll(method):
     assert np.allclose(v_res.flatten(), v_ref)
 
 
+# TODO: implement this test
+# @pytest.mark.parametrize("method", ["linear", "nearest-neighbour"])
+# def test_local_orca_to_ll(method):
+#     v_in = np.load(file_in_testdir("in_eorca025_t.npz"))["arr_0"]
+#     v_ref = np.load(file_in_testdir(f"out_eorca025_t_10x10_{method}.npz"))["arr_0"]
+#     v_res = interpolate(
+#         v_in,
+#         {"grid": "eORCA025_T"},
+#         {"grid": [10, 10]},
+#         matrix_source=DB_PATH,
+#         method=method,
+#     )
+
+#     assert v_res.shape == (19, 36)
+#     assert np.allclose(v_res.flatten(), v_ref)
+
+
 @pytest.mark.parametrize(
     "gs_in, gs_out",
     [
@@ -169,6 +189,7 @@ def test_local_healpix_nested_to_ll(method):
         ),
         ({"grid": "H4"}, {"grid": [10, 10]}),
         ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
+        ({"grid": "eORCA025_T"}, {"grid": "O96"}),
     ],
 )
 def test_local_gridspec_ok(gs_in, gs_out):
@@ -205,6 +226,8 @@ def test_local_gridspec_ok(gs_in, gs_out):
         ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
         ({"grid": "H4", "ordering": "any"}, {"grid": [10, 10]}, ValueError),
+        ({"grid": "ORCA025_T"}, {"grid": "O96"}, ValueError),
+        ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),
     ],
 )
 def test_local_gridspec_bad(gs_in, gs_out, err):

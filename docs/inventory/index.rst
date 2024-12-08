@@ -15,3 +15,4 @@ The pages below contain all the **source and target gridspec** combinations for 
     healpix_ring
     healpix_nested
     regular_ll
+    orca

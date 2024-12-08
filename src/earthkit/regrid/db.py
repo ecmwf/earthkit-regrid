@@ -264,8 +264,8 @@ class MatrixIndex(dict):
                 )
 
             for name, entry in index["matrix"].items():
-                # it is possible that the inventory is already updated with new
-                # a gridspecs type, but a given earthkit-regrid version is not
+                # it is possible that the inventory is already updated with a new
+                # gridspecs type, but a given earthkit-regrid version is not
                 # yet supporting it. In this case loading the index should not crash.
                 try:
                     in_gs = GridSpec.from_dict(entry["input"])

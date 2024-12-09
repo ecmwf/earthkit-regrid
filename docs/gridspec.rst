@@ -88,3 +88,19 @@ Example:
 
     {"grid": "H512", "ordering": "ring"}
     {"grid": "H512"}
+
+
+ORCA grid
+------------------------------------------
+
+The ``grid`` format is::
+
+    eORCAXXX_subtype
+
+The ``subtype`` must be "T", "U", "V" or "W".
+
+Example:
+
+.. code-block::
+
+    {"grid": "eORCA025_T"}

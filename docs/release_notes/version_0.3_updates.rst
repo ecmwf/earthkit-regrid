@@ -1,6 +1,14 @@
 Version 0.3 Updates
 /////////////////////////
 
+Version 0.3.5
+===============
+
+Fixes
+++++++++++++++++
+- added support for ORCA input grids in :func:`interpolate`. See the :ref:`ORCA inventory <orca_inventory>` for the list of available ORCA source grids.
+
+
 Version 0.3.4
 ===============
 

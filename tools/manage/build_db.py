@@ -94,15 +94,14 @@ out_grids = {
     ]
 }
 
-in_grids = {
-    "N_rgg": [256],
-}
+in_grids = {"orca": ["eORCA025_T"]}
 
 out_grids = {
-    "O_rgg": [400],
+    # "O_rgg": [96],
+    "N_rgg": [320],
 }
 
-build_root_dir = "_build_20241123"
+build_root_dir = "_build_20241208"
 build_dir = os.path.join(build_root_dir, "db")
 
 # extra = [["0.25x0.25", "N320"], ["O1280", "N320"], ["5x5", "10x10"]]

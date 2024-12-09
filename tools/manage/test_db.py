@@ -29,16 +29,16 @@ FOR MAINTENANCE ONLY!!!
 This script generates and runs tests for newly built (partial) matrix inventory.
 """
 
-build_root_dir = "_build_20241021"
+build_root_dir = "_build_20241208"
 db_dir = os.path.join(build_root_dir, "db")
 index_file = os.path.join(build_root_dir, "index", "index.json")
 test_dir = os.path.join(build_root_dir, "test")
 
-# methods = ["linear", "nearest-neighbour"]
-# build_matrix_dirs = ["matrices_linear", "matrices_nn"]
+methods = ["linear", "nearest-neighbour"]
+build_matrix_dirs = ["matrices_linear", "matrices_nn"]
 
-methods = ["grid-box-average"]
-build_matrix_dirs = ["matrices_grid-box-average"]
+# methods = ["grid-box-average"]
+# build_matrix_dirs = ["matrices_grid-box-average"]
 
 
 def build_test_dir():
@@ -49,6 +49,7 @@ def build_test_dir():
     count = 0
     for m_dir in build_matrix_dirs:
         m_dir = os.path.join(db_dir, m_dir)
+        print(f"Looking for matrices in {m_dir}")
         for d in glob.glob(m_dir + "/*"):
             if os.path.isdir(d):
                 print(f"Linking {d}")
@@ -71,15 +72,15 @@ if not os.path.exists(test_dir):
     build_test_dir()
 
 # TODO: make the tests automatic
-gs_in = {"grid": "N256"}
-gs_out = {"grid": "O400"}
+gs_in = {"grid": "eORCA025_T"}
+gs_out = {"grid": "O96"}
 cnt = 0
 for method in methods:
-    v = np.ones(348528)
+    v = np.ones(1740494)
     r = earthkit.regrid.interpolate(
         v, gs_in, gs_out, matrix_source=test_dir, method=method
     )
-    assert len(r) == 654400
+    assert len(r) == 40320
     cnt += 1
 
 print(f"Tests passed: {cnt}")

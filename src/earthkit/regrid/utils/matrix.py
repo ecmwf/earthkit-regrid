@@ -53,6 +53,11 @@ def healpix(entry):
     return d
 
 
+def orca(entry):
+    d = {"grid": entry["unstructuredGridType"] + "_" + entry["unstructuredGridSubtype"]}
+    return d
+
+
 def make_sha(d):
     m = hashlib.sha256()
     m.update(json.dumps(d, sort_keys=True).encode("utf-8"))

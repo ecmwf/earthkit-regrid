@@ -20,7 +20,7 @@ DEGREE_EPS = 1e-8
 
 HEALPIX_PATTERN = re.compile(r"[Hh]\d+")
 RGG_PATTERN = re.compile(r"[OoNn]\d+")
-
+ORCA_PATTERN = re.compile(r"eORCA\d+_[TUVW]")
 
 # NOTE: this is a temporary code until the full gridspec
 # implementation is available via earthkit-geo.
@@ -424,8 +424,24 @@ class HealpixGridSpec(GridSpec):
         return False
 
 
+class NamedGridSpec(GridSpec):
+    @staticmethod
+    def type_match(grid):
+        return isinstance(grid, str)
+
+
+class OrcaGridSpec(GridSpec):
+    @staticmethod
+    def type_match(grid):
+        if isinstance(grid, str):
+            return ORCA_PATTERN.match(grid)
+        return False
+
+
 GRIDSPEC_TYPES = {
     "regular_ll": LLGridSpec,
     "reduced_gg": ReducedGGGridSpec,
     "healpix": HealpixGridSpec,
+    "orca": OrcaGridSpec,
+    # "_named": NamedGridSpec,
 }

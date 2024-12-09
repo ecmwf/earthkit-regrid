@@ -83,6 +83,7 @@ from earthkit.regrid.db import SYS_DB
         ({"grid": "H128"}, {"grid": [1, 1]}),
         ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
         ({"grid": (5, 5)}, {"grid": (10, 10)}),
+        ({"grid": "eORCA025_T"}, {"grid": "O96"}),
     ],
 )
 def test_gridspec_ok(gs_in, gs_out):
@@ -117,6 +118,8 @@ def test_gridspec_ok(gs_in, gs_out):
         ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
+        ({"grid": "ORCA025_T"}, {"grid": "O96"}, ValueError),
+        ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),
     ],
 )
 def test_gridspec_bad(gs_in, gs_out, err):

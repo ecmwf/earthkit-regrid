@@ -540,6 +540,33 @@
                 "version": 16,
                 "method": "grid-box-average"
             }
+        },
+        "df20c8b83afc369370e615d3380482d384cedf033af66d3962b40292c83cbb9f": {
+            "input": {
+                "grid": "eORCA025_T",
+                "shape": [
+                    1740494
+                ],
+                "global": 1
+            },
+            "output": {
+                "grid": "O96",
+                "shape": [
+                    40320
+                ],
+                "area": [
+                    89.2842,
+                    0,
+                    -89.2842,
+                    359.1
+                ],
+                "global": 1
+            },
+            "interpolation": {
+                "engine": "mir",
+                "version": 16,
+                "method": "linear"
+            }
         }
     }
 }

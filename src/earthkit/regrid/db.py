@@ -84,11 +84,19 @@ class MatrixAccessor(metaclass=ABCMeta):
     def matrix_path(self, name):
         pass
 
+    @abstractmethod
+    def reload(self, strict=False):
+        pass
+
+    def checked_remote(self):
+        return False
+
 
 class UrlAccessor(MatrixAccessor):
     def __init__(self, url):
         self._url = url
         self._index_path = None
+        self._checked_remote = False
 
     def path(self):
         return self._url
@@ -96,50 +104,68 @@ class UrlAccessor(MatrixAccessor):
     def is_local(self):
         False
 
+    def checked_remote(self):
+        return self._checked_remote
+
+    def reload(self, force=False):
+        self._index_path = self._get_index(check_remote=True, force=force)
+
     def index_path(self):
         if self._index_path is None or not os.path.exists(self._index_path):
-            self._index_path = self.__index_path()
+            self._index_path = self._get_index()
         return self._index_path
 
-    def __index_path(self):
+    def _get_index(self, check_remote=False, force=False):
         from earthkit.regrid.utils.caching import cache_file
 
         url = os.path.join(self._url, _INDEX_FILENAME)
 
-        def _force(args, path, owner_data):
+        def _compare_sha(args, path, owner_data):
             """Decide if the index file should be downloaded and cached again."""
-            LOG.info(f"UrlAccessor.index_path: cached entry {owner_data=}")
+            LOG.info("UrlAccessor: compare local and remote index file checksums")
+            LOG.info(f"UrlAccessor: cached entry {owner_data=}")
             if owner_data is None:
                 return True
             local_sha = owner_data.get("sha256", None)
-            LOG.info(f"UrlAccessor.index_path: local checksum={local_sha}")
+            LOG.info(f"UrlAccessor: local (cached) checksum={local_sha}")
             if local_sha is None:
                 return True
 
             remote_sha = self._remote_sha()
+            self._checked_remote = True
+
             if local_sha != remote_sha:
                 LOG.info(
                     (
-                        f"UrlAccessor.index_path: remote checksum={remote_sha} differs from "
-                        "local checksum. Downloading new index file"
+                        f"UrlAccessor: remote checksum={remote_sha} differs from "
+                        "local (cached) checksum. Downloading new index file."
                     )
                 )
                 return True
             else:
                 LOG.info(
                     (
-                        f"UrlAccessor.index_path: remote checksum={remote_sha} is the same as "
-                        "local checksum. Use cached index file."
+                        f"UrlAccessor: remote checksum={remote_sha} is the same as "
+                        "local (cached)  checksum. Use cached index file."
                     )
                 )
                 return False
+
+        def _force_download(args, path, owner_data):
+            """Decide if the index file should be downloaded and cached again."""
+            remote_sha = self._remote_sha()
+            self._checked_remote = True
+            LOG.info(
+                f"UrlAccessor: forcefully download remote checksum={remote_sha} and new index file"
+            )
+            return True
 
         def _create(target, args):
             """Download and cache gzipped index file, uncompress it and generate
             checksum from contents
             """
             path_gz = self._gzip_file()
-            LOG.info(f"UrlAccessor.index_path: uncompress gzipped index file={path_gz}")
+            LOG.info(f"UrlAccessor: uncompress gzipped index file={path_gz}")
             import gzip
 
             with gzip.open(path_gz, "rb") as f:
@@ -152,18 +178,26 @@ class UrlAccessor(MatrixAccessor):
                 sha = make_sha(data)
 
             # the returned data will be stored in the cache in the entry's owner_data
-            LOG.info(f"UrlAccessor.index_path: index file checksum={sha}")
+            LOG.info(f"UrlAccessor: index file checksum={sha}")
             return {"sha256": sha}
+
+        if force:
+            force = _force_download
+        elif check_remote:
+            force = _compare_sha
+        else:
+            LOG.info("UrlAccessor: check if cached index file is available")
+            force = None
 
         path = cache_file(
             "regrid",
             _create,
             (url,),
-            force=_force,
+            force=force,
             extension=".cache",
         )
 
-        LOG.info(f"UrlAccessor.index_path: will use index file={path}")
+        LOG.info(f"UrlAccessor: index file={path}")
         return path
 
     def _remote_sha(self):
@@ -182,7 +216,7 @@ class UrlAccessor(MatrixAccessor):
                 retry_after=10,
             )
         except Exception:
-            LOG.error(f"Could not download index checksum file={url}")
+            LOG.error(f"UrlAccessor: could not download index checksum file={url}")
             raise
 
         with open(path, "r") as f:
@@ -192,6 +226,7 @@ class UrlAccessor(MatrixAccessor):
     def _gzip_file(self):
         try:
             url = os.path.join(self._url, _INDEX_GZ_FILENAME)
+            LOG.info(f"Download gzipped index file={url}")
             path = download_and_cache(
                 url,
                 owner="url",
@@ -246,6 +281,9 @@ class LocalAccessor(MatrixAccessor):
 
     def matrix_path(self, name):
         return os.path.join(self._path, name)
+
+    def reload(self, strict=False):
+        pass
 
 
 class SystemAccessor(UrlAccessor):
@@ -423,7 +461,18 @@ class MatrixDb:
 
     def find_entry(self, gridspec_in, gridspec_out, method):
         method = self._method_alias(method)
-        return self.index.find(gridspec_in, gridspec_out, method)
+        entry = self.index.find(gridspec_in, gridspec_out, method)
+        if entry is None:
+            if not self._accessor.is_local() and not self._accessor.checked_remote():
+                LOG.info(
+                    f"Matrix not found in DB for {gridspec_in=} {gridspec_out=} {method=}"
+                )
+                LOG.info("Try to fetch remote index file to check for updates")
+                self._accessor.reload()
+                self._load_index()
+                entry = self.index.find(gridspec_in, gridspec_out, method)
+
+        return entry
 
     def load_matrix(self, entry):
         path = self._matrix_fs_path(entry)
@@ -453,7 +502,7 @@ class MatrixDb:
             if not dry_run:
                 raise FileExistsError(f"target file already exists! {target_file}")
             else:
-                LOG.warn("target file already exists! {target_file}")
+                LOG.warning("target file already exists! {target_file}")
 
         target_dir = os.path.dirname(target_file)
 
@@ -497,3 +546,10 @@ def find(*args, matrix_source=None, **kwargs):
     else:
         db = add_matrix_source(matrix_source)
         return db.find(*args, **kwargs)
+
+
+def _clear_all():
+    global DB_LIST
+    global SYS_DB
+    SYS_DB = MatrixDb(SystemAccessor())
+    DB_LIST = [SYS_DB]

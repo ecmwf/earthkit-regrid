@@ -13,13 +13,14 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
-from earthkit.regrid.db import _clear_all
+from earthkit.regrid.db import _reset
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 def test_remote_index_handling():
-    _clear_all()
+    # we need to reset the db to ensure to simulate a fresh start
+    _reset()
 
     from earthkit.regrid.db import SYS_DB
 

@@ -462,15 +462,18 @@ class MatrixDb:
     def find_entry(self, gridspec_in, gridspec_out, method):
         method = self._method_alias(method)
         entry = self.index.find(gridspec_in, gridspec_out, method)
-        if entry is None:
-            if not self._accessor.is_local() and not self._accessor.checked_remote():
-                LOG.info(
-                    f"Matrix not found in DB for {gridspec_in=} {gridspec_out=} {method=}"
-                )
-                LOG.info("Try to fetch remote index file to check for updates")
-                self._accessor.reload()
-                self._load_index()
-                entry = self.index.find(gridspec_in, gridspec_out, method)
+        if (
+            entry is None
+            and not self._accessor.is_local()
+            and not self._accessor.checked_remote()
+        ):
+            LOG.info(
+                f"Matrix not found in DB for {gridspec_in=} {gridspec_out=} {method=}"
+            )
+            LOG.info("Try to fetch remote index file to check for updates")
+            self._accessor.reload()
+            self._load_index()
+            entry = self.index.find(gridspec_in, gridspec_out, method)
 
         return entry
 
@@ -548,7 +551,7 @@ def find(*args, matrix_source=None, **kwargs):
         return db.find(*args, **kwargs)
 
 
-def _clear_all():
+def _reset():
     global DB_LIST
     global SYS_DB
     SYS_DB = MatrixDb(SystemAccessor())

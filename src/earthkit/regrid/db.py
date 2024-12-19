@@ -91,6 +91,10 @@ class MatrixAccessor(metaclass=ABCMeta):
     def checked_remote(self):
         return False
 
+    @abstractmethod
+    def reset(self):
+        pass
+
 
 class UrlAccessor(MatrixAccessor):
     def __init__(self, url):
@@ -106,6 +110,10 @@ class UrlAccessor(MatrixAccessor):
 
     def checked_remote(self):
         return self._checked_remote
+
+    def reset(self):
+        self._index_path = None
+        self._checked_remote = False
 
     def reload(self, force=False):
         self._index_path = self._get_index(check_remote=True, force=force)
@@ -153,11 +161,11 @@ class UrlAccessor(MatrixAccessor):
 
         def _force_download(args, path, owner_data):
             """Decide if the index file should be downloaded and cached again."""
-            remote_sha = self._remote_sha()
-            self._checked_remote = True
             LOG.info(
-                f"UrlAccessor: forcefully download remote checksum={remote_sha} and new index file"
+                "UrlAccessor: forcefully download remote checksum and new index file"
             )
+            self._remote_sha()
+            self._checked_remote = True
             return True
 
         def _create(target, args):
@@ -283,6 +291,9 @@ class LocalAccessor(MatrixAccessor):
         return os.path.join(self._path, name)
 
     def reload(self, strict=False):
+        pass
+
+    def reset(self):
         pass
 
 
@@ -436,10 +447,6 @@ class MatrixDb:
         path = self._accessor.index_path()
         self._index.load(path)
 
-    def _clear_index(self):
-        """For testing only"""
-        self._index = None
-
     def _method_alias(self, method):
         for k, v in _METHOD_ALIAS.items():
             if method in v:
@@ -528,6 +535,15 @@ class MatrixDb:
     def __len__(self):
         return len(self.index)
 
+    def _clear_index(self):
+        """For testing only"""
+        self._index = None
+
+    def _reset(self):
+        """For testing only"""
+        self._index = None
+        self._accessor.reset()
+
 
 SYS_DB = MatrixDb(SystemAccessor())
 DB_LIST = [SYS_DB]
@@ -549,10 +565,3 @@ def find(*args, matrix_source=None, **kwargs):
     else:
         db = add_matrix_source(matrix_source)
         return db.find(*args, **kwargs)
-
-
-def _reset():
-    global DB_LIST
-    global SYS_DB
-    SYS_DB = MatrixDb(SystemAccessor())
-    DB_LIST = [SYS_DB]

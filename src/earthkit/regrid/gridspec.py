@@ -20,7 +20,8 @@ DEGREE_EPS = 1e-8
 
 HEALPIX_PATTERN = re.compile(r"[Hh]\d+")
 RGG_PATTERN = re.compile(r"[OoNn]\d+")
-ORCA_PATTERN = re.compile(r"eORCA\d+_[TUVW]")
+ORCA_PATTERN = re.compile(r"^e?ORCA\d+_[FTUV]$")
+
 
 # NOTE: this is a temporary code until the full gridspec
 # implementation is available via earthkit-geo.

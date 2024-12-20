@@ -9,7 +9,6 @@
 
 import ctypes
 import datetime
-import getpass
 import hashlib
 import json
 import logging
@@ -17,7 +16,6 @@ import os
 import platform
 import shutil
 import sqlite3
-import tempfile
 import threading
 import time
 from abc import ABCMeta, abstractmethod
@@ -41,7 +39,7 @@ CACHE = None
 SETTINGS = {
     "cache-policy": "user",
     "user-cache-directory": os.path.join(
-        tempfile.gettempdir(), f"earthkit-regrid-{getpass.getuser()}"
+        os.path.expanduser("~"), ".cache", "earthkit-regrid"
     ),
     "maximum-cache-size": 5 * 1024 * 1024 * 1024,
     "maximum-cache-disk-usage": 99,
@@ -965,7 +963,7 @@ def cache_file(
     force=None,
     replace=None,
 ):
-    """Creates a cache or temporary file in the folder specified by the cache-policy.
+    """Create a cache or temporary file in the folder specified by the cache-policy.
 
     Parameters
     ----------

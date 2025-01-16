@@ -118,8 +118,10 @@ def test_gridspec_ok(gs_in, gs_out):
         ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
-        ({"grid": "ORCA025_T"}, {"grid": "O96"}, ValueError),
+        ({"grid": "ORCA025_T"}, {"grid": "O96"}, None),
         ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),
+        ({"grid": "bORCA025_T"}, {"grid": "O96"}, ValueError),
+        ({"grid": "ORCA025_TU"}, {"grid": "O96"}, ValueError),
     ],
 )
 def test_gridspec_bad(gs_in, gs_out, err):

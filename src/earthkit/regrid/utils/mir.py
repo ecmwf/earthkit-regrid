@@ -1,3 +1,5 @@
+# #!/usr/bin/env python
+
 # (C) Copyright 2023 ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
@@ -63,6 +65,71 @@ def mir_cached_matrix_to_file(path, target):
 
     z = mir_cached_matrix_to_array(path)
     save_npz(target, z)
+
+
+def mir_write_latlon_to_griddef(path, lats, lons):
+    count = len(lats)
+    if count != len(lons) or count == 0:
+        raise ValueError(
+            "Latitudes and longitudes must be non-empty and have the same length."
+        )
+
+    version = 1
+    with open(path, "wb") as f:
+        s = Stream(f)
+        s.write_unsigned_long(version)
+        s.write_unsigned_long(count)
+        for lat, lon in zip(lats, lons):
+            s.write_double(lat)
+            s.write_double(lon)
+
+
+def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **kwargs):
+    from pathlib import Path
+    from shutil import move
+    import subprocess
+    from tempfile import TemporaryDirectory
+    from os import devnull, environ
+
+    with TemporaryDirectory() as tmpdir:
+        cwd = Path(tmpdir)
+        env = environ.copy()
+        env["MIR_DEBUG"] = "1"
+        env["MIR_CACHE_PATH"] = tmpdir
+
+        mir_write_latlon_to_griddef(cwd / "in.griddef", in_lat, in_lon)
+        mir_write_latlon_to_griddef(cwd / "out.griddef", out_lat, out_lon)
+
+        try:
+            subprocess.run(
+                [
+                    mir,
+                    devnull,
+                    devnull,
+                    "--input={artificialInput:constant,constant:0.,gridded:True,gridType:unstructured_grid,griddef:in.griddef}",
+                    "--griddef=out.griddef",
+                ]
+                + [f"--{k}={v}" for k, v in kwargs.items()],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=True,
+                cwd=cwd,
+                env=env,
+            )
+
+            matrix_path_temp = next(cwd.rglob("*.mat"), None)
+            if matrix_path_temp:
+                move(matrix_path_temp, matrix_path)
+
+            if not Path(matrix_path).exists():
+                raise FileNotFoundError("mir_make_matrix: matrix file not found.")
+
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("mir_make_matrix: failed with error: {e.stdout}.") from e
+
+        except Exception as e:
+            raise RuntimeError("mir_make_matrix: unexpected error: {e}.") from e
 
 
 if __name__ == "__main__":

@@ -9,6 +9,9 @@
 # nor does it submit to any jurisdiction.
 #
 
+import os
+import subprocess
+
 import numpy as np
 from scipy.sparse import csr_array, save_npz
 
@@ -84,34 +87,37 @@ def mir_write_latlon_to_griddef(path, lats, lons):
             s.write_double(lon)
 
 
-def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **kwargs):
+def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir=None, **kwargs):
+    import shutil
     from pathlib import Path
-    from shutil import move
-    import subprocess
     from tempfile import TemporaryDirectory
-    from os import devnull, environ
 
-    msg = "mir_make_matrix: "
+    mir = mir or os.getenv("MIR_COMMAND", "mir")
 
     with TemporaryDirectory() as tmpdir:
         cwd = Path(tmpdir)
-        env = environ.copy()
+        env = os.environ.copy()
         env["MIR_DEBUG"] = "1"
         env["MIR_CACHE_PATH"] = tmpdir
 
         mir_write_latlon_to_griddef(cwd / "in.griddef", in_lat, in_lon)
         mir_write_latlon_to_griddef(cwd / "out.griddef", out_lat, out_lon)
 
+        cmd = [
+            mir,
+            os.devnull,
+            os.devnull,
+            (
+                "--input={artificialInput:constant,constant:0.,gridded:True,"
+                "gridType:unstructured_grid,griddef:in.griddef}"
+            ),
+            "--griddef=out.griddef",
+            *[f"--{k}={v}" for k, v in kwargs.items()],
+        ]
+
         try:
             result = subprocess.run(
-                [
-                    mir,
-                    devnull,
-                    devnull,
-                    "--input={artificialInput:constant,constant:0.,gridded:True,gridType:unstructured_grid,griddef:in.griddef}",
-                    "--griddef=out.griddef",
-                ]
-                + [f"--{k}={v}" for k, v in kwargs.items()],
+                cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -122,16 +128,20 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **
 
             matrix_path_temp = next(cwd.rglob("*.mat"), None)
             if matrix_path_temp:
-                move(matrix_path_temp, matrix_path)
+                shutil.move(matrix_path_temp, matrix_path)
 
             if not Path(matrix_path).exists():
-                raise FileNotFoundError(msg + f"matrix file '{matrix_path}' not found.")
+                raise FileNotFoundError(
+                    f"mir_make_matrix: matrix file '{matrix_path}' not found."
+                )
 
         except subprocess.CalledProcessError as e:
-            raise RuntimeError(msg + f"error ({result.returncode}): {e.stdout}.") from e
+            raise RuntimeError(
+                f"mir_make_matrix: error ({result.returncode}): {e.stdout}."
+            ) from e
 
         except Exception as e:
-            raise RuntimeError(msg + f"error: {e}.") from e
+            raise RuntimeError(f"mir_make_matrix: error: {e}.") from e
 
 
 if __name__ == "__main__":

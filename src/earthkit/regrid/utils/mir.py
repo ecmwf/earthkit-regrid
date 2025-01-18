@@ -91,6 +91,8 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **
     from tempfile import TemporaryDirectory
     from os import devnull, environ
 
+    msg = "mir_make_matrix: "
+
     with TemporaryDirectory() as tmpdir:
         cwd = Path(tmpdir)
         env = environ.copy()
@@ -101,7 +103,7 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **
         mir_write_latlon_to_griddef(cwd / "out.griddef", out_lat, out_lon)
 
         try:
-            subprocess.run(
+            result = subprocess.run(
                 [
                     mir,
                     devnull,
@@ -123,13 +125,13 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir="mir", **
                 move(matrix_path_temp, matrix_path)
 
             if not Path(matrix_path).exists():
-                raise FileNotFoundError("mir_make_matrix: matrix file not found.")
+                raise FileNotFoundError(msg + f"matrix file '{matrix_path}' not found.")
 
         except subprocess.CalledProcessError as e:
-            raise RuntimeError("mir_make_matrix: failed with error: {e.stdout}.") from e
+            raise RuntimeError(msg + f"error ({result.returncode}): {e.stdout}.") from e
 
         except Exception as e:
-            raise RuntimeError("mir_make_matrix: unexpected error: {e}.") from e
+            raise RuntimeError(msg + f"error: {e}.") from e
 
 
 if __name__ == "__main__":

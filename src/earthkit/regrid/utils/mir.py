@@ -94,6 +94,11 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir=None, **k
 
     mir = mir or os.getenv("MIR_COMMAND", "mir")
 
+    _, ext = os.path.splitext(matrix_path)
+
+    if ext not in (".mat", ".npz"):
+        raise ValueError("matrix_path must have extension .mat or .npz")
+
     with TemporaryDirectory() as tmpdir:
         cwd = Path(tmpdir)
         env = os.environ.copy()
@@ -116,29 +121,23 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir=None, **k
         ]
 
         try:
-            result = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                check=True,
-                cwd=cwd,
-                env=env,
-            )
+            subprocess.run(cmd, check=True, cwd=cwd, env=env)
 
-            matrix_path_temp = next(cwd.rglob("*.mat"), None)
-            if matrix_path_temp:
-                shutil.move(matrix_path_temp, matrix_path)
-
-            if not Path(matrix_path).exists():
+            matrices = list(cwd.rglob("*.mat"))
+            if not matrices:
                 raise FileNotFoundError(
-                    f"mir_make_matrix: matrix file '{matrix_path}' not found."
+                    "mir_make_matrix: no matrix file found in output directory."
                 )
 
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(
-                f"mir_make_matrix: error ({result.returncode}): {e.stdout}."
-            ) from e
+            if len(matrices) > 1:
+                raise RuntimeError(
+                    "mir_make_matrix: multiple matrix files found in output directory."
+                )
+
+            if ext == ".npz":
+                mir_cached_matrix_to_file(matrices[0], matrix_path)
+            else:
+                shutil.move(matrices[0], matrix_path)
 
         except Exception as e:
             raise RuntimeError(f"mir_make_matrix: error: {e}.") from e

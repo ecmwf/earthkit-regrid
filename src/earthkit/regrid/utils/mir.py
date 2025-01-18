@@ -87,17 +87,18 @@ def mir_write_latlon_to_griddef(path, lats, lons):
             s.write_double(lon)
 
 
-def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir=None, **kwargs):
+def mir_make_matrix(output, in_lat, in_lon, out_lat, out_lon, mir=None, **kwargs):
     import shutil
     from pathlib import Path
     from tempfile import TemporaryDirectory
 
     mir = mir or os.getenv("MIR_COMMAND", "mir")
 
-    _, ext = os.path.splitext(matrix_path)
+    if output is not None:
+        _, ext = os.path.splitext(output)
 
-    if ext not in (".mat", ".npz"):
-        raise ValueError("matrix_path must have extension .mat or .npz")
+        if ext not in (".mat", ".npz"):
+            raise ValueError("mir_make_matrix: output must have extension .mat or .npz")
 
     with TemporaryDirectory() as tmpdir:
         cwd = Path(tmpdir)
@@ -134,10 +135,13 @@ def mir_make_matrix(matrix_path, in_lat, in_lon, out_lat, out_lon, mir=None, **k
                     "mir_make_matrix: multiple matrix files found in output directory."
                 )
 
+            if output is None:
+                return mir_cached_matrix_to_array(matrices[0])
+
             if ext == ".npz":
-                mir_cached_matrix_to_file(matrices[0], matrix_path)
+                mir_cached_matrix_to_file(matrices[0], output)
             else:
-                shutil.move(matrices[0], matrix_path)
+                shutil.move(matrices[0], output)
 
         except Exception as e:
             raise RuntimeError(f"mir_make_matrix: error: {e}.") from e

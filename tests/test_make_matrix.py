@@ -39,11 +39,11 @@ def test_make_matrix(tmp_path, in_lat, in_lon, out_lat, out_lon):
     matrix_path = Path(tmp_path) / "matrix.mat"
 
     mir_make_matrix(
-        matrix_path,
         in_lat,
         in_lon,
         out_lat,
         out_lon,
+        matrix_path,
         mir="mir",
         interpolation="nn",
     )

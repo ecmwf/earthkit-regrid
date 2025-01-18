@@ -119,6 +119,10 @@ def mir_make_matrix(in_lat, in_lon, out_lat, out_lon, output=None, mir=None, **k
             *[f"--{k}={v}" for k, v in kwargs.items()],
         ]
 
+        # default to the most generic interpolation method
+        if "interpolation" not in kwargs and "nclosest" not in kwargs:
+            cmd += ["--interpolation=nn", "--nclosest=1"]
+
         try:
             subprocess.run(cmd, check=True, cwd=cwd, env=env)
 

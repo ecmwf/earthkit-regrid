@@ -87,7 +87,7 @@ def mir_write_latlon_to_griddef(path, lats, lons):
             s.write_double(lon)
 
 
-def mir_make_matrix(output, in_lat, in_lon, out_lat, out_lon, mir=None, **kwargs):
+def mir_make_matrix(in_lat, in_lon, out_lat, out_lon, output=None, mir=None, **kwargs):
     import shutil
     from pathlib import Path
     from tempfile import TemporaryDirectory

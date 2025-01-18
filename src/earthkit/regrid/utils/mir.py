@@ -95,9 +95,7 @@ def mir_make_matrix(in_lat, in_lon, out_lat, out_lon, output=None, mir=None, **k
     mir = mir or os.getenv("MIR_COMMAND", "mir")
 
     if output is not None:
-        _, ext = os.path.splitext(output)
-
-        if ext not in (".mat", ".npz"):
+        if Path(output).suffix not in (".mat", ".npz"):
             raise ValueError("mir_make_matrix: output must have extension .mat or .npz")
 
     with TemporaryDirectory() as tmpdir:

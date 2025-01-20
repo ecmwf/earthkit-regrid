@@ -459,24 +459,29 @@ class MatrixDb:
         method,
         **kwargs,
     ):
-        from earthkit.regrid.utils.memcache import MEMORY_CACHE
+        entry = self.find_entry(gridspec_in, gridspec_out, method)
+        if entry is not None:
+            z = self.load_matrix(entry)
+            return z, entry["output"]["shape"]
+        return None, None
 
-        gridspec_in = GridSpec.from_dict(gridspec_in)
-        gridspec_out = GridSpec.from_dict(gridspec_out)
-        if gridspec_in is None or gridspec_out is None:
-            return None, None
+        # TODO: re-enable memory cache
+        # from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
-        return MEMORY_CACHE.get(
-            gridspec_in,
-            gridspec_out,
-            method,
-            create=self._create_matrix,
-            find_entry=self.find_entry,
-            create_from_entry=self._create_matrix_from_entry,
-            **kwargs,
-        )
+        # gridspec_in = GridSpec.from_dict(gridspec_in)
+        # gridspec_out = GridSpec.from_dict(gridspec_out)
+        # if gridspec_in is None or gridspec_out is None:
+        #     return None, None
 
-        # return self._create_matrix(gridspec_in, gridspec_out, method)
+        # return MEMORY_CACHE.get(
+        #     gridspec_in,
+        #     gridspec_out,
+        #     method,
+        #     create=self._create_matrix,
+        #     find_entry=self.find_entry,
+        #     create_from_entry=self._create_matrix_from_entry,
+        #     **kwargs,
+        # )
 
     def _create_matrix(self, gridspec_in, gridspec_out, method):
         return self._create_matrix_from_entry(

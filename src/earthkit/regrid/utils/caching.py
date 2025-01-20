@@ -47,6 +47,9 @@ SETTINGS = {
     "check-out-of-date-urls": False,
     "download-out-of-date-urls": False,
     "temporary-cache-directory-root": None,
+    "maximum-matrix-memory-cache-size": 500 * 1024 * 1024,
+    "matrix-memory-cache-policy": "off",
+    "matrix-memory-cache-strict-mode": False,
 }
 
 
@@ -371,13 +374,10 @@ class CacheManager(threading.Thread):
             except OSError:
                 pass
 
-        if entry["size"] is None:
-            entry["size"] = 0
-
-        path, size = (
-            entry["path"],
-            entry["size"],
-        )
+        path = entry["path"]
+        size = entry["size"]
+        if size is None:
+            size = 0
 
         # path, size, owner, args = (
         #     entry["path"],

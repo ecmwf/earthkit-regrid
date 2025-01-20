@@ -114,8 +114,7 @@ LOG.debug(f"{out_grids=}")
 
 index_file = os.path.join(build_dir, "index.json")
 
-for method in ["nn"]:
-    # for method in ["linear", "nn", "grid-box-average"]:
+for method in ["linear", "nn", "grid-box-average"]:
     matrix_dir = os.path.join(build_dir, f"matrices_{method}")
 
     for g_in in in_grids:

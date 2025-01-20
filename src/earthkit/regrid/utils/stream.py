@@ -65,6 +65,10 @@ class Stream:
     def _read(self, n):
         return self.stream.read(n)
 
+    def _write(self, n, nbytes=None):
+        assert not nbytes or nbytes == len(n)
+        return self.stream.write(n)
+
     def read_tag(self, expected_tag):
         tag = self._read(1)
         tag = ord(tag)
@@ -131,7 +135,9 @@ class Stream:
 
     def write_double(self, n):
         self.write_tag(TAG_DOUBLE)
-        raise RuntimeError("write_doble")
+        x, y = unpack("!II", pack("!d", n))
+        self.stream.write(pack("!L", y))
+        self.stream.write(pack("!L", x))
 
     def write_unsigned_long(self, n):
         self.write_tag(TAG_UNSIGNED_LONG)

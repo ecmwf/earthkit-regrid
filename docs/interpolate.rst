@@ -7,7 +7,7 @@ Interpolation
 
     :param values: the input data. It can be an ndarray or an earthkit-data GRIB :xref:`fieldlist`. ndarrays are assumed to be defined on the ``in_grid``. The :xref:`fieldlist` support requires :xref:`earthkit-data` >= 0.6.0 and only works when the ``out_grid`` is a regular latitude-longitude grid.
     :type values: ndarray, :xref:`fieldlist`
-    :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. When ``values`` is a :xref:`fieldlist` the input grid is automatically detected and ``in_grid`` cannot be specified.
+    :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. When ``values`` is a :xref:`fieldlist` the input grid is automatically detected if ``in_grid`` is not specified.
     :type in_grid: dict
     :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type out_grid: dict

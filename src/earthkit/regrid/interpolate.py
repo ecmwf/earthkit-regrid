@@ -70,8 +70,8 @@ class FieldListInterpolator:
 
         ds = values
         in_grid = kwargs.pop("in_grid")
-        if in_grid is not None:
-            raise ValueError("in_grid cannot be used for FieldList interpolation")
+        # if in_grid is not None:
+        #     raise ValueError(f"in_grid {in_grid} cannot be used for FieldList interpolation")
         out_grid = kwargs.pop("out_grid")
         method = kwargs.pop("method")
 
@@ -80,7 +80,7 @@ class FieldListInterpolator:
             vv = f.to_numpy(flatten=True)
             v_res = _interpolate(
                 vv,
-                f.metadata().gridspec,
+                f.metadata().gridspec if in_grid is None else in_grid,
                 out_grid,
                 method,
                 **kwargs,

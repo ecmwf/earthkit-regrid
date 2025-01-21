@@ -14,9 +14,17 @@ Interpolation
     numpy_arrays.ipynb
     healpix_fieldlist.ipynb
     octahedral_fieldlist.ipynb
-    memory_cache.ipynb
 
-Miscellaneous
+Caching
+++++++++++
+
+.. toctree::
+    :maxdepth: 1
+
+    memory_cache.ipynb
+    cache.ipynb
+
+Configuration
 +++++++++++++
 
 .. toctree::
@@ -25,4 +33,3 @@ Miscellaneous
 
     config.ipynb
     config_env_vars.ipynb
-    cache.ipynb

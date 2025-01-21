@@ -14,7 +14,6 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
 .. toctree::
    :maxdepth: 1
    :caption: Examples
-   :titlesonly:
 
    examples/index
 

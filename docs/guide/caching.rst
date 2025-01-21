@@ -1,6 +1,6 @@
 .. _caching:
 
-On-disk matrix caching
+Disk-based matrix caching
 =========================
 
 Purpose
@@ -9,10 +9,6 @@ Purpose
 earthkit-regrid uses a dedicated **directory** to store interpolation matrices and the related index file downloaded from the remote inventory. By default this directory serves a **cache** and is **managed** (its size is checked/limited).  It means if we run :func:`interpolate` again with the same input and output grid it will load the matrix from the cache instead of downloading it again. Additionally, caching offers **monitoring and disk space management**. When the cache is full, cached data is deleted according to the configuration (i.e. oldest data is deleted first). The cache is implemented by using a sqlite database running in a separate thread.
 
 Please note that the earthkit-regrid cache configuration is managed through the :doc:`config`.
-
-.. warning::
-
-  By default the caching is disabled, i.e. the :ref:`cache-policy <cache_policies>` is "off".
 
 .. warning::
 
@@ -90,9 +86,6 @@ More generally, the earthkit-regrid config options can be read, modified, reset
 to their default values from Python,
 see the :doc:`Configs documentation <config>`.
 
-.. _cache_object:
-.. _cache_methods:
-
 .. _temporary_cache_policy:
 
 Temporary cache policy
@@ -152,8 +145,9 @@ We can specify the parent directory for the the temporary directory by using the
   >>> cache.directory()
   '~/my_demo_tmp/tmp0iiuvsz5'
 
-.. _temporary_cache_policy:
 
+.. _cache_object:
+.. _cache_methods:
 
 Cache methods
 -------------------------
@@ -164,7 +158,7 @@ The cache is controlled by a global object, which we can access as ``earthkit.re
 
   >>> from earthkit.regrid import cache
   >>> cache
-  <earthkit.regrid.core.caching.Cache object at 0x117be7040>
+  <earthkit.regrid.utils.caching.Cache object at 0x117be7040>
 
 
 When ``cache-policy`` is :ref:`user <user_cache_policy>` or :ref:`temporary <temporary_cache_policy>`
@@ -221,7 +215,7 @@ Cache limits
 
 .. warning::
 
-  These config options do not work when ``cache-policy`` is :ref:`off <off_cache_policy>` .
+  These config options do not work when ``cache-policy`` is :ref:`off <off_cache_policy>`.
 
 
 Maximum-cache-size
@@ -257,6 +251,6 @@ Maximum-cache-disk-usage
 Cache config parameters
 -------------------------------
 
-.. module-output:: generate_config_rst .*-cache-.* cache-.* .*-cache
+.. module-output:: generate_config_rst cache-policy maximum-cache-disk-usage maximum-cache-size temporary-cache-directory-root user-cache-directory
 
 Other earthkit-regrid config options can be found :ref:`here <config_table>`.

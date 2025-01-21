@@ -32,7 +32,7 @@ The primary config option to control the in-memory cache is ``matrix-memory-cach
 Largest cache policy
 ++++++++++++++++++++++
 
-When the ``matrix-memory-cache-policy`` is "largest" first evicts the largest matrices from the in-memory cache (default). The cache eviction policy is applied before loading the matrix to ensure that it will fit into the cache. When it is not possible the behaviour depends on the ``matrix-memory-cache-strict-mode`` option. The maximum memory size of the in-memory cache is defined by the ``maximum-matrix-memory-cache-size`` option. The default is 500 MB.
+When the ``matrix-memory-cache-policy`` is "largest" first evicts the largest matrices from the in-memory cache (default). The cache eviction policy is applied before loading the matrix to ensure that it will fit into the cache. When it is not possible the behaviour depends on the :ref:`matrix-memory-cache-strict-mode <mem_cache_limits>` option. The maximum memory size of the in-memory cache is defined by the :ref:`maximum-matrix-memory-cache-size <mem_cache_limits>` option. The default is 500 MB.
 
 .. code-block:: python
 
@@ -51,7 +51,7 @@ When the ``matrix-memory-cache-policy`` is "largest" first evicts the largest ma
 LRU cache policy
 ++++++++++++++++++++++
 
-When the ``matrix-memory-cache-policy`` is "lru" first evicts the least recently used matrices from the in-memory cache. The cache eviction policy is applied before loading the matrix to ensure that it will fit into the cache. When it is not possible the behaviour depends on the ``matrix-memory-cache-strict-mode`` option. The maximum memory size of the in-memory cache is defined by the ``maximum-matrix-memory-cache-size`` option. The default is 500 MB.
+When the ``matrix-memory-cache-policy`` is "lru" first evicts the least recently used matrices from the in-memory cache. The cache eviction policy is applied before loading the matrix to ensure that it will fit into the cache. When it is not possible the behaviour depends on the :ref:`matrix-memory-cache-strict-mode <mem_cache_limits>` option. The maximum memory size of the in-memory cache is defined by the :ref:`maximum-matrix-memory-cache-size <mem_cache_limits>` option. The default is 500 MB.
 
 .. code-block:: python
 
@@ -130,19 +130,35 @@ In-memory cache limits
 
 .. warning::
 
-  These config options are only used when ``matrix-mempry-cache-policy`` is :ref:`largest <largest_mem_cache_policy>` or :ref:`lru <lru_mem_cache_policy>`.
+  These config options are only used when ``matrix-memory-cache-policy`` is :ref:`largest <largest_mem_cache_policy>` or :ref:`lru <lru_mem_cache_policy>`.
 
-Maximum-matrix-memory-cache-size
+maximum-matrix-memory-cache-size
   The ``maximum-matrix-memory-cache-size`` option defines the maximum memory size of the in-memory cache in bytes. The default is 500 MB.
 
-Matrix-memory-cache-strict-mode
+matrix-memory-cache-strict-mode
     When the ``matrix-memory-cache-strict-mode`` option is ``True``, raises ValueError if the matrix cannot be fitted into the cache. If ``False`` and the matrix cannot be fitted into the cache it simply does not load the matrix into the cache. The default is ``False``.
+
+
+
+.. _mem_cache_config:
+
+In-memory cache config parameters
+------------------------------------
+
+.. module-output:: generate_config_rst matrix-memory-cache-policy maximum-matrix-memory-cache-size matrix-memory-cache-strict-mode
+
+Other earthkit-regrid config options can be found :ref:`here <config_table>`.
+
+
+
+Notebooks
+---------
+
+- :ref:`/examples/memory_cache.ipynb`
 
 
 Examples
 --------
-
-- :ref:`/examples/memory_cache.ipynb`
 
 .. code-block:: python
 

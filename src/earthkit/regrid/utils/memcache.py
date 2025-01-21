@@ -367,27 +367,9 @@ class MatrixMemoryCache(MemoryCache):
 MEMORY_CACHE = MatrixMemoryCache()
 
 
-# # TODO: enable the commented out options when estimate_matrix_size is implemented
-# def set_memory_cache(
-#     policy="largest",
-#     max_size=300 * 1024 * 1024,
-#     strict=False,
-# ):
-#     from earthkit.regrid.utils.caching import CONFIG
-
-#     CONFIG[MEMORY_CACHE.MAX_SIZE_KEY] = max_size
-#     CONFIG[MEMORY_CACHE.POLICY_KEY] = policy
-#     CONFIG[MEMORY_CACHE.STRICT_KEY] = strict
-#     MEMORY_CACHE.update()
-
-
 def clear_memory_cache():
     MEMORY_CACHE.clear()
 
 
 def memory_cache_info():
     return MEMORY_CACHE.info()
-
-
-# # register for config changes
-# CONFIG.on_change(MEMORY_CACHE._config_changed)

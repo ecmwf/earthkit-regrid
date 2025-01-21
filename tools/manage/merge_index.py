@@ -78,12 +78,8 @@ def main():
         help="merge mode",
     )
 
-    parser.add_argument(
-        "--input-dir", default="", type=str, help="input root directory path"
-    )
-    parser.add_argument(
-        "--output-dir", default="", type=str, help="output directory path"
-    )
+    parser.add_argument("--input-dir", default="", type=str, help="input root directory path")
+    parser.add_argument("--output-dir", default="", type=str, help="output directory path")
 
     parser.add_argument(
         "--dry-run",
@@ -117,9 +113,7 @@ def main():
         # fetch remote system index.json
         system_file = os.path.join(args.output_dir, "index.json.remote")
         download_index_file(system_file)
-        merge(
-            args.input_dir, result_file, system_file=system_file, dry_run=args.dry_run
-        )
+        merge(args.input_dir, result_file, system_file=system_file, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

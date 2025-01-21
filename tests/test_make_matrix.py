@@ -10,7 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from earthkit.regrid.utils.mir import mir_cached_matrix_to_array, mir_make_matrix
+from earthkit.regrid.utils.mir import mir_cached_matrix_to_array
+from earthkit.regrid.utils.mir import mir_make_matrix
 
 X = [1.0, 2.0, 3.0, 4.0]
 Y = [10.0, 20.0, 30.0, 40.0]

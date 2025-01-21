@@ -18,13 +18,14 @@ import shutil
 import sqlite3
 import threading
 import time
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from abc import abstractmethod
 from copy import deepcopy
 from random import randrange
 
-from filelock import FileLock
-
 from earthkit.regrid.utils import humanize
+from earthkit.regrid.utils.config import CONFIG
+from earthkit.regrid.utils.html import css
 from earthkit.regrid.utils.temporary import temp_directory
 
 VERSION = 2
@@ -35,22 +36,6 @@ LOG = logging.getLogger(__name__)
 
 CONNECTION = None
 CACHE = None
-
-SETTINGS = {
-    "cache-policy": "user",
-    "user-cache-directory": os.path.join(
-        os.path.expanduser("~"), ".cache", "earthkit-regrid"
-    ),
-    "maximum-cache-size": 5 * 1024 * 1024 * 1024,
-    "maximum-cache-disk-usage": 99,
-    "url-download-timeout": 30,
-    "check-out-of-date-urls": False,
-    "download-out-of-date-urls": False,
-    "temporary-cache-directory-root": None,
-    "maximum-matrix-memory-cache-size": 500 * 1024 * 1024,
-    "matrix-memory-cache-policy": "off",
-    "matrix-memory-cache-strict-mode": False,
-}
 
 
 class DiskUsage:
@@ -78,9 +63,7 @@ class DiskUsage:
             self.total = st.f_blocks * st.f_frsize
             self.avail = st.f_bavail * st.f_frsize
 
-        self.percent = int(
-            float(self.total - self.avail) / float(self.total) * 100 + 0.5
-        )
+        self.percent = int(float(self.total - self.avail) / float(self.total) * 100 + 0.5)
 
     def __repr__(self):
         return (
@@ -94,8 +77,14 @@ def disk_usage(path):
 
 
 def default_serialiser(o):
+    import pandas as pd
+
     if isinstance(o, (datetime.date, datetime.datetime)):
         return o.isoformat()
+    if isinstance(o, (pd.Timestamp)):
+        return o.isoformat()
+    if isinstance(o, (pd.DatetimeIndex)):
+        return [_.isoformat() for _ in o]
     return json.JSONEncoder.default(o)
 
 
@@ -191,8 +180,8 @@ class CacheManager(threading.Thread):
     def _ensure_in_cache(self, path):
         assert self._policy.file_in_cache_directory(path), f"File not in cache {path}"
 
-    def _settings_changed(self, policy):
-        LOG.debug("Settings changed")
+    def _config_changed(self, policy):
+        LOG.debug("Config changed")
         self._policy = policy
         self._connection = None  # The user may have changed the cache directory
         self._check_cache_size()
@@ -202,13 +191,11 @@ class CacheManager(threading.Thread):
         So we do not purge files being downloaded.
         """
         with self.connection as db:
-            latest = db.execute(
-                "SELECT MIN(creation_date) FROM cache WHERE size IS NULL"
-            ).fetchone()[0]
+            latest = db.execute("SELECT MIN(creation_date) FROM cache WHERE size IS NULL").fetchone()[0]
             if latest is None:
-                latest = db.execute(
-                    "SELECT MAX(creation_date) FROM cache WHERE size IS NOT NULL"
-                ).fetchone()[0]
+                latest = db.execute("SELECT MAX(creation_date) FROM cache WHERE size IS NOT NULL").fetchone()[
+                    0
+                ]
             if latest is None:
                 latest = datetime.datetime.now()
             return latest
@@ -299,9 +286,7 @@ class CacheManager(threading.Thread):
                     continue
 
                 full = os.path.join(top, name)
-                count = db.execute(
-                    "SELECT count(*) FROM cache WHERE path=?", (full,)
-                ).fetchone()[0]
+                count = db.execute("SELECT count(*) FROM cache WHERE path=?", (full,)).fetchone()[0]
 
                 if count > 0:
                     continue
@@ -324,11 +309,9 @@ class CacheManager(threading.Thread):
                     pass
 
                 if parent is None:
-                    LOG.warning(f"earthkit-data cache: orphan found: {full}")
+                    LOG.warning(f"earthkit-regrid cache: orphan found: {full}")
                 else:
-                    LOG.debug(
-                        f"earthkit-data cache: orphan found: {full} with parent {parent}"
-                    )
+                    LOG.debug(f"earthkit-regrid cache: orphan found: {full} with parent {parent}")
 
                 self._register_cache_file(
                     full,
@@ -405,8 +388,8 @@ class CacheManager(threading.Thread):
                 db.execute("DELETE FROM cache WHERE path=?", (path,))
             return total
 
-        # LOG.warning(f"earthkit-data cache: deleting {path} ({humanize.bytes(size)})")
-        # LOG.warning(f"earthkit-data cache: {owner} {args}")
+        # LOG.warning(f"earthkit-regrid cache: deleting {path} ({humanize.bytes(size)})")
+        # LOG.warning(f"earthkit-regrid cache: {owner} {args}")
         self._delete_file(path)
 
         with self.connection as db:
@@ -421,7 +404,7 @@ class CacheManager(threading.Thread):
         if bytes <= 0:
             return 0
 
-        LOG.warning("earthkit-data cache: trying to free %s", humanize.bytes(bytes))
+        LOG.warning("earthkit-regrid cache: trying to free %s", humanize.bytes(bytes))
 
         total = 0
 
@@ -436,12 +419,12 @@ class CacheManager(threading.Thread):
                     total += self._delete_entry(entry)
                     if total >= bytes:
                         LOG.warning(
-                            "earthkit-data cache: freed %s from cache",
+                            "earthkit-regrid cache: freed %s from cache",
                             humanize.bytes(bytes),
                         )
                         return total
 
-        LOG.warning("earthkit-data cache: could not free %s", humanize.bytes(bytes))
+        LOG.warning("earthkit-regrid cache: could not free %s", humanize.bytes(bytes))
 
     def _register_cache_file(self, path, owner, args, parent=None):
         """Register a file in the cache
@@ -493,9 +476,7 @@ class CacheManager(threading.Thread):
                     (path, owner, args, now, now, 1, parent),
                 )
 
-            return dict(
-                db.execute("SELECT * FROM cache WHERE path=?", (path,)).fetchone()
-            )
+            return dict(db.execute("SELECT * FROM cache WHERE path=?", (path,)).fetchone())
 
     def _cache_size(self):
         LOG.debug("cache_size")
@@ -537,8 +518,7 @@ class CacheManager(threading.Thread):
         str
             HTML status of the cache.
         """
-        # html = [css("table")]
-        html = []
+        html = [css("table")]
         with self.new_connection() as db:
             for n in db.execute("SELECT * FROM cache"):
                 n = dict(n)
@@ -584,7 +564,6 @@ class CachePolicy(metaclass=ABCMeta):
         "cache-policy",
         "user-cache-directory",
         "temporary-cache-directory-root",
-        "use-message-position-index-cache",
         "maximum-cache-disk-usage",
         "maximum-cache-size",
     ]
@@ -593,15 +572,15 @@ class CachePolicy(metaclass=ABCMeta):
     _name = None
 
     def __init__(self):
-        self._settings = {k: SETTINGS.get(k) for k in self.CACHE_KEYS}
+        self._config = {k: CONFIG.get(k) for k in self.CACHE_KEYS}
 
     @property
     def name(self):
         return self._name
 
     @staticmethod
-    def from_settings():
-        name = SETTINGS.get("cache-policy")
+    def from_config():
+        name = CONFIG.get("cache-policy")
         p = _cache_policies.get(name, None)
         if p is not None:
             return p()
@@ -609,17 +588,15 @@ class CachePolicy(metaclass=ABCMeta):
             raise NotImplementedError(f"Unknown cache policy={name}")
 
     def outdated(self):
-        return any(
-            self._settings.get(k) != SETTINGS.get(k) for k in self.OUTDATED_CHECK_KEYS
-        )
+        return any(self._config.get(k) != CONFIG.get(k) for k in self.OUTDATED_CHECK_KEYS)
 
     def update(self):
         changed = False
         for k in self.CACHE_KEYS:
-            if self._settings.get(k) != SETTINGS.get(k):
+            if self._config.get(k) != CONFIG.get(k):
                 changed = True
             if k not in self.OUTDATED_CHECK_KEYS:
-                self._settings[k] = SETTINGS.get(k)
+                self._config[k] = CONFIG.get(k)
         return changed
 
     @abstractmethod
@@ -648,6 +625,12 @@ class CachePolicy(metaclass=ABCMeta):
 
     def file_in_cache_directory(self, path):
         return path.startswith(self.directory())
+
+    @staticmethod
+    def _expand_path(path):
+        if path is not None:
+            path = os.path.expanduser(path)
+        return path
 
 
 class EmptyCachePolicy(CachePolicy):
@@ -686,7 +669,7 @@ class NoCachePolicy(CachePolicy):
     def directory(self):
         if self._dir is None:
             if self._dir is None:
-                root_dir = self._settings.get("temporary-directory-root")
+                root_dir = self._expand_path(self._config.get("temporary-directory-root"))
                 self._dir = temp_directory(dir=root_dir)
         return self._dir.path
 
@@ -712,30 +695,27 @@ class UserCachePolicy(CachePolicy):
 
     def __init__(self):
         super().__init__()
-        path = self._settings.get("user-cache-directory")
-        if not os.path.exists(path):
-            os.makedirs(path, exist_ok=True)
+        self._path = self._expand_path(self._config.get("user-cache-directory"))
+        if not os.path.exists(self._path):
+            os.makedirs(self._path, exist_ok=True)
 
     def managed(self):
         return True
 
     def directory(self):
-        return self._settings.get("user-cache-directory")
+        return self._path
 
     def use_message_position_index_cache(self):
-        return self._settings.get("use-message-position-index-cache")
+        return self._config.get("use-message-position-index-cache")
 
     def is_cache_size_managed(self):
-        return (
-            self.maximum_cache_size() is not None
-            or self.maximum_cache_disk_usage() is not None
-        )
+        return self.maximum_cache_size() is not None or self.maximum_cache_disk_usage() is not None
 
     def maximum_cache_size(self):
-        return self._settings.get("maximum-cache-size")
+        return self._config.get("maximum-cache-size")
 
     def maximum_cache_disk_usage(self):
-        return self._settings.get("maximum-cache-disk-usage")
+        return self._config.get("maximum-cache-disk-usage")
 
     def __repr__(self):
         r = (
@@ -754,7 +734,7 @@ class TmpCachePolicy(UserCachePolicy):
 
     def __init__(self):
         super().__init__()
-        root_dir = self._settings.get("temporary-cache-directory-root")
+        root_dir = self._expand_path(self._config.get("temporary-cache-directory-root"))
         self._dir = temp_directory(dir=root_dir)
 
     def directory(self):
@@ -795,19 +775,17 @@ class Cache:
 
     def _make_policy(self):
         if self._policy is None:
-            self._policy = CachePolicy.from_settings()
+            self._policy = CachePolicy.from_config()
             LOG.debug(f"Cache: created cache policy={self._policy}")
             if self._policy.managed():
                 with self._manager_lock:
                     if self._manager is None:
                         self._manager = CacheManager()
                         self._manager.start()
-                    self._call_manager_settings_changed()
+                    self._call_manager_config_changed()
 
-    def _settings_changed(self):
-        LOG.debug(
-            "Cache: settings_changed, cache-policy=" + SETTINGS.get("cache-policy")
-        )
+    def _config_changed(self):
+        LOG.debug("Cache: config_changed, cache-policy=" + CONFIG.get("cache-policy"))
         if self.policy.outdated():
             with self._policy_lock:
                 # Check again, another thread/process may have modified the policy
@@ -816,7 +794,7 @@ class Cache:
                     self._make_policy()
         elif self.policy.update() and self.policy.managed():
             with self._manager_lock:
-                self._call_manager_settings_changed()
+                self._call_manager_config_changed()
 
     def _call_manager(self, forget, name, *args, **kwargs):
         if self.policy.managed() and self._manager is not None:
@@ -830,10 +808,8 @@ class Cache:
                     s = self._manager.enqueue(func, *args, **kwargs)
                     return s.result()
 
-    def _call_manager_settings_changed(self):
-        s = self._manager.enqueue(
-            self._manager._settings_changed, deepcopy(self._policy)
-        )
+    def _call_manager_config_changed(self):
+        s = self._manager.enqueue(self._manager._config_changed, deepcopy(self._policy))
         return s.result()
 
     def _dump_database(self, *args, **kwargs):
@@ -851,8 +827,9 @@ class Cache:
         size: int
             total number of bytes stored in the cache
 
-
-        >>> from earthkit.data import cache
+        Examples
+        --------
+        >>> from earthkit.regrid import cache
         >>> cache.summary_dump_database()
         (40, 846785699)
         """
@@ -871,17 +848,17 @@ class Cache:
         """Check the cache size and trim it down when needed.
 
         Automatically runs when a new entry is added to the cache or the
-        :ref:`cache_settings` change. Does not work when the
+        :ref:`cache_config` change. Does not work when the
         ``cache-policy`` is "off".
 
         The algorithm includes three steps:
 
         - first, the cache size is determined
         - next, if the size is larger than the limit defined by
-          the ``maximum-cache-size`` settings the oldest cache entries are
+          the ``maximum-cache-size`` config the oldest cache entries are
           removed until the desired size reached
         - finally, if the size is larger than the limit defined by the
-          ``maximum-cache-disk-usage`` settings the oldest cache entries are
+          ``maximum-cache-disk-usage`` config the oldest cache entries are
           removed until the desired size reached
 
         """
@@ -925,12 +902,12 @@ class Cache:
         --------
         Delete all entries.
 
-        >>> from earthkit.data import cache
+        >>> from earthkit.regrid import cache
         >>> cache.purge()
 
         Delete all entries where the "owner" is "test_cache".
 
-        >>> from earthkit.data import cache
+        >>> from earthkit.regrid import cache
         >>> cache.purge(matcher=lambda e: ["owner"] == "test_cache")
 
         """
@@ -986,6 +963,8 @@ def cache_file(
     path: str
         Full path to the cache file.
 
+    Notes
+    -----
     The behaviour depends on the cache policy:
 
     - If the cache-policy is ``user`` or ``temporary`` the file is created in the
@@ -1003,9 +982,7 @@ def cache_file(
         m = hashlib.sha256()
         m.update(owner.encode("utf-8"))
 
-        m.update(
-            json.dumps(args, sort_keys=True, default=default_serialiser).encode("utf-8")
-        )
+        m.update(json.dumps(args, sort_keys=True, default=default_serialiser).encode("utf-8"))
         m.update(json.dumps(hash_extra, sort_keys=True).encode("utf-8"))
         m.update(json.dumps(extension, sort_keys=True).encode("utf-8"))
 
@@ -1037,12 +1014,11 @@ def cache_file(
                 record = CACHE._register_cache_file(path, owner, args)
 
         if not os.path.exists(path):
-            lock = path + ".lock"
+            from filelock import FileLock
 
+            lock = path + ".lock"
             with FileLock(lock):
-                if not os.path.exists(
-                    path
-                ):  # Check again, another thread/process may have created the file
+                if not os.path.exists(path):  # Check again, another thread/process may have created the file
                     owner_data = create(path + ".tmp", args)
                     os.rename(path + ".tmp", path)
                     LOG.info(f"cache file created: {path=}")
@@ -1070,11 +1046,11 @@ def cache_file(
         )
 
         if not os.path.exists(path):
+            from filelock import FileLock
+
             lock = path + ".lock"
             with FileLock(lock):
-                if not os.path.exists(
-                    path
-                ):  # Check again, another thread/process may have created the file
+                if not os.path.exists(path):  # Check again, another thread/process may have created the file
                     owner_data = create(path + ".tmp", args)
                     os.rename(path + ".tmp", path)
             try:

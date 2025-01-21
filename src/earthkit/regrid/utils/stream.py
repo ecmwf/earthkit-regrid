@@ -8,7 +8,8 @@
 #
 
 
-from struct import pack, unpack
+from struct import pack
+from struct import unpack
 
 TAG_ZERO = 0
 TAG_START_OBJ = 1
@@ -82,10 +83,7 @@ class Stream:
         # TODO Maybe worth having a look at it sometime.
         if tag != expected_tag:
             if tag < len(TAG_NAME):
-                raise RuntimeError(
-                    "Unexpected tag: %s, wanted %s"
-                    % (TAG_NAME[tag], TAG_NAME[expected_tag])
-                )
+                raise RuntimeError("Unexpected tag: %s, wanted %s" % (TAG_NAME[tag], TAG_NAME[expected_tag]))
             else:
                 raise RuntimeError("Invalid tag with id: '%s'" % tag)
 
@@ -107,8 +105,7 @@ class Stream:
             else:
                 if tag < len(TAG_NAME):
                     raise RuntimeError(
-                        "Unexpected tag: '%s', wanted '%s'"
-                        % (TAG_NAME[tag], TAG_NAME[TAG_START_OBJ])
+                        "Unexpected tag: '%s', wanted '%s'" % (TAG_NAME[tag], TAG_NAME[TAG_START_OBJ])
                     )
                 else:
                     raise RuntimeError("Invalid tag with id: '%d'" % tag)

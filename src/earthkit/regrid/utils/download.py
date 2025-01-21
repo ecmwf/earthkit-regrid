@@ -13,7 +13,8 @@ import logging
 from multiurl import Downloader
 
 from earthkit.regrid.utils import progress_bar
-from earthkit.regrid.utils.caching import SETTINGS, cache_file
+from earthkit.regrid.utils.caching import cache_file
+from earthkit.regrid.utils.config import CONFIG
 
 LOG = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ def download_and_cache(
     downloader = Downloader(
         url,
         chunk_size=chunk_size,
-        timeout=SETTINGS.get("url-download-timeout"),
+        timeout=CONFIG.get("url-download-timeout"),
         verify=verify,
         parts=parts,
         range_method=range_method,
@@ -70,11 +71,11 @@ def download_and_cache(
         return
 
     def out_of_date(url, path, cache_data):
-        if SETTINGS.get("check-out-of-date-urls") is False:
+        if CONFIG.get("check-out-of-date-urls") is False:
             return False
 
         if downloader.out_of_date(path, cache_data):
-            if SETTINGS.get("download-out-of-date-urls") or update_if_out_of_date:
+            if CONFIG.get("download-out-of-date-urls") or update_if_out_of_date:
                 LOG.warning(
                     "Invalidating cache version and re-downloading %s",
                     url,

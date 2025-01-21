@@ -32,9 +32,7 @@ def make_other(g):
     return f"{g}"
 
 
-makers = {
-    k: globals()[f"make_{k}"] for k in ["ll", "O_rgg", "N_rgg", "H_ring", "H_nested"]
-}
+makers = {k: globals()[f"make_{k}"] for k in ["ll", "O_rgg", "N_rgg", "H_ring", "H_nested"]}
 
 
 def make_grid_id(grids):

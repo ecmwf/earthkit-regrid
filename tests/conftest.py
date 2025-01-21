@@ -13,7 +13,8 @@ def pytest_runtest_setup(item):
     marks_in_items = list([m.name for m in item.iter_markers()])
 
     from earthkit.regrid.db import SYS_DB
-    from earthkit.regrid.utils.caching import CACHE, SETTINGS
+    from earthkit.regrid.utils.caching import CACHE
+    from earthkit.regrid.utils.caching import SETTINGS
 
     SYS_DB._clear_index()
 

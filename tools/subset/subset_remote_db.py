@@ -23,9 +23,7 @@ LOG = logging.getLogger(__name__)
 """Build a local matrix inventory by subsetting the default (remotely hosted) inventory."""
 
 
-def subset_remote_db(
-    conf_file, out_dir, strict=True, fail_on_missing=True, dry_run=False
-):
+def subset_remote_db(conf_file, out_dir, strict=True, fail_on_missing=True, dry_run=False):
     index_file = os.path.join(out_dir, "index.json")
 
     if not dry_run:
@@ -45,9 +43,7 @@ def subset_remote_db(
 
     # copy matrices
     for _, entry in index.items():
-        matrix_path = DB.copy_matrix_file(
-            entry, out_dir, exist_ok=(not strict), dry_run=dry_run
-        )
+        matrix_path = DB.copy_matrix_file(entry, out_dir, exist_ok=(not strict), dry_run=dry_run)
 
         LOG.info(f"  matrix_file: {os.path.relpath(matrix_path, out_dir)}")
         LOG.info("  matrix copied to out_dir")
@@ -101,15 +97,11 @@ def main():
         "error": logging.ERROR,
         "critical": logging.CRITICAL,
     }
-    logging.basicConfig(
-        level=log_levels[args.log_level], format="%(levelname)s: %(message)s"
-    )
+    logging.basicConfig(level=log_levels[args.log_level], format="%(levelname)s: %(message)s")
 
     # basic checks
     if not os.path.exists(args.conf):
-        LOG.error(
-            f"Config file path={args.conf} cannot be accessed! Use --conf to specify a valid path!"
-        )
+        LOG.error(f"Config file path={args.conf} cannot be accessed! Use --conf to specify a valid path!")
         sys.exit(1)
 
     if args.out_dir == "":

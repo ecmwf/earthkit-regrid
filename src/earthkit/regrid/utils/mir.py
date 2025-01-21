@@ -13,7 +13,8 @@ import os
 import subprocess
 
 import numpy as np
-from scipy.sparse import csr_array, save_npz
+from scipy.sparse import csr_array
+from scipy.sparse import save_npz
 
 from .stream import Stream
 
@@ -73,9 +74,7 @@ def mir_cached_matrix_to_file(path, target):
 def mir_write_latlon_to_griddef(path, lats, lons):
     count = len(lats)
     if count != len(lons) or count == 0:
-        raise ValueError(
-            "Latitudes and longitudes must be non-empty and have the same length."
-        )
+        raise ValueError("Latitudes and longitudes must be non-empty and have the same length.")
 
     version = 1
     with open(path, "wb") as f:
@@ -124,14 +123,10 @@ def mir_make_matrix(in_lat, in_lon, out_lat, out_lon, output=None, mir=None, **k
 
             matrices = list(cwd.rglob("*.mat"))
             if not matrices:
-                raise FileNotFoundError(
-                    "mir_make_matrix: no matrix file found in output directory."
-                )
+                raise FileNotFoundError("mir_make_matrix: no matrix file found in output directory.")
 
             if len(matrices) > 1:
-                raise RuntimeError(
-                    "mir_make_matrix: multiple matrix files found in output directory."
-                )
+                raise RuntimeError("mir_make_matrix: multiple matrix files found in output directory.")
 
             if output is None:
                 return mir_cached_matrix_to_array(matrices[0])

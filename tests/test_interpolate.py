@@ -111,9 +111,7 @@ def test_healpix_ring_to_ll(method):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(
-        v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, method=method
-    )
+    v_res = interpolate(v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -123,15 +121,11 @@ def test_healpix_ring_to_ll(method):
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("method", METHODS)
 def test_healpix_nested_to_ll(method):
-    f_in, f_out = get_test_data(
-        ["in_H4_nested.npz", f"out_H4_nested_10x10_{method}.npz"]
-    )
+    f_in, f_out = get_test_data(["in_H4_nested.npz", f"out_H4_nested_10x10_{method}.npz"])
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = interpolate(
-        v_in, {"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}, method=method
-    )
+    v_res = interpolate(v_in, {"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)

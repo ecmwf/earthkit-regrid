@@ -77,9 +77,7 @@ gs_out = {"grid": "O96"}
 cnt = 0
 for method in methods:
     v = np.ones(1740494)
-    r = earthkit.regrid.interpolate(
-        v, gs_in, gs_out, matrix_source=test_dir, method=method
-    )
+    r = earthkit.regrid.interpolate(v, gs_in, gs_out, matrix_source=test_dir, method=method)
     assert len(r) == 40320
     cnt += 1
 

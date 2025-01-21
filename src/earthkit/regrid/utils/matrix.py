@@ -13,7 +13,8 @@ import os
 
 from scipy.sparse import load_npz
 
-from earthkit.regrid.db import VERSION, MatrixIndex
+from earthkit.regrid.db import VERSION
+from earthkit.regrid.db import MatrixIndex
 
 from .mir import mir_cached_matrix_to_file
 
@@ -82,9 +83,7 @@ def matrix_memory_size(m):
         return 0
 
 
-def make_matrix(
-    input_path, output_path, index_file=None, global_input=None, global_output=None
-):
+def make_matrix(input_path, output_path, index_file=None, global_input=None, global_output=None):
     with open(input_path) as f:
         entry = json.load(f)
 

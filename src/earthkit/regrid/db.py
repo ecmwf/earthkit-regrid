@@ -10,7 +10,8 @@
 import json
 import logging
 import os
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
+from abc import abstractmethod
 
 from scipy.sparse import load_npz
 
@@ -159,9 +160,7 @@ class UrlAccessor(MatrixAccessor):
 
         def _force_download(args, path, owner_data):
             """Decide if the index file should be downloaded and cached again."""
-            LOG.info(
-                "UrlAccessor: forcefully download remote checksum and new index file"
-            )
+            LOG.info("UrlAccessor: forcefully download remote checksum and new index file")
             self._remote_sha()
             self._checked_remote = True
             return True
@@ -306,9 +305,7 @@ class MatrixIndex(dict):
             index = json.load(f)
             version = index.get("version", None)
             if version != VERSION:
-                raise ValueError(
-                    f"Invalid index file version: expected {VERSION}, got {version}"
-                )
+                raise ValueError(f"Invalid index file version: expected {VERSION}, got {version}")
 
             for name, entry in index["matrix"].items():
                 # it is possible that the inventory is already updated with a new
@@ -459,34 +456,25 @@ class MatrixDb:
         method,
         **kwargs,
     ):
-        entry = self.find_entry(gridspec_in, gridspec_out, method)
-        if entry is not None:
-            z = self.load_matrix(entry)
-            return z, entry["output"]["shape"]
-        return None, None
+        from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
-        # TODO: re-enable memory cache
-        # from earthkit.regrid.utils.memcache import MEMORY_CACHE
+        gridspec_in = GridSpec.from_dict(gridspec_in)
+        gridspec_out = GridSpec.from_dict(gridspec_out)
+        if gridspec_in is None or gridspec_out is None:
+            return None, None
 
-        # gridspec_in = GridSpec.from_dict(gridspec_in)
-        # gridspec_out = GridSpec.from_dict(gridspec_out)
-        # if gridspec_in is None or gridspec_out is None:
-        #     return None, None
-
-        # return MEMORY_CACHE.get(
-        #     gridspec_in,
-        #     gridspec_out,
-        #     method,
-        #     create=self._create_matrix,
-        #     find_entry=self.find_entry,
-        #     create_from_entry=self._create_matrix_from_entry,
-        #     **kwargs,
-        # )
+        return MEMORY_CACHE.get(
+            gridspec_in,
+            gridspec_out,
+            method,
+            create=self._create_matrix,
+            find_entry=self.find_entry,
+            create_from_entry=self._create_matrix_from_entry,
+            **kwargs,
+        )
 
     def _create_matrix(self, gridspec_in, gridspec_out, method):
-        return self._create_matrix_from_entry(
-            self.find_entry(gridspec_in, gridspec_out, method)
-        )
+        return self._create_matrix_from_entry(self.find_entry(gridspec_in, gridspec_out, method))
 
     def _create_matrix_from_entry(self, entry):
         if entry is not None:
@@ -497,14 +485,8 @@ class MatrixDb:
     def find_entry(self, gridspec_in, gridspec_out, method):
         method = self._method_alias(method)
         entry = self.index.find(gridspec_in, gridspec_out, method)
-        if (
-            entry is None
-            and not self._accessor.is_local()
-            and not self._accessor.checked_remote()
-        ):
-            LOG.info(
-                f"Matrix not found in DB for {gridspec_in=} {gridspec_out=} {method=}"
-            )
+        if entry is None and not self._accessor.is_local() and not self._accessor.checked_remote():
+            LOG.info(f"Matrix not found in DB for {gridspec_in=} {gridspec_out=} {method=}")
             LOG.info("Try to fetch remote index file to check for updates")
             self._accessor.reload()
             self._load_index()

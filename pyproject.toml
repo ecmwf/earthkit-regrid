@@ -30,6 +30,7 @@ dynamic = [ "version" ]
 dependencies = [
   "filelock",
   "multiurl",
+  "pyyaml",
   "scipy",
 ]
 optional-dependencies.test = [

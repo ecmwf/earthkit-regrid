@@ -16,7 +16,6 @@ from abc import abstractmethod
 from contextlib import contextmanager
 from typing import Callable
 
-import deprecation
 import yaml
 
 from earthkit.regrid import __version__ as VERSION
@@ -552,19 +551,9 @@ class Config:
     def autosave(self):
         return Config._auto_save_config
 
-    @property
-    @deprecation.deprecated(deprecated_in="0.13.0", removed_in=None, details="Use config.autosave instead")
-    def auto_save_settings(self):
-        return self.autosave
-
     @autosave.setter
     def autosave(self, v):
         Config._auto_save_config = v
-
-    @auto_save_settings.setter
-    @deprecation.deprecated(deprecated_in="0.13.0", removed_in=None, details="Use config.autosave instead")
-    def auto_save_settings(self, v):
-        self.autosave = v
 
     def env(self):
         r = {}

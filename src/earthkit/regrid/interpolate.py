@@ -82,6 +82,8 @@ class XarrayInterpolator:
         in_grid = kwargs.pop("in_grid", None)
         if in_grid is None:
             in_grid = values.attrs.get("gridspec", None)
+        if in_grid is None and 'earthkit' in values:
+            in_grid = values.earthkit.metadata.gridspec
 
         out_grid = kwargs.pop("out_grid")
 

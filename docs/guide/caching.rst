@@ -50,11 +50,11 @@ When the ``cache-policy`` is "user" the **cache will be active** and created in 
 
 .. note::
 
-    The default location of the user cache directory is ``"~/.config/earthkit-regrid"`` and its maximum size is 5 GB.
+    The default location of the user cache directory is ``"~/.cache/earthkit-regrid"`` and its maximum size is 5 GB.
 
 The user cache directory is **not cleaned up on exit**. So next time you start earthkit-regrid it will be there again unless it is deleted manually or it is set in way that on each startup a different path is assigned to it. Also, when you run multiple sessions of earthkit-regrid under the same user they will share the same cache.
 
-We can query the directory path via the :doc:`config` and also by calling the :meth:`~data.core.caching.Cache.directory` :ref:`cache method <cache_methods>`.
+We can query the directory path via the :doc:`config` and also by calling the :meth:`~regrid.utils.caching.Cache.directory` :ref:`cache method <cache_methods>`.
 
 .. code-block:: python
 

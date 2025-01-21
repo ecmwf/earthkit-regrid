@@ -157,7 +157,7 @@ CONFIG_AND_HELP = {
         validator=ListValidator(["off", "temporary", "user"]),
     ),
     "maximum-cache-size": _(
-        5 * 1024 * 1024 * 1024,
+        "5GB",
         """Maximum disk space used by the earthkit-regrid cache (e.g.: 100G or 2T).
         Can be set to None.""",
         getter="_as_bytes",
@@ -185,7 +185,7 @@ CONFIG_AND_HELP = {
         "Re-download URLs when the remote version of a cached file as been changed",
     ),
     "maximum-matrix-memory-cache-size": _(
-        500 * 1024 * 1024,
+        "500MB",
         """The maximum memory size of the in-memory matrix cache in bytes. Only used when ``matrix-memory-cache-policy`` is ``"largest"`` or ``"lru"``. Can be set to None.
         See :ref:`memory_cache` for more information.""",
         getter="_as_bytes",

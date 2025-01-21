@@ -1059,3 +1059,7 @@ def cache_file(
                 pass
 
     return path
+
+
+# housekeeping()
+CONFIG.on_change(CACHE._config_changed)

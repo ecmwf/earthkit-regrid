@@ -127,7 +127,7 @@ Then, set the environment variable ``EARTHKIT_REGRID_URL_DOWNLOAD_TIMEOUT``.
 
 Finally, unset the environment variable and check the config value again, which is now the value from the config file.
 
-.. code-block:: bashx
+.. code-block:: bash
 
     unset EARTHKIT_REGRID_URL_DOWNLOAD_TIMEOUT
 

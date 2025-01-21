@@ -13,15 +13,22 @@ def pytest_runtest_setup(item):
     marks_in_items = list([m.name for m in item.iter_markers()])
 
     from earthkit.regrid.db import SYS_DB
-    from earthkit.regrid.utils.caching import CACHE
-    from earthkit.regrid.utils.caching import SETTINGS
 
     SYS_DB._clear_index()
 
-    if "tmp_cache" in marks_in_items:
+    tmp_cache = "tmp_cache" in marks_in_items
+
+    # settings
+    from earthkit.regrid import config
+
+    # ensure settings are not saved automatically
+    config.autosave = False
+
+    # ensure all the tests use the default settings
+    if tmp_cache:
         # ensure these tests use a temporary cache
-        SETTINGS["cache-policy"] = "temporary"
-        CACHE._settings_changed()
+        config.reset()
+        config.set("cache-policy", "temporary")
     else:
-        SETTINGS["cache-policy"] = "user"
-        CACHE._settings_changed()
+        config.reset()
+        config.set("cache-policy", "user")

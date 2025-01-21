@@ -3,7 +3,7 @@ import earthkit.regrid
 # Change the location of the user defined cache:
 earthkit.regrid.config.set("user-cache-directory", "/big-disk/earthkit-regrid-cache")
 
-# Change number of download threads
+# Change the download timeout
 earthkit.regrid.config.set("url-download-timeout", "1m")
 
 # Multiple values can be set together. The argument list

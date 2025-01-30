@@ -16,9 +16,17 @@ except ImportError:  # pragma: no cover
     __version__ = "999"
 
 
-from earthkit.regrid.interpolate import interpolate
+from .interpolate import interpolate
+from .utils.caching import CACHE as cache
+from .utils.config import CONFIG as config
+from .utils.memcache import clear_memory_cache
+from .utils.memcache import memory_cache_info
 
 __all__ = [
+    "cache",
+    "clear_memory_cache",
+    "config",
     "interpolate",
+    "memory_cache_info",
     "__version__",
 ]

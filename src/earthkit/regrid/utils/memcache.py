@@ -9,9 +9,12 @@
 import logging
 import threading
 import time
-from abc import ABCMeta, abstractmethod
-from collections import OrderedDict, namedtuple
+from abc import ABCMeta
+from abc import abstractmethod
+from collections import OrderedDict
+from collections import namedtuple
 
+from earthkit.regrid.utils.config import CONFIG
 from earthkit.regrid.utils.hash import make_sha
 from earthkit.regrid.utils.matrix import matrix_memory_size
 
@@ -19,9 +22,7 @@ LOG = logging.getLogger(__name__)
 
 
 _MemoryItem = namedtuple("MemoryItem", ["data", "size", "last"])
-_CacheInfo = namedtuple(
-    "CacheInfo", ["hits", "misses", "maxsize", "currsize", "count", "policy"]
-)
+_CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize", "count", "policy"])
 
 
 def matrix_size(m):
@@ -166,9 +167,7 @@ class LargestPolicy(MemoryCachePolicy):
         return True
 
 
-CACHE_POLICIES = {
-    p.name: p for p in [NoPolicy, UnlimitedPolicy, LRUPolicy, LargestPolicy]
-}
+CACHE_POLICIES = {p.name: p for p in [NoPolicy, UnlimitedPolicy, LRUPolicy, LargestPolicy]}
 
 
 class MemoryCache:
@@ -208,11 +207,13 @@ class MemoryCache:
         self.size_fn = size_fn
         self.strict = strict
 
-        self.policy = MemoryCachePolicy.make("largest" if policy is None else policy)(
-            self
-        )
+        self.policy = MemoryCachePolicy.make("largest" if policy is None else policy)(self)
 
         self._has_settings = True
+
+        # register for config changes
+
+        CONFIG.on_change(self.update)
 
         self.lock = threading.Lock()
         self.update()
@@ -280,20 +281,20 @@ class MemoryCache:
     def update(self):
         """Called when settings change"""
         if self._has_settings:
-            from earthkit.regrid.utils.caching import SETTINGS
+            from earthkit.regrid.utils.config import CONFIG
 
             assert self.policy
 
             def _update(name, key):
                 current = getattr(self, name)
-                value = SETTINGS.get(key, current)
+                value = CONFIG.get(key, current)
                 if current != value:
                     setattr(self, name, value)
                     return True
                 return False
 
             def _update_policy():
-                policy = SETTINGS.get(self.POLICY_KEY, self.policy.name)
+                policy = CONFIG.get(self.POLICY_KEY, self.policy.name)
                 if self.policy.name != policy:
                     self.policy = MemoryCachePolicy.make(policy)(self)
                     return True
@@ -364,20 +365,6 @@ class MatrixMemoryCache(MemoryCache):
 
 
 MEMORY_CACHE = MatrixMemoryCache()
-
-
-# TODO: enable the commented out options when estimate_matrix_size is implemented
-def set_memory_cache(
-    policy="largest",
-    max_size=300 * 1024 * 1024,
-    strict=False,
-):
-    from earthkit.regrid.utils.caching import SETTINGS
-
-    SETTINGS[MEMORY_CACHE.MAX_SIZE_KEY] = max_size
-    SETTINGS[MEMORY_CACHE.POLICY_KEY] = policy
-    SETTINGS[MEMORY_CACHE.STRICT_KEY] = strict
-    MEMORY_CACHE.update()
 
 
 def clear_memory_cache():

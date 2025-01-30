@@ -71,9 +71,7 @@ def test_local_index():
 def test_local_ll_to_ll(method):
     v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(
-        v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method
-    )
+    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -83,9 +81,7 @@ def test_local_ll_to_ll(method):
 def test_local_ogg_to_ll(method):
     v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_O32_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(
-        v_in, {"grid": "O32"}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method
-    )
+    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)

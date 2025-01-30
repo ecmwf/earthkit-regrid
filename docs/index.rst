@@ -14,7 +14,6 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
 .. toctree::
    :maxdepth: 1
    :caption: Examples
-   :titlesonly:
 
    examples/index
 
@@ -22,9 +21,9 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
    :maxdepth: 1
    :caption: Documentation
 
-   interpolate
-   gridspec
+   guide/index
    inventory/index
+   development
 
 .. toctree::
    :maxdepth: 1
@@ -32,7 +31,6 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
 
    install
    release_notes/index
-   development
    licence
 
 

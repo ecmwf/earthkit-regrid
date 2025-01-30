@@ -15,9 +15,7 @@ def interpolate(values, in_grid=None, out_grid=None, method="linear", **kwargs):
     if interpolator is None:
         raise ValueError(f"Cannot interpolate data with type={type(values)}")
 
-    return interpolator(
-        values, in_grid=in_grid, out_grid=out_grid, method=method, **kwargs
-    )
+    return interpolator(values, in_grid=in_grid, out_grid=out_grid, method=method, **kwargs)
 
 
 def _find_interpolator(values):

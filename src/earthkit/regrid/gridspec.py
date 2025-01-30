@@ -177,9 +177,7 @@ class LLGridSpec(GridSpec):
 
         if "global" not in gs and "area" not in gs:
             self["global"] = 1
-            self["area"] = LLGridSpec.GLOBAL_AREAS.get(
-                (self["grid"][0], self["grid"][1]), self.DEFAULT_AREA
-            )
+            self["area"] = LLGridSpec.GLOBAL_AREAS.get((self["grid"][0], self["grid"][1]), self.DEFAULT_AREA)
 
         self.setdefault("area", self.DEFAULT_AREA)
 

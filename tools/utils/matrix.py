@@ -22,7 +22,8 @@ MIR_INTERPOLATE_OPTION = "interpolation"
 def download_index_file(target):
     import requests
 
-    from earthkit.regrid.db import _INDEX_GZ_FILENAME, _SYSTEM_URL
+    from earthkit.regrid.db import _INDEX_GZ_FILENAME
+    from earthkit.regrid.db import _SYSTEM_URL
 
     path = os.path.join(_SYSTEM_URL, _INDEX_GZ_FILENAME)
     requests.get(path)

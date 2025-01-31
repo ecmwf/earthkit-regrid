@@ -17,43 +17,76 @@ from earthkit.regrid.utils.config import CONFIG
 BackendKey = namedtuple("BackendKey", ["name", "path"])
 
 
+DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
+BUILT_IN_BACKENDS = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
+SINGLE_BACKENDS = {"system-matrix", "mir"}
+
+
 class Backend(metaclass=ABCMeta):
+    enabled = True
+
     @abstractmethod
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         pass
 
 
-class BackendOrder:
-    DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
-    BUILT_IN = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
-    UNIQUE = {"system-matrix", "mir"}
+def select(order, names, backends):
+    """Filter backends based on the order and names."""
+    if isinstance(names, str):
+        if names in SINGLE_BACKENDS:
+            return [b for k, b in backends.items() if k.name == names]
 
-    def select(self, order, names, backends):
-        if isinstance(names, str):
-            if names in self.UNIQUE:
-                return [b for k, b in backends.items() if k.name == names]
+    r = []
+    if names:
+        _order = list(names)
+    else:
+        _order = order or DEFAULT_ORDER
 
-        r = []
-        if names:
-            _order = list(names)
-        else:
-            _order = order or self.DEFAULT_ORDER
+    print("names", names)
+    print("order", _order)
 
-        print("names", names)
-        print("order", _order)
+    for m in _order:
+        print("m", m)
+        for k, b in backends.items():
+            print(" k", k)
+            if b.enabled and k.name == m or (m == "plugins" and k.name not in BUILT_IN_BACKENDS):
+                print("  -> b", b)
+                r.append(b)
 
-        for m in _order:
-            print("m", m)
-            for k, b in backends.items():
-                print(" k", k)
-                if k.name == m or (m == "plugins" and k.name not in self.BUILT_IN):
-                    print("  -> b", b)
-                    r.append(b)
-
-        return r
+    return r
 
 
-BACKEND_ORDER = BackendOrder()
+# class BackendOrder:
+#     DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
+#     BUILT_IN = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
+#     UNIQUE = {"system-matrix", "mir"}
+
+#     def select(self, order, names, backends):
+#         if isinstance(names, str):
+#             if names in self.UNIQUE:
+#                 return [b for k, b in backends.items() if k.name == names]
+
+#         r = []
+#         if names:
+#             _order = list(names)
+#         else:
+#             _order = order or self.DEFAULT_ORDER
+
+#         print("names", names)
+#         print("order", _order)
+
+#         for m in _order:
+#             print("m", m)
+#             for k, b in backends.items():
+#                 print(" k", k)
+#                 if k.name == m or (m == "plugins" and k.name not in self.BUILT_IN):
+#                     print("  -> b", b)
+#                     r.append(b)
+
+#         return r
+
+
+# BACKEND_ORDER = BackendOrder()
 
 
 class BackendManager:
@@ -86,7 +119,7 @@ class BackendManager:
 
     def backends(self, backend=None):
         with self.lock:
-            return BACKEND_ORDER.select(self.order, backend, self.BACKENDS)
+            return select(self.order, backend, self.BACKENDS)
 
     def _local(self):
         from earthkit.regrid.utils.config import CONFIG

@@ -15,6 +15,7 @@ class MirBackend(Backend):
         try:
             import mir
         except ImportError:
+            self.enabled = False
             raise ImportError("The 'mir' package is required for this operation")
 
         return mir.interpolate(values, in_grid, out_grid, method, **kwargs)

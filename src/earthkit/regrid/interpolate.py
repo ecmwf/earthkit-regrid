@@ -12,49 +12,48 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-def interpolate(values, in_grid=None, out_grid=None, method="linear", backend=None, **kwargs):
-    interpolator = _find_interpolator(values)
-    if interpolator is None:
+def interpolate(values, in_grid=None, out_grid=None, method="linear", interpolator=None, **kwargs):
+    h = _find_data_handler(values)
+    if h is None:
         raise ValueError(f"Cannot interpolate data with type={type(values)}")
 
-    return interpolator(values, in_grid=in_grid, out_grid=out_grid, method=method, backend=backend, **kwargs)
+    return h(values, in_grid=in_grid, out_grid=out_grid, method=method, interpolator=interpolator, **kwargs)
 
 
-def _find_interpolator(values):
-    for interpolator in INTERPOLATORS:
-        if interpolator.match(values):
-            return interpolator
+def _find_data_handler(values):
+    for h in DATA_HANDLERS:
+        if h.match(values):
+            return h
     return None
 
 
-class Interpolator:
+class DataHandler:
     @staticmethod
     def _interpolate(values, in_grid, out_grid, **kwargs):
-        from earthkit.regrid.backends import MANAGER
+        from earthkit.regrid.interpolators import MANAGER
 
         method = kwargs.pop("method")
-        backend = kwargs.pop("backend")
-        backends = MANAGER.backends(backend)
+        user_interpolator = kwargs.pop("interpolator", None)
+        interpolators = MANAGER.interpolators(user_interpolator)
 
-        if not backends:
-            raise ValueError(f"No backend found for {backend}")
+        if not interpolators:
+            raise ValueError(f"No interpolator found for {user_interpolator}")
 
-        if len(backends) == 1:
-            return backends[0].interpolate(values, in_grid, out_grid, method, **kwargs)
+        if len(interpolators) == 1:
+            return interpolators[0].interpolate(values, in_grid, out_grid, method, **kwargs)
         else:
             errors = []
-            for b in backends:
-                LOG.debug(f"Trying backend {b}")
-                print(f"Trying backend {b}")
+            for p in interpolators:
+                LOG.debug(f"Trying interpolator {p}")
                 try:
-                    return b.interpolate(values, in_grid, out_grid, method, **kwargs)
+                    return p.interpolate(values, in_grid, out_grid, method, **kwargs)
                 except Exception as e:
                     errors.append(e)
 
-        raise ValueError("No backend could interpolate the data", errors)
+        raise ValueError("No interpolator could interpolate the data", errors)
 
 
-class NumpyInterpolator(Interpolator):
+class NumpyDataHandler(DataHandler):
     @staticmethod
     def match(values):
         import numpy as np
@@ -67,7 +66,7 @@ class NumpyInterpolator(Interpolator):
         return self._interpolate(values, in_grid, out_grid, **kwargs)
 
 
-class FieldListInterpolator(Interpolator):
+class FieldListDataHandler(DataHandler):
     @staticmethod
     def match(values):
         from earthkit.regrid.utils import is_module_loaded
@@ -107,4 +106,4 @@ class FieldListInterpolator(Interpolator):
         return r
 
 
-INTERPOLATORS = [NumpyInterpolator(), FieldListInterpolator()]
+DATA_HANDLERS = [NumpyDataHandler(), FieldListDataHandler()]

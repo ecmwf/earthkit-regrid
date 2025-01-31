@@ -34,7 +34,7 @@ PLUGINS = {}
 
 REGISTERED = defaultdict(dict)
 
-AVAILABLE_KINDS = ["backend"]
+AVAILABLE_KINDS = ["interpolator"]
 
 
 def refresh(kind=None):
@@ -60,7 +60,7 @@ def load_plugins(kind):
     Parameters
     ----------
     kind : str
-        Plugin type such as "backend".
+        Plugin type such as "interpolator".
     """
     if PLUGINS.get(kind) is None:
         PLUGINS[kind] = _load_plugins(kind)
@@ -171,7 +171,7 @@ def directories(owner: bool = False) -> list:
 
     """
     result = []
-    for kind in ["backend"]:
+    for kind in ["interpolator"]:
         for name, v in load_plugins(kind).items():
             try:
                 module = import_module(v.module_name)

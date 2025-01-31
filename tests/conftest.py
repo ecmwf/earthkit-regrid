@@ -12,7 +12,7 @@ def pytest_runtest_setup(item):
 
     marks_in_items = list([m.name for m in item.iter_markers()])
 
-    from earthkit.regrid.backends.db import SYS_DB
+    from earthkit.regrid.interpolators.db import SYS_DB
 
     SYS_DB._clear_index()
 

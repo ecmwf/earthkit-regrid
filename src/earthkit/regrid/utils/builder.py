@@ -13,8 +13,8 @@ import os
 
 from scipy.sparse import load_npz
 
-from earthkit.regrid.backends.db import VERSION
-from earthkit.regrid.backends.db import MatrixIndex
+from earthkit.regrid.interpolators.db import VERSION
+from earthkit.regrid.interpolators.db import MatrixIndex
 
 from .matrix import matrix_memory_size
 from .mir import mir_cached_matrix_to_file

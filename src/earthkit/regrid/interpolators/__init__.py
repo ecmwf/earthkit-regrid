@@ -14,15 +14,15 @@ from collections import namedtuple
 
 from earthkit.regrid.utils.config import CONFIG
 
-BackendKey = namedtuple("BackendKey", ["name", "path"])
+ItemKey = namedtuple("ItemKey", ["name", "path"])
 
 
 DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
-BUILT_IN_BACKENDS = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
-SINGLE_BACKENDS = {"system-matrix", "mir"}
+BUILT_IN_INTERPOLATORS = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
+SINGLE_INTERPOLATORS = {"system-matrix", "mir"}
 
 
-class Backend(metaclass=ABCMeta):
+class Interpolator(metaclass=ABCMeta):
     enabled = True
 
     @abstractmethod
@@ -30,11 +30,11 @@ class Backend(metaclass=ABCMeta):
         pass
 
 
-def select(order, names, backends):
-    """Filter backends based on the order and names."""
+def select(order, names, interpolators):
+    """Filter and reorder interpolators based on the order and names."""
     if isinstance(names, str):
-        if names in SINGLE_BACKENDS:
-            return [b for k, b in backends.items() if k.name == names]
+        if names in SINGLE_INTERPOLATORS:
+            return [p for k, p in interpolators.items() if k.name == names]
 
     r = []
     if names:
@@ -47,51 +47,42 @@ def select(order, names, backends):
 
     for m in _order:
         print("m", m)
-        for k, b in backends.items():
+        for k, p in interpolators.items():
             print(" k", k)
-            if b.enabled and k.name == m or (m == "plugins" and k.name not in BUILT_IN_BACKENDS):
-                print("  -> b", b)
-                r.append(b)
+            if p.enabled and k.name == m or (m == "plugins" and k.name not in BUILT_IN_INTERPOLATORS):
+                print("  -> p", p)
+                r.append(p)
 
     return r
 
 
-class BackendManager:
-    BACKENDS = {}
+class InterpolatorManager:
+    INTERPOLATORS = {}
 
     def __init__(self, *args, policy="all", **kwargs):
         self.order = []
-        # self._has_settings = False
         self.lock = threading.Lock()
-        # self.update(*args, **kwargs)
-
-        # # initialise the backend list
-        # self.BACKENDS.update(self.local())
-        # self.BACKENDS.update(self.remote())
-        # self.BACKENDS.update(self.mir())
         self.update()
-
-        print("BACKENDS", self.BACKENDS)
 
     def update(self):
         with self.lock:
-            self.BACKENDS.clear()
-            self.BACKENDS.update(self._local())
-            self.BACKENDS.update(self._remote())
-            self.BACKENDS.update(self._mir())
+            self.INTERPOLATORS.clear()
+            self.INTERPOLATORS.update(self._local())
+            self.INTERPOLATORS.update(self._remote())
+            self.INTERPOLATORS.update(self._mir())
 
             from earthkit.regrid.utils.config import CONFIG
 
-            self.order = CONFIG.get("backend-order", []) or []
+            self.order = CONFIG.get("interpolators", []) or []
 
-    def backends(self, backend=None):
+    def interpolators(self, interpolator=None):
         with self.lock:
-            return select(self.order, backend, self.BACKENDS)
+            return select(self.order, interpolator, self.INTERPOLATORS)
 
     def _local(self):
         from earthkit.regrid.utils.config import CONFIG
 
-        from .matrix import LocalMatrixBackend
+        from .matrix import LocalMatrixInterpolator
 
         dirs = CONFIG.get("local-matrix-directories", [])
         if dirs is None:
@@ -101,14 +92,14 @@ class BackendManager:
 
         r = {}
         for d in dirs:
-            r[BackendKey("local-matrix", d)] = LocalMatrixBackend(d)
+            r[ItemKey("local-matrix", d)] = LocalMatrixInterpolator(d)
         return r
 
     def _remote(self):
         from earthkit.regrid.utils.config import CONFIG
 
-        from .matrix import RemoteMatrixBackend
-        from .matrix import SystemRemoteMatrixBackend
+        from .matrix import RemoteMatrixInterpolator
+        from .matrix import SystemRemoteMatrixInterpolator
 
         dirs = CONFIG.get("remote-matrix-directories", [])
         if dirs is None:
@@ -118,19 +109,19 @@ class BackendManager:
 
         r = {}
         for d in dirs:
-            r[BackendKey("remote-matrix", d)] = RemoteMatrixBackend(d)
+            r[ItemKey("remote-matrix", d)] = RemoteMatrixInterpolator(d)
 
-        r[BackendKey("system-matrix", None)] = SystemRemoteMatrixBackend()
+        r[ItemKey("system-matrix", None)] = SystemRemoteMatrixInterpolator()
 
         return r
 
     def _mir(self):
-        from .mir import MirBackend
+        from .mir import MirInterpolator
 
-        return {BackendKey("mir", None): MirBackend()}
+        return {ItemKey("mir", None): MirInterpolator()}
 
 
-MANAGER = BackendManager()
+MANAGER = InterpolatorManager()
 
 # def add_matrix_source(path):
 #     global DB_LIST

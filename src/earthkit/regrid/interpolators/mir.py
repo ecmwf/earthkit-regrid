@@ -7,10 +7,10 @@
 # nor does it submit to any jurisdiction.
 #
 
-from . import Backend
+from . import Interpolator
 
 
-class MirBackend(Backend):
+class MirInterpolator(Interpolator):
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         try:
             import mir

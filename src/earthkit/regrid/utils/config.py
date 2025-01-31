@@ -230,16 +230,10 @@ CONFIG_AND_HELP = {
         getter="_as_str",
         none_ok=True,
     ),
-    # "backend-policy": _(
-    #     "all",
-    #     """The interpolation backend policy. {validator}
-    #     See :ref:`backend` for more information.""",
-    #     validator=ListValidator(["local_matrix", "matrix", "mir", "all"]),
-    # ),
-    "backend-order": _(
+    "interpolators": _(
         None,
-        """The interpolation backend order. {validator}
-        See :ref:`backend` for more information.""",
+        """The interpolator order. {validator}
+        See :ref:`interpolator` for more information.""",
         getter="_as_list",
         none_ok=True,
     ),

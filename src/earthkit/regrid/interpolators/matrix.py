@@ -10,10 +10,10 @@
 from abc import abstractmethod
 from functools import cached_property
 
-from . import Backend
+from . import Interpolator
 
 
-class MatrixBackend(Backend):
+class MatrixInterpolator(Interpolator):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
@@ -41,7 +41,7 @@ class MatrixBackend(Backend):
         pass
 
 
-class LocalMatrixBackend(MatrixBackend):
+class LocalMatrixInterpolator(MatrixInterpolator):
     @cached_property
     def db(self):
         from .db import MatrixDb
@@ -49,7 +49,7 @@ class LocalMatrixBackend(MatrixBackend):
         return MatrixDb.from_path(self.path_or_url)
 
 
-class RemoteMatrixBackend(MatrixBackend):
+class RemoteMatrixInterpolator(MatrixInterpolator):
     @cached_property
     def db(self):
         from .db import MatrixDb
@@ -57,7 +57,7 @@ class RemoteMatrixBackend(MatrixBackend):
         return MatrixDb.from_url(self.path_or_url)
 
 
-class SystemRemoteMatrixBackend(RemoteMatrixBackend):
+class SystemRemoteMatrixInterpolator(RemoteMatrixInterpolator):
     @cached_property
     def db(self):
         from .db import SYS_DB

@@ -56,39 +56,6 @@ def select(order, names, backends):
     return r
 
 
-# class BackendOrder:
-#     DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
-#     BUILT_IN = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
-#     UNIQUE = {"system-matrix", "mir"}
-
-#     def select(self, order, names, backends):
-#         if isinstance(names, str):
-#             if names in self.UNIQUE:
-#                 return [b for k, b in backends.items() if k.name == names]
-
-#         r = []
-#         if names:
-#             _order = list(names)
-#         else:
-#             _order = order or self.DEFAULT_ORDER
-
-#         print("names", names)
-#         print("order", _order)
-
-#         for m in _order:
-#             print("m", m)
-#             for k, b in backends.items():
-#                 print(" k", k)
-#                 if k.name == m or (m == "plugins" and k.name not in self.BUILT_IN):
-#                     print("  -> b", b)
-#                     r.append(b)
-
-#         return r
-
-
-# BACKEND_ORDER = BackendOrder()
-
-
 class BackendManager:
     BACKENDS = {}
 

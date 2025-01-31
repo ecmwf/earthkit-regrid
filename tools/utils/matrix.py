@@ -118,7 +118,7 @@ def create_matrix_files(
 
     if add_to_index:
         # process matrix and add it to index json file
-        from earthkit.regrid.utils.matrix import make_matrix
+        from earthkit.regrid.utils.builder import make_matrix
 
         make_matrix(
             matrix_json,

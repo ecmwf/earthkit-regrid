@@ -542,6 +542,10 @@ class MatrixDb:
     def from_path(path):
         return MatrixDb(LocalAccessor(path))
 
+    @staticmethod
+    def from_url(url):
+        return MatrixDb(UrlAccessor(url))
+
     def __len__(self):
         return len(self.index)
 
@@ -556,22 +560,22 @@ class MatrixDb:
 
 
 SYS_DB = MatrixDb(SystemAccessor())
-DB_LIST = [SYS_DB]
+# DB_LIST = [SYS_DB]
 
 
-def add_matrix_source(path):
-    global DB_LIST
-    for item in DB_LIST[1:]:
-        if item.matrix_source() == path:
-            return item
-    db = MatrixDb.from_path(path)
-    DB_LIST.append(db)
-    return db
+# def add_matrix_source(path):
+#     global DB_LIST
+#     for item in DB_LIST[1:]:
+#         if item.matrix_source() == path:
+#             return item
+#     db = MatrixDb.from_path(path)
+#     DB_LIST.append(db)
+#     return db
 
 
-def find(*args, matrix_source=None, **kwargs):
-    if matrix_source is None:
-        return SYS_DB.find(*args, **kwargs)
-    else:
-        db = add_matrix_source(matrix_source)
-        return db.find(*args, **kwargs)
+# def find(*args, matrix_source=None, **kwargs):
+#     if matrix_source is None:
+#         return SYS_DB.find(*args, **kwargs)
+#     else:
+#         db = add_matrix_source(matrix_source)
+#         return db.find(*args, **kwargs)

@@ -7,15 +7,17 @@
 # nor does it submit to any jurisdiction.
 #
 
-from earthkit.regrid.db import find
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
-def interpolate(values, in_grid=None, out_grid=None, method="linear", **kwargs):
+def interpolate(values, in_grid=None, out_grid=None, method="linear", backend=None, **kwargs):
     interpolator = _find_interpolator(values)
     if interpolator is None:
         raise ValueError(f"Cannot interpolate data with type={type(values)}")
 
-    return interpolator(values, in_grid=in_grid, out_grid=out_grid, method=method, **kwargs)
+    return interpolator(values, in_grid=in_grid, out_grid=out_grid, method=method, backend=backend, **kwargs)
 
 
 def _find_interpolator(values):
@@ -25,21 +27,34 @@ def _find_interpolator(values):
     return None
 
 
-def _interpolate(values, in_grid, out_grid, method, **kwargs):
-    z, shape = find(in_grid, out_grid, method, **kwargs)
+class Interpolator:
+    @staticmethod
+    def _interpolate(values, in_grid, out_grid, **kwargs):
+        from earthkit.regrid.backends import MANAGER
 
-    if z is None:
-        raise ValueError(f"No matrix found! {in_grid=} {out_grid=} {method=}")
+        method = kwargs.pop("method")
+        backend = kwargs.pop("backend")
+        backends = MANAGER.backends(backend)
 
-    # This should check for 1D (GG) and 2D (LL) matrices
-    values = values.reshape(-1, 1)
+        if not backends:
+            raise ValueError(f"No backend found for {backend}")
 
-    values = z @ values
+        if len(backends) == 1:
+            return backends[0].interpolate(values, in_grid, out_grid, method, **kwargs)
+        else:
+            errors = []
+            for b in backends:
+                LOG.debug(f"Trying backend {b}")
+                print(f"Trying backend {b}")
+                try:
+                    return b.interpolate(values, in_grid, out_grid, method, **kwargs)
+                except Exception as e:
+                    errors.append(e)
 
-    return values.reshape(shape)
+        raise ValueError("No backend could interpolate the data", errors)
 
 
-class NumpyInterpolator:
+class NumpyInterpolator(Interpolator):
     @staticmethod
     def match(values):
         import numpy as np
@@ -49,18 +64,22 @@ class NumpyInterpolator:
     def __call__(self, values, **kwargs):
         in_grid = kwargs.pop("in_grid")
         out_grid = kwargs.pop("out_grid")
-        method = kwargs.pop("method")
-        return _interpolate(values, in_grid, out_grid, method, **kwargs)
+        return self._interpolate(values, in_grid, out_grid, **kwargs)
 
 
-class FieldListInterpolator:
+class FieldListInterpolator(Interpolator):
     @staticmethod
     def match(values):
+        from earthkit.regrid.utils import is_module_loaded
+
+        if not is_module_loaded("earthkit.data"):
+            return False
+
         try:
             import earthkit.data
 
             return isinstance(values, earthkit.data.FieldList)
-        except ImportError:
+        except Exception:
             return False
 
     def __call__(self, values, **kwargs):
@@ -71,16 +90,15 @@ class FieldListInterpolator:
         # if in_grid is not None:
         #     raise ValueError(f"in_grid {in_grid} cannot be used for FieldList interpolation")
         out_grid = kwargs.pop("out_grid")
-        method = kwargs.pop("method")
 
         r = earthkit.data.FieldList()
         for f in ds:
             vv = f.to_numpy(flatten=True)
-            v_res = _interpolate(
+            v_res = self._interpolate(
                 vv,
                 f.metadata().gridspec if in_grid is None else in_grid,
                 out_grid,
-                method,
+                # method,
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid)

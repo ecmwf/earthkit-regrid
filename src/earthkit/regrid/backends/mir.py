@@ -7,13 +7,14 @@
 # nor does it submit to any jurisdiction.
 #
 
+from . import Backend
 
-def matrix_memory_size(m):
-    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
-    try:
-        # TODO: This works for bsr, csc and csr matrices but not for other types.
-        return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
 
-    except Exception as e:
-        print(e)
-        return 0
+class MirBackend(Backend):
+    def interpolate(self, values, in_grid, out_grid, method, **kwargs):
+        try:
+            import mir
+        except ImportError:
+            raise ImportError("The 'mir' package is required for this operation")
+
+        return mir.interpolate(values, in_grid, out_grid, method, **kwargs)

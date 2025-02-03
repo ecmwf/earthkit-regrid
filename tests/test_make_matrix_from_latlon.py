@@ -1,4 +1,4 @@
-# (C) Copyright 2025 ECMWF.
+# (C) Copyright 2025- ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -36,7 +36,7 @@ Z = [5.0]
         (Y + Z, Y + Z, Y, X),
     ],
 )
-def test_make_matrix(tmp_path, in_lat, in_lon, out_lat, out_lon):
+def test_make_matrix_from_latlon(tmp_path, in_lat, in_lon, out_lat, out_lon):
     matrix_path = Path(tmp_path) / "matrix.mat"
 
     mir_make_matrix(

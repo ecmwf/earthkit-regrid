@@ -29,6 +29,9 @@ class Interpolator(metaclass=ABCMeta):
     path_config_key = None
     enabled = True
 
+    def __init__(self, *args, **kwargs):
+        pass
+
     @abstractmethod
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         pass
@@ -294,7 +297,7 @@ class InterpolatorManager:
                 self.INTERPOLATORS[key] = LazyInterpolator(name)
 
         # plugins
-        for name, v in MAKER.plugin_names():
+        for name in MAKER.plugin_names():
             key = InterpolatorKey(name, None, None, True)
             if key not in self.INTERPOLATORS:
                 LOG.debug(" add:", key)

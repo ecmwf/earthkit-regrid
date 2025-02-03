@@ -20,7 +20,7 @@ from earthkit.regrid.utils.config import CONFIG
 LOG = logging.getLogger(__name__)
 
 
-ItemKey = namedtuple("ItemKey", ["name", "path", "path_config_key", "plugin"])
+InterpolatorKey = namedtuple("InterpolatorKey", ["name", "path", "path_config_key", "plugin"])
 
 DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir", "other"]
 
@@ -156,8 +156,6 @@ class InterpolatorManager:
     def update(self):
         with self.lock:
             LOG.debug("Update interpolators")
-            from earthkit.regrid.utils.config import CONFIG
-
             if not self.INTERPOLATORS:
                 self._init_interpolators()
             else:
@@ -168,8 +166,6 @@ class InterpolatorManager:
 
     @staticmethod
     def _config_paths(key):
-        from earthkit.regrid.utils.config import CONFIG
-
         dirs = CONFIG.get(key, [])
         if dirs is None:
             dirs = []
@@ -185,18 +181,18 @@ class InterpolatorManager:
             # interpolators with a path
             if v.path_config_key is not None:
                 for d in self._config_paths(v.path_config_key):
-                    key = ItemKey(name, d, v.path_config_key, False)
+                    key = InterpolatorKey(name, d, v.path_config_key, False)
                     LOG.debug(f" add: {key}")
                     self.INTERPOLATORS[key] = LazyInterpolator(name, d)
             # single interpolators
             else:
-                key = ItemKey(name, None, None, False)
+                key = InterpolatorKey(name, None, None, False)
                 LOG.debug(f" add: {key}")
                 self.INTERPOLATORS[key] = LazyInterpolator(name)
 
         # plugins
         for name, v in MAKER.plugin_names():
-            key = ItemKey(name, None, None, True)
+            key = InterpolatorKey(name, None, None, True)
             if key not in self.INTERPOLATORS:
                 LOG.debug(" add:", key)
                 self.INTERPOLATORS[key] = LazyInterpolator(name, plugin=True)
@@ -214,7 +210,7 @@ class InterpolatorManager:
                     dirs = self._config_paths(key.path_config_key)
                     # add new paths
                     for d in dirs:
-                        key = ItemKey(name, d, key.path_config_key, False)
+                        key = InterpolatorKey(name, d, key.path_config_key, False)
                         if key not in self.INTERPOLATORS:
                             LOG.debug(f" add: {key}")
                             self.INTERPOLATORS[key] = LazyInterpolator(name, d)
@@ -228,7 +224,7 @@ class InterpolatorManager:
         for name, v in MAKER.INTERPOLATORS.items():
             if v.path_config_key is not None and not any(k.name == name for k in self.INTERPOLATORS):
                 for d in self._config_paths(v.path_config_key):
-                    key = ItemKey(name, d, v.path_config_key, False)
+                    key = InterpolatorKey(name, d, v.path_config_key, False)
                     LOG.debug(f" add: {key}")
                     self.INTERPOLATORS[key] = LazyInterpolator(name, d)
 

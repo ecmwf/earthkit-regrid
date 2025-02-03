@@ -14,13 +14,17 @@ class MirInterpolator(Interpolator):
     name = "mir"
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
-        try:
-            import mir
-        except ImportError:
-            self.enabled = False
-            raise ImportError("The 'mir' package is required for this operation")
+        raise NotImplementedError("This method is not implemented yet")
 
-        return mir.interpolate(values, in_grid, out_grid, method, **kwargs)
+        # TODO: Implement the interpolation using the 'mir' package.
+        # The code below is a placeholder and should be replaced with the actual implementation.
+        # try:
+        #     import pymir
+        # except ImportError:
+        #     self.enabled = False
+        #     raise ImportError("The 'mir' package is required for this operation")
+
+        # return pymir.interpolate(values, in_grid, out_grid, method, **kwargs)
 
 
 interpolator = MirInterpolator

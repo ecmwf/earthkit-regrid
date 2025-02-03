@@ -19,7 +19,6 @@ from earthkit.regrid.utils.config import CONFIG
 
 LOG = logging.getLogger(__name__)
 
-
 InterpolatorKey = namedtuple("InterpolatorKey", ["name", "path", "path_config_key", "plugin"])
 
 DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir", "other"]
@@ -144,12 +143,39 @@ class InterpolatorMaker:
 MAKER = InterpolatorMaker()
 
 
+class InterpolatorListCache:
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, order, names):
+        def _copy(x):
+            if x is None:
+                return None
+            return tuple(x)
+
+        cache_key = (_copy(order), _copy(names))
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
+    def add(self, order, names, value):
+        def _copy(x):
+            if x is None:
+                return None
+            return tuple(x)
+
+        cache_key = (_copy(order), _copy(names))
+        self._cache[cache_key] = value
+
+    def clear(self):
+        self._cache.clear()
+
+
 class InterpolatorManager:
     INTERPOLATORS = {}
 
     def __init__(self, *args, **kwargs):
         self.order = []
-        self._cache = {}
+        self._cache = InterpolatorListCache()
         self.lock = threading.Lock()
         self.update()
 
@@ -161,16 +187,33 @@ class InterpolatorManager:
             else:
                 self._update_interpolators()
 
-            self.order = CONFIG.get("interpolator-order", None)
+            self.order = self._to_list(CONFIG.get("interpolator-order", None), keep_none=True)
             LOG.debug(f"interpolator order: {self.order}")
 
-    @staticmethod
-    def _config_paths(key):
+    def _to_list(self, value, keep_none=False):
+        if value is None:
+            if keep_none:
+                return None
+            return []
+        if isinstance(value, str):
+            lst = value.split(",")
+        elif isinstance(value, list):
+            lst = [*value]
+        else:
+            lst = list(value)
+
+        lst = [x.strip() for x in lst if x.strip()]
+        if lst and lst[0] == "":
+            lst = []
+
+        return lst
+
+    def _config_paths(self, key):
         dirs = CONFIG.get(key, [])
-        if dirs is None:
-            dirs = []
-        if isinstance(dirs, str):
-            dirs = [dirs]
+        dirs = self._to_list(dirs, keep_none=False)
+        for d in dirs:
+            if not d:
+                raise ValueError(f"Empty path in config option {key}={CONFIG.get(key, [])}")
         return dirs
 
     def _init_interpolators(self):
@@ -203,9 +246,9 @@ class InterpolatorManager:
         """Must be called within a lock"""
         LOG.debug("Adjustment to config update:")
         # existing interpolators with a path
+        changed = False
         for key in list(self.INTERPOLATORS.keys()):
             if key in self.INTERPOLATORS:
-                # existing interpolators with a path
                 if key.path_config_key is not None:
                     dirs = self._config_paths(key.path_config_key)
                     # add new paths
@@ -214,11 +257,13 @@ class InterpolatorManager:
                         if key not in self.INTERPOLATORS:
                             LOG.debug(f" add: {key}")
                             self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+                            changed = True
                     # remove paths not used anymore
                     for k in list(self.INTERPOLATORS.keys()):
                         if k.name == key.name and k.path not in dirs:
                             LOG.debug(f" remove: {k}")
                             del self.INTERPOLATORS[k]
+                            changed = True
 
         # new interpolators with a path
         for name, v in MAKER.INTERPOLATORS.items():
@@ -227,21 +272,18 @@ class InterpolatorManager:
                     key = InterpolatorKey(name, d, v.path_config_key, False)
                     LOG.debug(f" add: {key}")
                     self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+                    changed = True
+
+        if changed:
+            self._cache.clear()
 
     def interpolators(self, interpolator=None):
         """Filter and reorder interpolators based on the order and names."""
-
         with self.lock:
-            names = interpolator
+            names = self._to_list(interpolator, keep_none=True)
 
-            def _copy(x):
-                if x is None:
-                    return None
-                return tuple(x)
-
-            cache_key = (_copy(self.order), _copy(names))
-            if cache_key in self._cache:
-                return self._cache[cache_key]
+            if r := self._cache.get(self.order, names):
+                return r
 
             if isinstance(names, str):
                 if v := self._single(names):
@@ -285,7 +327,7 @@ class InterpolatorManager:
 
             r = list(collected.values())
 
-            self._cache[cache_key] = r
+            self._cache.add(self.order, names, r)
 
             return r
 
@@ -296,23 +338,5 @@ class InterpolatorManager:
 
 
 MANAGER = InterpolatorManager()
-
-# def add_matrix_source(path):
-#     global DB_LIST
-#     for item in DB_LIST[1:]:
-#         if item.matrix_source() == path:
-#             return item
-#     db = MatrixDb.from_path(path)
-#     DB_LIST.append(db)s
-#     return db
-
-
-# def find(*args, matrix_source=None, **kwargs):
-#     if matrix_source is None:
-#         return SYS_DB.find(*args, **kwargs)
-#     else:
-#         db = add_matrix_source(matrix_source)
-#         return db.find(*args, **kwargs)
-
 
 CONFIG.on_change(MANAGER.update)

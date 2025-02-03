@@ -190,6 +190,66 @@ class InterpolatorManager:
             self.order = self._to_list(CONFIG.get("interpolator-order", None), keep_none=True)
             LOG.debug(f"interpolator order: {self.order}")
 
+    def interpolators(self, interpolator=None):
+        """Filter and reorder interpolators based on the order and names."""
+        with self.lock:
+            names = self._to_list(interpolator, keep_none=True)
+
+            if r := self._cache.get(self.order, names):
+                return r
+
+            if isinstance(names, str):
+                if v := self._single(names):
+                    return [v]
+
+            r = []
+            if names:
+                _order = list(names)
+            else:
+                _order = self.order or DEFAULT_ORDER
+
+            # print("names", names)
+            # print("order", _order)
+            # print("self", self.INTERPOLATORS.keys())
+
+            collected = {}
+            for name in _order:
+                # print("name", name)
+                for key, p in self.INTERPOLATORS.items():
+                    # print(" key", key)
+                    if key not in collected:
+                        # if p.enabled:
+                        found = False
+                        if key.name == name:
+                            # print("  (bt) -> p", p)
+                            found = True
+                        elif name == "plugins":
+                            if key.plugin:
+                                # print("  (pl) -> p", p)
+                                found = True
+                        elif name == "other":
+                            if not key.plugin:
+                                # print("  (ot) -> p", p)
+                                found = True
+
+                        if found:
+                            collected[key] = p
+                            break
+
+            LOG.debug(f" collected: {collected}")
+
+            r = list(collected.values())
+
+            self._cache.add(self.order, names, r)
+
+            return r
+
+    def _single(self, name):
+        """Must be called within a lock"""
+        for k, v in self.INTERPOLATORS.items():
+            if k.name == name and k.path is None:
+                return v
+
     def _to_list(self, value, keep_none=False):
         if value is None:
             if keep_none:
@@ -276,65 +336,6 @@ class InterpolatorManager:
 
         if changed:
             self._cache.clear()
-
-    def interpolators(self, interpolator=None):
-        """Filter and reorder interpolators based on the order and names."""
-        with self.lock:
-            names = self._to_list(interpolator, keep_none=True)
-
-            if r := self._cache.get(self.order, names):
-                return r
-
-            if isinstance(names, str):
-                if v := self._single(names):
-                    return [v]
-
-            r = []
-            if names:
-                _order = list(names)
-            else:
-                _order = self.order or DEFAULT_ORDER
-
-            # print("names", names)
-            # print("order", _order)
-            # print("self", self.INTERPOLATORS.keys())
-
-            collected = {}
-            for name in _order:
-                # print("name", name)
-                for key, p in self.INTERPOLATORS.items():
-                    # print(" key", key)
-                    if key not in collected:
-                        # if p.enabled:
-                        found = False
-                        if key.name == name:
-                            # print("  (bt) -> p", p)
-                            found = True
-                        elif name == "plugins":
-                            if key.plugin:
-                                # print("  (pl) -> p", p)
-                                found = True
-                        elif name == "other":
-                            if not key.plugin:
-                                # print("  (ot) -> p", p)
-                                found = True
-
-                        if found:
-                            collected[key] = p
-                            break
-
-            LOG.debug(f" collected: {collected}")
-
-            r = list(collected.values())
-
-            self._cache.add(self.order, names, r)
-
-            return r
-
-    def _single(self, name):
-        for k, v in self.INTERPOLATORS.items():
-            if k.name == name and k.path is None:
-                return v
 
 
 MANAGER = InterpolatorManager()

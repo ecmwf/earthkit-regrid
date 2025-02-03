@@ -11,6 +11,8 @@ from . import Interpolator
 
 
 class MirInterpolator(Interpolator):
+    name = "mir"
+
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         try:
             import mir
@@ -19,3 +21,6 @@ class MirInterpolator(Interpolator):
             raise ImportError("The 'mir' package is required for this operation")
 
         return mir.interpolate(values, in_grid, out_grid, method, **kwargs)
+
+
+interpolator = MirInterpolator

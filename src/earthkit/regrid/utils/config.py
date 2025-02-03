@@ -230,7 +230,7 @@ CONFIG_AND_HELP = {
         getter="_as_str",
         none_ok=True,
     ),
-    "interpolators": _(
+    "interpolator-order": _(
         None,
         """The interpolator order. {validator}
         See :ref:`interpolator` for more information.""",

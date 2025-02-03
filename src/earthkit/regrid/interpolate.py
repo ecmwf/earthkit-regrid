@@ -24,7 +24,6 @@ def _find_data_handler(values):
     for h in DATA_HANDLERS:
         if h.match(values):
             return h
-    return None
 
 
 class DataHandler:
@@ -40,17 +39,20 @@ class DataHandler:
             raise ValueError(f"No interpolator found for {user_interpolator}")
 
         if len(interpolators) == 1:
-            return interpolators[0].interpolate(values, in_grid, out_grid, method, **kwargs)
+            if interpolators[0].enabled:
+                return interpolators[0].interpolate(values, in_grid, out_grid, method, **kwargs)
+            raise ValueError("No interpolator could interpolate the data")
         else:
             errors = []
             for p in interpolators:
-                LOG.debug(f"Trying interpolator {p}")
-                try:
-                    return p.interpolate(values, in_grid, out_grid, method, **kwargs)
-                except Exception as e:
-                    errors.append(e)
+                if interpolators[0].enabled:
+                    LOG.debug(f"Trying interpolator {p}")
+                    try:
+                        return p.interpolate(values, in_grid, out_grid, method, **kwargs)
+                    except Exception as e:
+                        errors.append(e)
 
-        raise ValueError("No interpolator could interpolate the data", errors)
+            raise ValueError("No interpolator could interpolate the data", errors)
 
 
 class NumpyDataHandler(DataHandler):

@@ -31,7 +31,7 @@ def get_local_db():
 def run_interpolate(v_in, in_grid, out_grid, method):
     from earthkit.regrid import config
 
-    with config.temporary(local_matrix_directories=DB_PATH, interpolators=["local-matrix"]):
+    with config.temporary(local_matrix_directories=DB_PATH, interpolator_order=["local-matrix"]):
         # v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
         # np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
 

@@ -26,12 +26,12 @@ class MatrixInterpolator(Interpolator):
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
 
-        print("values.shape", values.shape)
-        print("z.shape", z.shape)
+        # print("values.shape", values.shape)
+        # print("z.shape", z.shape)
 
         values = z @ values
 
-        print("values.shape", values.shape)
+        # print("values.shape", values.shape)
 
         return values.reshape(shape)
 
@@ -42,6 +42,9 @@ class MatrixInterpolator(Interpolator):
 
 
 class LocalMatrixInterpolator(MatrixInterpolator):
+    name = "local-matrix"
+    path_config_key = "local-matrix-directories"
+
     @cached_property
     def db(self):
         from .db import MatrixDb
@@ -50,6 +53,9 @@ class LocalMatrixInterpolator(MatrixInterpolator):
 
 
 class RemoteMatrixInterpolator(MatrixInterpolator):
+    name = "remote-matrix"
+    path_config_key = "remote-matrix-directories"
+
     @cached_property
     def db(self):
         from .db import MatrixDb
@@ -58,8 +64,16 @@ class RemoteMatrixInterpolator(MatrixInterpolator):
 
 
 class SystemRemoteMatrixInterpolator(RemoteMatrixInterpolator):
+    name = "system-matrix"
+    path_config_key = None
+
     @cached_property
     def db(self):
         from .db import SYS_DB
 
         return SYS_DB
+
+
+interpolator = {
+    v.name: v for v in [LocalMatrixInterpolator, RemoteMatrixInterpolator, SystemRemoteMatrixInterpolator]
+}

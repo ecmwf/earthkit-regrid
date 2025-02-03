@@ -7,22 +7,27 @@
 # nor does it submit to any jurisdiction.
 #
 
+import logging
+import os
 import threading
 from abc import ABCMeta
 from abc import abstractmethod
 from collections import namedtuple
+from importlib import import_module
 
 from earthkit.regrid.utils.config import CONFIG
 
-ItemKey = namedtuple("ItemKey", ["name", "path"])
+LOG = logging.getLogger(__name__)
 
 
-DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
-BUILT_IN_INTERPOLATORS = {"local-matrix", "remote-matrix", "system-matrix", "mir"}
-SINGLE_INTERPOLATORS = {"system-matrix", "mir"}
+ItemKey = namedtuple("ItemKey", ["name", "path", "path_config_key", "plugin"])
+
+DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir", "other"]
 
 
 class Interpolator(metaclass=ABCMeta):
+    name = None
+    path_config_key = None
     enabled = True
 
     @abstractmethod
@@ -30,95 +35,268 @@ class Interpolator(metaclass=ABCMeta):
         pass
 
 
-def select(order, names, interpolators):
-    """Filter and reorder interpolators based on the order and names."""
-    if isinstance(names, str):
-        if names in SINGLE_INTERPOLATORS:
-            return [p for k, p in interpolators.items() if k.name == names]
+class LazyInterpolator:
+    def __init__(self, name, *args, **kwargs):
+        self.name = name
+        self.args = args
+        self.kwargs = kwargs
+        self.lock = threading.Lock()
+        self._interpolator = None
+        self._exception = None
 
-    r = []
-    if names:
-        _order = list(names)
-    else:
-        _order = order or DEFAULT_ORDER
+    @property
+    def interpolator(self):
+        if self._interpolator is None:
+            with self.lock:
+                try:
+                    LOG.debug(f"Making interpolator object name={self.name}")
+                    self._interpolator = MAKER(self.name, *self.args, **self.kwargs)
+                    LOG.debug(f"Created interpolator object {self._interpolator}")
+                except Exception as e:
+                    LOG.exception(e)
+                    self._exception = e
+                    raise
+        return self._interpolator
 
-    print("names", names)
-    print("order", _order)
+    def interpolate(self, *args, **kwargs):
+        return self.interpolator.interpolate(*args, **kwargs)
 
-    for m in _order:
-        print("m", m)
-        for k, p in interpolators.items():
-            print(" k", k)
-            if p.enabled and k.name == m or (m == "plugins" and k.name not in BUILT_IN_INTERPOLATORS):
-                print("  -> p", p)
-                r.append(p)
+    def __getattr__(self, name):
+        if self._exception is not None:
+            raise self._exception(name)
+        assert name != "interpolate"
+        return getattr(self.interpolator, name)
 
-    return r
+
+class InterpolatorLoader:
+    kind = "interpolator"
+
+    def load_module(self, module):
+        return import_module(module, package=__name__).interpolator
+
+    def load_entry(self, entry):
+        entry = entry.load()
+        if callable(entry):
+            return entry
+        return entry.interpolator
+
+    def load_remote(self, name):
+        return None
+
+
+class InterpolatorMaker:
+    INTERPOLATORS = {}
+
+    def __init__(self):
+        self.INTERPOLATORS = self._builtins()
+
+    def __call__(self, name, *args, **kwargs):
+        loader = InterpolatorLoader()
+
+        if name in self.INTERPOLATORS:
+            klass = self.INTERPOLATORS[name]
+        else:
+            from earthkit.regrid.utils.plugins import find_plugin
+
+            # klass = find_plugin(os.path.dirname(__file__), name, loader)
+            klass = find_plugin([], name, loader)
+            self.INTERPOLATORS[name] = klass
+
+        interpolator = klass(*args, **kwargs)
+
+        if getattr(interpolator, "name", None) is None:
+            interpolator.name = name
+
+        return interpolator
+
+    def plugin_names(self):
+        """Return the list of plugin names."""
+        from earthkit.regrid.utils.plugins import load_plugins
+
+        return list(load_plugins("interpolator").keys())
+
+    def _builtins(self):
+        """Scan for built-in interpolator classes."""
+        r = {}
+        here = os.path.dirname(__file__)
+        for path in sorted(os.listdir(here)):
+            if path[0] in ("_", "."):
+                continue
+
+            if path.endswith(".py") or os.path.isdir(os.path.join(here, path)):
+                name, _ = os.path.splitext(path)
+                try:
+                    module = import_module(f".{name}", package=__name__)
+                    if hasattr(module, "interpolator"):
+                        w = getattr(module, "interpolator")
+                        if isinstance(w, dict):
+                            for k, v in w.items():
+                                r[k] = v
+                        else:
+                            r[name] = w
+                except Exception:
+                    LOG.exception("Error loading interpolator %s", name)
+
+        LOG.debug(f"built-in interpolator classes: {r}")
+        return r
+
+
+MAKER = InterpolatorMaker()
 
 
 class InterpolatorManager:
     INTERPOLATORS = {}
 
-    def __init__(self, *args, policy="all", **kwargs):
+    def __init__(self, *args, **kwargs):
         self.order = []
+        self._cache = {}
         self.lock = threading.Lock()
         self.update()
 
     def update(self):
         with self.lock:
-            self.INTERPOLATORS.clear()
-            self.INTERPOLATORS.update(self._local())
-            self.INTERPOLATORS.update(self._remote())
-            self.INTERPOLATORS.update(self._mir())
-
+            LOG.debug("Update interpolators")
             from earthkit.regrid.utils.config import CONFIG
 
-            self.order = CONFIG.get("interpolators", []) or []
+            if not self.INTERPOLATORS:
+                self._init_interpolators()
+            else:
+                self._update_interpolators()
+
+            self.order = CONFIG.get("interpolator-order", None)
+            LOG.debug(f"interpolator order: {self.order}")
+
+    @staticmethod
+    def _config_paths(key):
+        from earthkit.regrid.utils.config import CONFIG
+
+        dirs = CONFIG.get(key, [])
+        if dirs is None:
+            dirs = []
+        if isinstance(dirs, str):
+            dirs = [dirs]
+        return dirs
+
+    def _init_interpolators(self):
+        """Must be called within a lock"""
+        LOG.debug("Initial registration of interpolators:")
+        self.INTERPOLATORS = {}
+        for name, v in MAKER.INTERPOLATORS.items():
+            # interpolators with a path
+            if v.path_config_key is not None:
+                for d in self._config_paths(v.path_config_key):
+                    key = ItemKey(name, d, v.path_config_key, False)
+                    LOG.debug(f" add: {key}")
+                    self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+            # single interpolators
+            else:
+                key = ItemKey(name, None, None, False)
+                LOG.debug(f" add: {key}")
+                self.INTERPOLATORS[key] = LazyInterpolator(name)
+
+        # plugins
+        for name, v in MAKER.plugin_names():
+            key = ItemKey(name, None, None, True)
+            if key not in self.INTERPOLATORS:
+                LOG.debug(" add:", key)
+                self.INTERPOLATORS[key] = LazyInterpolator(name, plugin=True)
+
+        assert self.INTERPOLATORS
+
+    def _update_interpolators(self):
+        """Must be called within a lock"""
+        LOG.debug("Adjustment to config update:")
+        # existing interpolators with a path
+        for key in list(self.INTERPOLATORS.keys()):
+            if key in self.INTERPOLATORS:
+                # existing interpolators with a path
+                if key.path_config_key is not None:
+                    dirs = self._config_paths(key.path_config_key)
+                    # add new paths
+                    for d in dirs:
+                        key = ItemKey(name, d, key.path_config_key, False)
+                        if key not in self.INTERPOLATORS:
+                            LOG.debug(f" add: {key}")
+                            self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+                    # remove paths not used anymore
+                    for k in list(self.INTERPOLATORS.keys()):
+                        if k.name == key.name and k.path not in dirs:
+                            LOG.debug(f" remove: {k}")
+                            del self.INTERPOLATORS[k]
+
+        # new interpolators with a path
+        for name, v in MAKER.INTERPOLATORS.items():
+            if v.path_config_key is not None and not any(k.name == name for k in self.INTERPOLATORS):
+                for d in self._config_paths(v.path_config_key):
+                    key = ItemKey(name, d, v.path_config_key, False)
+                    LOG.debug(f" add: {key}")
+                    self.INTERPOLATORS[key] = LazyInterpolator(name, d)
 
     def interpolators(self, interpolator=None):
+        """Filter and reorder interpolators based on the order and names."""
+
         with self.lock:
-            return select(self.order, interpolator, self.INTERPOLATORS)
+            names = interpolator
 
-    def _local(self):
-        from earthkit.regrid.utils.config import CONFIG
+            def _copy(x):
+                if x is None:
+                    return None
+                return tuple(x)
 
-        from .matrix import LocalMatrixInterpolator
+            cache_key = (_copy(self.order), _copy(names))
+            if cache_key in self._cache:
+                return self._cache[cache_key]
 
-        dirs = CONFIG.get("local-matrix-directories", [])
-        if dirs is None:
-            dirs = []
-        if isinstance(dirs, str):
-            dirs = [dirs]
+            if isinstance(names, str):
+                if v := self._single(names):
+                    return [v]
 
-        r = {}
-        for d in dirs:
-            r[ItemKey("local-matrix", d)] = LocalMatrixInterpolator(d)
-        return r
+            r = []
+            if names:
+                _order = list(names)
+            else:
+                _order = self.order or DEFAULT_ORDER
 
-    def _remote(self):
-        from earthkit.regrid.utils.config import CONFIG
+            # print("names", names)
+            # print("order", _order)
+            # print("self", self.INTERPOLATORS.keys())
 
-        from .matrix import RemoteMatrixInterpolator
-        from .matrix import SystemRemoteMatrixInterpolator
+            collected = {}
+            for name in _order:
+                # print("name", name)
+                for key, p in self.INTERPOLATORS.items():
+                    # print(" key", key)
+                    if key not in collected:
+                        # if p.enabled:
+                        found = False
+                        if key.name == name:
+                            # print("  (bt) -> p", p)
+                            found = True
+                        elif name == "plugins":
+                            if key.plugin:
+                                # print("  (pl) -> p", p)
+                                found = True
+                        elif name == "other":
+                            if not key.plugin:
+                                # print("  (ot) -> p", p)
+                                found = True
 
-        dirs = CONFIG.get("remote-matrix-directories", [])
-        if dirs is None:
-            dirs = []
-        if isinstance(dirs, str):
-            dirs = [dirs]
+                        if found:
+                            collected[key] = p
+                            break
 
-        r = {}
-        for d in dirs:
-            r[ItemKey("remote-matrix", d)] = RemoteMatrixInterpolator(d)
+            LOG.debug(f" collected: {collected}")
 
-        r[ItemKey("system-matrix", None)] = SystemRemoteMatrixInterpolator()
+            r = list(collected.values())
 
-        return r
+            self._cache[cache_key] = r
 
-    def _mir(self):
-        from .mir import MirInterpolator
+            return r
 
-        return {ItemKey("mir", None): MirInterpolator()}
+    def _single(self, name):
+        for k, v in self.INTERPOLATORS.items():
+            if k.name == name and k.path is None:
+                return v
 
 
 MANAGER = InterpolatorManager()
@@ -140,62 +318,5 @@ MANAGER = InterpolatorManager()
 #         db = add_matrix_source(matrix_source)
 #         return db.find(*args, **kwargs)
 
-
-# class Backend(metaclass=ABCMeta):
-#     @abstractmethod
-#     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
-#         pass
-
-
-# class BackendLoader:
-#     kind = "backend"
-
-#     def load_module(self, module):
-#         return import_module(module, package=__name__).backend
-
-#     def load_entry(self, entry):
-#         entry = entry.load()
-#         if callable(entry):
-#             return entry
-#         return entry.backend
-
-#     def load_remote(self, name):
-#         return None
-
-
-# class BackendMaker:
-#     BACKENDS = {}
-
-#     def __init__(self):
-#         # Preregister the most important backends
-#         from .mir import MirBackend
-#         from .matrix import LocalMatrixBackend
-#         from .matrix import RemoteMatrixBackend
-
-#         self.BACKENDS["mir"] = MirBackend
-#         self.BACKENDS["local"] = LocalMatrixBackend
-#         self.BACKENDS["remote"] = RemoteMatrixBackend
-
-#     def __call__(self, name, *args, **kwargs):
-#         loader = BackendLoader()
-
-#         if name in self.BACKENDS:
-#             klass = self.BACKENDS[name]
-#         else:
-#             klass = find_plugin(os.path.dirname(__file__), name, loader)
-#             self.BACKENDS[name] = klass
-
-#         backend = klass(*args, **kwargs)
-
-#         if getattr(backend, "name", None) is None:
-#             backend.name = name
-
-#         return backend
-
-#     def __getattr__(self, name):
-#         return self(name.replace("_", "-"))
-
-
-# get_backend = BackendMaker()
 
 CONFIG.on_change(MANAGER.update)

@@ -28,6 +28,7 @@ classifiers = [
 ]
 dynamic = [ "version" ]
 dependencies = [
+  "entrypoints",
   "filelock",
   "multiurl",
   "pyyaml",

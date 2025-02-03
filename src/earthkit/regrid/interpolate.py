@@ -45,7 +45,7 @@ class DataHandler:
         else:
             errors = []
             for p in interpolators:
-                if interpolators[0].enabled:
+                if p.enabled:
                     LOG.debug(f"Trying interpolator {p}")
                     try:
                         return p.interpolate(values, in_grid, out_grid, method, **kwargs)

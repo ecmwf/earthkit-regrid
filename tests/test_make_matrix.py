@@ -13,30 +13,101 @@ from scipy.sparse import load_npz
 
 from earthkit.regrid.utils.mir import mir_make_another_matrix
 
+L1 = [1.0, 2.0, 3.0, 4.0]
+L2 = [1.1, 1.9, 3.1, 3.9]
+
 
 @pytest.mark.skip(reason="This test is disabled until further integration.")
 @pytest.mark.parametrize(
     "input_grid, output_grid, interpolation, shape",
     [
-        (dict(grid="1/1"), dict(grid="h2"), "nn", (48, 360 * 181)),
+        (dict(grid="1/1"), dict(grid="H2", ordering="nested"), "nn", (48, 360 * 181)),
         (dict(grid=[2, 2]), dict(grid="o2"), "linear", (88, 180 * 91)),
-        (dict(grid=[3, 3]), dict(grid="3/3"), "linear", (88, 180 * 91)),  # identity
+        (
+            dict(grid=[3, 3]),
+            dict(grid="3/3"),
+            "linear",
+            (120 * 61, 120 * 61),
+        ),  # identity
+        (dict(grid=[1, 1]), dict(grid="H2", ordering="nested"), "nn", (48, 360 * 181)),
+        (dict(grid="2/2"), dict(grid="o2"), "linear", (88, 180 * 91)),
+        (
+            dict(grid="3/3"),
+            dict(grid=[3, 3]),
+            "linear",
+            (120 * 61, 120 * 61),
+        ),  # identity
     ],
 )
 def test_make_matrix(tmp_path, input_grid, output_grid, interpolation, shape):
-    matrix_path = Path(tmp_path) / "matrix.npz"
+    mat = Path(tmp_path) / "matrix.npz"
 
     mir_make_another_matrix(
-        input_grid=input_grid,
-        output_grid=output_grid,
-        output=matrix_path,
+        in_grid=input_grid,
+        out_grid=output_grid,
+        output=mat,
         interpolation=interpolation,
-        mir="mir",
     )
-    assert matrix_path.exists()
 
-    array = load_npz(matrix_path)
+    assert mat.exists()
+    array = load_npz(mat)
     assert array.shape == shape
+    mat.unlink()
+
+
+@pytest.mark.skip(reason="This test is disabled until further integration.")
+def test_make_matrix_unstructured_to_gridspec(tmp_path):
+    mat = Path(tmp_path) / "matrix.npz"
+
+    mir_make_another_matrix(
+        in_lat=L1,
+        in_lon=L2,
+        out_grid=dict(grid="h2"),
+        output=mat,
+        interpolation="nn",
+    )
+
+    assert mat.exists()
+    array = load_npz(mat)
+    assert array.shape == (48, 4)
+    mat.unlink()
+
+
+@pytest.mark.skip(reason="This test is disabled until further integration.")
+def test_make_matrix_gridspec_to_unstructured(tmp_path):
+    mat = Path(tmp_path) / "matrix.npz"
+
+    mir_make_another_matrix(
+        in_grid=dict(grid="h2"),
+        out_lat=L2,
+        out_lon=L1,
+        output=mat,
+        interpolation="nn",
+    )
+
+    assert mat.exists()
+    array = load_npz(mat)
+    assert array.shape == (4, 48)
+    mat.unlink()
+
+
+@pytest.mark.skip(reason="This test is disabled until further integration.")
+def test_make_matrix_unstructured_to_unstructured(tmp_path):
+    mat = Path(tmp_path) / "matrix.npz"
+
+    mir_make_another_matrix(
+        in_lat=L1,
+        in_lon=L2,
+        out_lat=L2,
+        out_lon=L1,
+        output=mat,
+        interpolation="nn",
+    )
+
+    assert mat.exists()
+    array = load_npz(mat)
+    assert array.shape == (4, 4)
+    mat.unlink()
 
 
 if __name__ == "__main__":

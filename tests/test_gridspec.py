@@ -8,7 +8,7 @@
 
 import pytest
 
-from earthkit.regrid.db import SYS_DB
+from earthkit.regrid.backends.db import SYS_DB
 
 
 @pytest.mark.parametrize(

@@ -6,6 +6,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 #
+import sys
 
 try:
     # There is a bug in tqdm that expects ipywidgets
@@ -59,3 +60,7 @@ def no_progress_bar(total, initial=0, desc=None):
         leave=False,
         desc=desc,
     )
+
+
+def is_module_loaded(module_name):
+    return module_name in sys.modules

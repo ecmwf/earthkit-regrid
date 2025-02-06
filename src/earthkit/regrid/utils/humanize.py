@@ -30,6 +30,37 @@ def bytes(n):
     return "%s%g%s" % (sign, int(n * 10 + 0.5) / 10.0, u[i])
 
 
+def string_distance(s, t):
+    import numpy as np
+
+    m = len(s)
+    n = len(t)
+    d = np.zeros((m + 1, n + 1), dtype=int)
+
+    one = int(1)
+    zero = int(0)
+
+    d[:, 0] = np.arange(m + 1)
+    d[0, :] = np.arange(n + 1)
+
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            cost = zero if s[i - 1] == t[j - 1] else one
+            d[i, j] = min(
+                d[i - 1, j] + one,
+                d[i, j - 1] + one,
+                d[i - 1, j - 1] + cost,
+            )
+
+    return d[m, n]
+
+
+def did_you_mean(word, vocabulary):
+    distance, best = min((string_distance(word, w), w) for w in vocabulary)  # noqa F841
+    # if distance < min(len(word), len(best)):
+    return best
+
+
 def list_to_human(lst, conjunction="and"):
     if not lst:
         return "??"

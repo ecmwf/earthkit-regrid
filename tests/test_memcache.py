@@ -25,20 +25,23 @@ def file_in_testdir(filename):
 
 
 def run_interpolate(mode):
-    v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-    np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
-    interpolate(
-        v_in,
-        {"grid": "N32"},
-        {"grid": [10, 10]},
-        matrix_source=DB_PATH,
-        method=mode,
-    )
+    from earthkit.regrid import config
+
+    with config.temporary(local_matrix_directories=DB_PATH, backends=["local-matrix"]):
+
+        v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
+        np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
+        interpolate(
+            v_in,
+            {"grid": "N32"},
+            {"grid": [10, 10]},
+            method=mode,
+        )
 
 
 @pytest.fixture
 def patch_estimate_matrix_memory(monkeypatch):
-    from earthkit.regrid.db import MatrixIndex
+    from earthkit.regrid.backends.db import MatrixIndex
 
     def patched_estimate_memory(self):
         return 200000

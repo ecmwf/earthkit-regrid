@@ -12,7 +12,6 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
-from earthkit.regrid.db import add_matrix_source
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
@@ -23,20 +22,33 @@ def file_in_testdir(filename):
     return os.path.join(DATA_PATH, filename)
 
 
-def run_interpolate(mode):
-    v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-    np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
-    interpolate(
-        v_in,
-        {"grid": "N32"},
-        {"grid": [10, 10]},
-        matrix_source=DB_PATH,
-        method=mode,
-    )
+def get_local_db():
+    from earthkit.regrid.backends.db import MatrixDb
+
+    return MatrixDb.from_path(DB_PATH)
+
+
+def run_interpolate(v_in, in_grid, out_grid, method):
+    from earthkit.regrid import config
+
+    with config.temporary(local_matrix_directories=DB_PATH, backends=["local-matrix"]):
+        # v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
+        # np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
+
+        # in_grid = in_grid or {"grid": "N32"}
+        # out_grid = out_grid or {"grid": [10, 10]}
+
+        return interpolate(
+            v_in,
+            in_grid,
+            out_grid,
+            # matrix_source=DB_PATH,
+            method=method,
+        )
 
 
 def test_local_index():
-    DB = add_matrix_source(DB_PATH)
+    DB = get_local_db()
     # we have an extra unsupported entry in the index file. We have
     # to be sure the DB is loaded correctly bypassing the unsupported
     # entry.
@@ -71,7 +83,7 @@ def test_local_index():
 def test_local_ll_to_ll(method):
     v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method)
+    v_res = run_interpolate(v_in, in_grid={"grid": [5, 5]}, out_grid={"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -81,7 +93,7 @@ def test_local_ll_to_ll(method):
 def test_local_ogg_to_ll(method):
     v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_O32_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(v_in, {"grid": "O32"}, {"grid": [10, 10]}, matrix_source=DB_PATH, method=method)
+    v_res = run_interpolate(v_in, in_grid={"grid": "O32"}, out_grid={"grid": [10, 10]}, method=method)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -91,11 +103,10 @@ def test_local_ogg_to_ll(method):
 def test_local_ngg_to_ll(method):
     v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(
+    v_res = run_interpolate(
         v_in,
-        {"grid": "N32"},
-        {"grid": [10, 10]},
-        matrix_source=DB_PATH,
+        in_grid={"grid": "N32"},
+        out_grid={"grid": [10, 10]},
         method=method,
     )
 
@@ -107,11 +118,10 @@ def test_local_ngg_to_ll(method):
 def test_local_healpix_ring_to_ll(method):
     v_in = np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(
+    v_res = run_interpolate(
         v_in,
-        {"grid": "H4", "ordering": "ring"},
-        {"grid": [10, 10]},
-        matrix_source=DB_PATH,
+        in_grid={"grid": "H4", "ordering": "ring"},
+        out_grid={"grid": [10, 10]},
         method=method,
     )
 
@@ -123,11 +133,10 @@ def test_local_healpix_ring_to_ll(method):
 def test_local_healpix_nested_to_ll(method):
     v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{method}.npz"))["arr_0"]
-    v_res = interpolate(
+    v_res = run_interpolate(
         v_in,
-        {"grid": "H4", "ordering": "nested"},
-        {"grid": [10, 10]},
-        matrix_source=DB_PATH,
+        in_grid={"grid": "H4", "ordering": "nested"},
+        out_grid={"grid": [10, 10]},
         method=method,
     )
 
@@ -201,7 +210,7 @@ def test_local_healpix_nested_to_ll(method):
     ],
 )
 def test_local_gridspec_ok(gs_in, gs_out):
-    DB = add_matrix_source(DB_PATH)
+    DB = get_local_db()
     r = DB.find_entry(gs_in, gs_out, "linear")
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
 
@@ -241,7 +250,7 @@ def test_local_gridspec_ok(gs_in, gs_out):
     ],
 )
 def test_local_gridspec_bad(gs_in, gs_out, err):
-    DB = add_matrix_source(DB_PATH)
+    DB = get_local_db()
     if err:
         with pytest.raises(err):
             r = DB.find_entry(gs_in, gs_out, "linear")

@@ -44,27 +44,29 @@ class Validator(metaclass=ABCMeta):
     def explain(self):
         pass
 
-    @staticmethod
-    def make(value):
-        v = _validators.get(type(value), None)
-        if v is not None:
-            return v(value)
-        else:
-            raise TypeError(f"Cannot create Validator for type={type(value)}")
+    # @staticmethod
+    # def make(value):
+    #     v = _validators.get(type(value), None)
+    #     if v is not None:
+    #         return v(value)
+    #     else:
+    #         raise TypeError(f"Cannot create Validator for type={type(value)}")
 
 
-class ValueValidator(Validator):
-    def __init__(self, value):
-        self.value = value
+# class ValueValidator(Validator):
+#     def __init__(self, value):
+#         self.value = value
 
-    def check(self, value):
-        return value == self.value
+#     def check(self, value):
+#         return value == self.value
 
-    def explain(self):
-        return f"Valid when = {self.value}."
+#     def explain(self):
+#         return f"Valid when = {self.value}."
 
 
-class ListValidator(Validator):
+class ValuesValidator(Validator):
+    """Check if value is in a list of valid values"""
+
     def __init__(self, values):
         self.values = values
 
@@ -75,7 +77,20 @@ class ListValidator(Validator):
         return f"Valid values: {list_to_human(self.values)}."
 
 
-_validators = {bool: ValueValidator, list: ListValidator}
+class ListValidator(Validator):
+    """Check if a list of values is in a list of valid values"""
+
+    def __init__(self, values):
+        self.values = values
+
+    def check(self, value):
+        return value in self.values
+
+    def explain(self):
+        return f"Valid values: {list_to_human(self.values)}."
+
+
+# _validators = {bool: ValueValidator, list: ValuesValidator}
 
 
 class ConfigOption:
@@ -153,7 +168,7 @@ CONFIG_AND_HELP = {
         "user",
         """Caching policy. {validator}
         See :doc:`/guide/caching` for more information. """,
-        validator=ListValidator(["off", "temporary", "user"]),
+        validator=ValuesValidator(["off", "temporary", "user"]),
     ),
     "maximum-cache-size": _(
         "5GB",
@@ -194,12 +209,33 @@ CONFIG_AND_HELP = {
         "largest",
         """The matrix in-memory cache policy. {validator}
         See :ref:`memory_cache` for more information.""",
-        validator=ListValidator(["off", "unlimited", "largest", "lru"]),
+        validator=ValuesValidator(["off", "unlimited", "largest", "lru"]),
     ),
     "matrix-memory-cache-strict-mode": _(
         False,
         """Raise exception if the matrix cannot be fitted into the in-memory cache.  Only used when ``matrix-memory-cache-policy`` is ``"largest"`` or ``"lru"``.
         See :ref:`memory_cache` for more information.""",
+    ),
+    "local-matrix-directories": _(
+        None,
+        """Parent of the cache directory when ``cache-policy`` is ``temporary``.
+        See :doc:`/guide/caching` for more information.""",
+        getter="_as_str",
+        none_ok=True,
+    ),
+    "remote-matrix-directories": _(
+        None,
+        """Parent of the cache directory when ``cache-policy`` is ``temporary``.
+        See :doc:`/guide/caching` for more information.""",
+        getter="_as_str",
+        none_ok=True,
+    ),
+    "backends": _(
+        None,
+        """The interpolator backend order. {validator}
+        See :ref:`backend` for more information.""",
+        getter="_as_list",
+        none_ok=True,
     ),
 }
 
@@ -535,6 +571,14 @@ class Config:
         if isinstance(value, str):
             value = value.replace('"', "").replace("'", "").strip()
         return int(value)
+
+    def _as_list(self, name, value, none_ok):
+        if value is None and none_ok:
+            return []
+        if isinstance(value, str):
+            value = value.replace('"', "").replace("'", "").strip()
+            return value.split(",")
+        return list(value)
 
     @forward
     def temporary(self, *args, config_yaml=None, **kwargs):

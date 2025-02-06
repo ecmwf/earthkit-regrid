@@ -26,6 +26,8 @@ _CacheInfo = namedtuple("CacheInfo", ["hits", "misses", "maxsize", "currsize", "
 
 
 def matrix_size(m):
+    from earthkit.regrid.utils.builder import matrix_memory_size
+
     m = m[0]
     try:
         return matrix_memory_size(m)

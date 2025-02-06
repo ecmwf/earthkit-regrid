@@ -1,7 +1,7 @@
 Interpolation
 ==============
 
-.. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear')
+.. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear', backends=None, **kwargs)
 
     Interpolate the ``values`` from the ``in_grid`` onto the ``out_grid``.
 
@@ -13,8 +13,8 @@ Interpolation
     :type out_grid: dict
     :param method: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
     :type method: str
-    :param matrix_source: (experimental) the location of a user specified pre-generated matrix inventory. When it is None the default matrix inventory hosted on an ECMWF download server is used.
-    :type matrix_source: str, None
+    :backends: the backend to use for the interpolation. When it is None, the backend specified by the ``backends`` :ref:`config <configs>` option tried in the given order.
+    :type backends: str, list of str, None
     :return: The same type of data as ``values`` containing the interpolated values.
     :rtype: ndarray, :xref:`fieldlist`
     :raises ValueError: if a pre-generated interpolation matrix is not available

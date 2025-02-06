@@ -230,10 +230,10 @@ CONFIG_AND_HELP = {
         getter="_as_str",
         none_ok=True,
     ),
-    "interpolator-order": _(
+    "backends": _(
         None,
-        """The interpolator order. {validator}
-        See :ref:`interpolator` for more information.""",
+        """The interpolator backend order. {validator}
+        See :ref:`backend` for more information.""",
         getter="_as_list",
         none_ok=True,
     ),

@@ -21,10 +21,10 @@ LOG = logging.getLogger(__name__)
 
 InterpolatorKey = namedtuple("InterpolatorKey", ["name", "path", "path_config_key", "plugin"])
 
-DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir", "other"]
+DEFAULT_ORDER = ["local-matrix", "plugins", "remote-matrix", "system-matrix", "mir"]
 
 
-class Interpolator(metaclass=ABCMeta):
+class Backend(metaclass=ABCMeta):
     name = None
     path_config_key = None
     enabled = True
@@ -37,88 +37,88 @@ class Interpolator(metaclass=ABCMeta):
         pass
 
 
-class LazyInterpolator:
+class LazyBackend:
     def __init__(self, name, *args, **kwargs):
         self.name = name
         self.args = args
         self.kwargs = kwargs
         self.lock = threading.Lock()
-        self._interpolator = None
+        self._backend = None
         self._exception = None
 
     @property
-    def interpolator(self):
-        if self._interpolator is None:
+    def backend(self):
+        if self._backend is None:
             with self.lock:
                 try:
-                    LOG.debug(f"Making interpolator object name={self.name}")
-                    self._interpolator = MAKER(self.name, *self.args, **self.kwargs)
-                    LOG.debug(f"Created interpolator object {self._interpolator}")
+                    LOG.debug(f"Making backend object name={self.name}")
+                    self._backend = MAKER(self.name, *self.args, **self.kwargs)
+                    LOG.debug(f"Created backend object {self._backend}")
                 except Exception as e:
                     LOG.exception(e)
                     self._exception = e
                     raise
-        return self._interpolator
+        return self._backend
 
     def interpolate(self, *args, **kwargs):
-        return self.interpolator.interpolate(*args, **kwargs)
+        return self.backend.interpolate(*args, **kwargs)
 
     def __getattr__(self, name):
         if self._exception is not None:
             raise self._exception(name)
         assert name != "interpolate"
-        return getattr(self.interpolator, name)
+        return getattr(self.backend, name)
 
 
-class InterpolatorLoader:
-    kind = "interpolator"
+class BackendLoader:
+    kind = "backend"
 
     def load_module(self, module):
-        return import_module(module, package=__name__).interpolator
+        return import_module(module, package=__name__).backend
 
     def load_entry(self, entry):
         entry = entry.load()
         if callable(entry):
             return entry
-        return entry.interpolator
+        return entry.backend
 
     def load_remote(self, name):
         return None
 
 
-class InterpolatorMaker:
-    INTERPOLATORS = {}
+class BackendMaker:
+    BACKENDS = {}
 
     def __init__(self):
-        self.INTERPOLATORS = self._builtins()
+        self.BACKENDS = self._builtins()
 
     def __call__(self, name, *args, **kwargs):
-        loader = InterpolatorLoader()
+        loader = BackendLoader()
 
-        if name in self.INTERPOLATORS:
-            klass = self.INTERPOLATORS[name]
+        if name in self.BACKENDS:
+            klass = self.BACKENDS[name]
         else:
             from earthkit.regrid.utils.plugins import find_plugin
 
             # klass = find_plugin(os.path.dirname(__file__), name, loader)
             klass = find_plugin([], name, loader)
-            self.INTERPOLATORS[name] = klass
+            self.BACKENDS[name] = klass
 
-        interpolator = klass(*args, **kwargs)
+        backend = klass(*args, **kwargs)
 
-        if getattr(interpolator, "name", None) is None:
-            interpolator.name = name
+        if getattr(backend, "name", None) is None:
+            backend.name = name
 
-        return interpolator
+        return backend
 
     def plugin_names(self):
         """Return the list of plugin names."""
         from earthkit.regrid.utils.plugins import load_plugins
 
-        return list(load_plugins("interpolator").keys())
+        return list(load_plugins("backend").keys())
 
     def _builtins(self):
-        """Scan for built-in interpolator classes."""
+        """Scan for built-in backend classes."""
         r = {}
         here = os.path.dirname(__file__)
         for path in sorted(os.listdir(here)):
@@ -129,24 +129,24 @@ class InterpolatorMaker:
                 name, _ = os.path.splitext(path)
                 try:
                     module = import_module(f".{name}", package=__name__)
-                    if hasattr(module, "interpolator"):
-                        w = getattr(module, "interpolator")
+                    if hasattr(module, "backend"):
+                        w = getattr(module, "backend")
                         if isinstance(w, dict):
                             for k, v in w.items():
                                 r[k] = v
                         else:
                             r[name] = w
                 except Exception:
-                    LOG.exception("Error loading interpolator %s", name)
+                    LOG.exception("Error loading backend %s", name)
 
-        LOG.debug(f"built-in interpolator classes: {r}")
+        LOG.debug(f"built-in backend classes: {r}")
         return r
 
 
-MAKER = InterpolatorMaker()
+MAKER = BackendMaker()
 
 
-class InterpolatorListCache:
+class BackendListCache:
     def __init__(self):
         self._cache = {}
 
@@ -173,30 +173,30 @@ class InterpolatorListCache:
         self._cache.clear()
 
 
-class InterpolatorManager:
-    INTERPOLATORS = {}
+class BackendManager:
+    BACKENDS = {}
 
     def __init__(self, *args, **kwargs):
         self.order = []
-        self._cache = InterpolatorListCache()
+        self._cache = BackendListCache()
         self.lock = threading.Lock()
         self.update()
 
     def update(self):
         with self.lock:
-            LOG.debug("Update interpolators")
-            if not self.INTERPOLATORS:
-                self._init_interpolators()
+            LOG.debug("Update backends")
+            if not self.BACKENDS:
+                self._init_backends()
             else:
-                self._update_interpolators()
+                self._update_backends()
 
-            self.order = self._to_list(CONFIG.get("interpolator-order", None), keep_none=True)
-            LOG.debug(f"interpolator order: {self.order}")
+            self.order = self._to_list(CONFIG.get("backends", None), keep_none=True)
+            LOG.debug(f"backend order: {self.order}")
 
-    def interpolators(self, interpolator=None):
-        """Filter and reorder interpolators based on the order and names."""
+    def backends(self, backend=None):
+        """Filter and reorder backends based on the order and names."""
         with self.lock:
-            names = self._to_list(interpolator, keep_none=True)
+            names = self._to_list(backend, keep_none=True)
 
             if r := self._cache.get(self.order, names):
                 return r
@@ -218,7 +218,7 @@ class InterpolatorManager:
             collected = {}
             for name in _order:
                 # print("name", name)
-                for key, p in self.INTERPOLATORS.items():
+                for key, p in self.BACKENDS.items():
                     # print(" key", key)
                     if key not in collected:
                         # if p.enabled:
@@ -230,11 +230,6 @@ class InterpolatorManager:
                             if key.plugin:
                                 # print("  (pl) -> p", p)
                                 found = True
-                        elif name == "other":
-                            if not key.plugin:
-                                # print("  (ot) -> p", p)
-                                found = True
-
                         if found:
                             collected[key] = p
                             break
@@ -249,7 +244,7 @@ class InterpolatorManager:
 
     def _single(self, name):
         """Must be called within a lock"""
-        for k, v in self.INTERPOLATORS.items():
+        for k, v in self.BACKENDS.items():
             if k.name == name and k.path is None:
                 return v
 
@@ -279,68 +274,68 @@ class InterpolatorManager:
                 raise ValueError(f"Empty path in config option {key}={CONFIG.get(key, [])}")
         return dirs
 
-    def _init_interpolators(self):
+    def _init_backends(self):
         """Must be called within a lock"""
-        LOG.debug("Initial registration of interpolators:")
-        self.INTERPOLATORS = {}
-        for name, v in MAKER.INTERPOLATORS.items():
-            # interpolators with a path
+        LOG.debug("Initial registration of backends:")
+        self.BACKENDS = {}
+        for name, v in MAKER.BACKENDS.items():
+            # backends with a path
             if v.path_config_key is not None:
                 for d in self._config_paths(v.path_config_key):
                     key = InterpolatorKey(name, d, v.path_config_key, False)
                     LOG.debug(f" add: {key}")
-                    self.INTERPOLATORS[key] = LazyInterpolator(name, d)
-            # single interpolators
+                    self.BACKENDS[key] = LazyBackend(name, d)
+            # single backends
             else:
                 key = InterpolatorKey(name, None, None, False)
                 LOG.debug(f" add: {key}")
-                self.INTERPOLATORS[key] = LazyInterpolator(name)
+                self.BACKENDS[key] = LazyBackend(name)
 
         # plugins
         for name in MAKER.plugin_names():
             key = InterpolatorKey(name, None, None, True)
-            if key not in self.INTERPOLATORS:
+            if key not in self.BACKENDS:
                 LOG.debug(" add:", key)
-                self.INTERPOLATORS[key] = LazyInterpolator(name, plugin=True)
+                self.BACKENDS[key] = LazyBackend(name, plugin=True)
 
-        assert self.INTERPOLATORS
+        assert self.BACKENDS
 
-    def _update_interpolators(self):
+    def _update_backends(self):
         """Must be called within a lock"""
         LOG.debug("Adjustment to config update:")
-        # existing interpolators with a path
+        # existing backends with a path
         changed = False
-        for key in list(self.INTERPOLATORS.keys()):
-            if key in self.INTERPOLATORS:
+        for key in list(self.BACKENDS.keys()):
+            if key in self.BACKENDS:
                 if key.path_config_key is not None:
                     dirs = self._config_paths(key.path_config_key)
                     # add new paths
                     for d in dirs:
                         key = InterpolatorKey(name, d, key.path_config_key, False)
-                        if key not in self.INTERPOLATORS:
+                        if key not in self.BACKENDS:
                             LOG.debug(f" add: {key}")
-                            self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+                            self.BACKENDS[key] = LazyBackend(name, d)
                             changed = True
                     # remove paths not used anymore
-                    for k in list(self.INTERPOLATORS.keys()):
+                    for k in list(self.BACKENDS.keys()):
                         if k.name == key.name and k.path not in dirs:
                             LOG.debug(f" remove: {k}")
-                            del self.INTERPOLATORS[k]
+                            del self.BACKENDS[k]
                             changed = True
 
-        # new interpolators with a path
-        for name, v in MAKER.INTERPOLATORS.items():
-            if v.path_config_key is not None and not any(k.name == name for k in self.INTERPOLATORS):
+        # new backends with a path
+        for name, v in MAKER.BACKENDS.items():
+            if v.path_config_key is not None and not any(k.name == name for k in self.BACKENDS):
                 for d in self._config_paths(v.path_config_key):
                     key = InterpolatorKey(name, d, v.path_config_key, False)
                     LOG.debug(f" add: {key}")
-                    self.INTERPOLATORS[key] = LazyInterpolator(name, d)
+                    self.BACKENDS[key] = LazyBackend(name, d)
                     changed = True
 
         if changed:
             self._cache.clear()
 
 
-MANAGER = InterpolatorManager()
+MANAGER = BackendManager()
 
 CONFIG.on_change(MANAGER.update)

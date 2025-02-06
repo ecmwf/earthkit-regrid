@@ -10,10 +10,10 @@
 from abc import abstractmethod
 from functools import cached_property
 
-from . import Interpolator
+from . import Backend
 
 
-class MatrixInterpolator(Interpolator):
+class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
@@ -41,7 +41,7 @@ class MatrixInterpolator(Interpolator):
         pass
 
 
-class LocalMatrixInterpolator(MatrixInterpolator):
+class LocalMatrixBackend(MatrixBackend):
     name = "local-matrix"
     path_config_key = "local-matrix-directories"
 
@@ -52,7 +52,7 @@ class LocalMatrixInterpolator(MatrixInterpolator):
         return MatrixDb.from_path(self.path_or_url)
 
 
-class RemoteMatrixInterpolator(MatrixInterpolator):
+class RemoteMatrixBackend(MatrixBackend):
     name = "remote-matrix"
     path_config_key = "remote-matrix-directories"
 
@@ -63,7 +63,7 @@ class RemoteMatrixInterpolator(MatrixInterpolator):
         return MatrixDb.from_url(self.path_or_url)
 
 
-class SystemRemoteMatrixInterpolator(RemoteMatrixInterpolator):
+class SystemRemoteMatrixBackend(RemoteMatrixBackend):
     name = "system-matrix"
     path_config_key = None
 
@@ -74,6 +74,4 @@ class SystemRemoteMatrixInterpolator(RemoteMatrixInterpolator):
         return SYS_DB
 
 
-interpolator = {
-    v.name: v for v in [LocalMatrixInterpolator, RemoteMatrixInterpolator, SystemRemoteMatrixInterpolator]
-}
+backend = {v.name: v for v in [LocalMatrixBackend, RemoteMatrixBackend, SystemRemoteMatrixBackend]}

@@ -7,10 +7,10 @@
 # nor does it submit to any jurisdiction.
 #
 
-from . import Interpolator
+from . import Backend
 
 
-class MirInterpolator(Interpolator):
+class MirBackend(Backend):
     name = "mir"
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
@@ -27,4 +27,4 @@ class MirInterpolator(Interpolator):
         # return pymir.interpolate(values, in_grid, out_grid, method, **kwargs)
 
 
-interpolator = MirInterpolator
+backend = MirBackend

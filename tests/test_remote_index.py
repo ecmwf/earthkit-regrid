@@ -18,7 +18,7 @@ from earthkit.regrid import interpolate
 @pytest.mark.download
 @pytest.mark.tmp_cache
 def test_remote_index_handling():
-    from earthkit.regrid.interpolators.db import SYS_DB
+    from earthkit.regrid.backends.db import SYS_DB
 
     method = "linear"
 

@@ -12,12 +12,12 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
-def interpolate(values, in_grid=None, out_grid=None, method="linear", interpolator=None, **kwargs):
+def interpolate(values, in_grid=None, out_grid=None, method="linear", backends=None, **kwargs):
     h = _find_data_handler(values)
     if h is None:
         raise ValueError(f"Cannot interpolate data with type={type(values)}")
 
-    return h(values, in_grid=in_grid, out_grid=out_grid, method=method, interpolator=interpolator, **kwargs)
+    return h(values, in_grid=in_grid, out_grid=out_grid, method=method, backends=backends, **kwargs)
 
 
 def _find_data_handler(values):
@@ -29,30 +29,30 @@ def _find_data_handler(values):
 class DataHandler:
     @staticmethod
     def _interpolate(values, in_grid, out_grid, **kwargs):
-        from earthkit.regrid.interpolators import MANAGER
+        from earthkit.regrid.backends import MANAGER
 
         method = kwargs.pop("method")
-        user_interpolator = kwargs.pop("interpolator", None)
-        interpolators = MANAGER.interpolators(user_interpolator)
+        user_backends = kwargs.pop("backends", None)
+        backends = MANAGER.backends(user_backends)
 
-        if not interpolators:
-            raise ValueError(f"No interpolator found for {user_interpolator}")
+        if not backends:
+            raise ValueError(f"No backend found for {user_backends}")
 
-        if len(interpolators) == 1:
-            if interpolators[0].enabled:
-                return interpolators[0].interpolate(values, in_grid, out_grid, method, **kwargs)
-            raise ValueError("No interpolator could interpolate the data")
+        if len(backends) == 1:
+            if backends[0].enabled:
+                return backends[0].interpolate(values, in_grid, out_grid, method, **kwargs)
+            raise ValueError("No backend could interpolate the data")
         else:
             errors = []
-            for p in interpolators:
+            for p in backends:
                 if p.enabled:
-                    LOG.debug(f"Trying interpolator {p}")
+                    LOG.debug(f"Trying backend {p}")
                     try:
                         return p.interpolate(values, in_grid, out_grid, method, **kwargs)
                     except Exception as e:
                         errors.append(e)
 
-            raise ValueError("No interpolator could interpolate the data", errors)
+            raise ValueError("No backend could interpolate the data", errors)
 
 
 class NumpyDataHandler(DataHandler):

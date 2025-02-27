@@ -64,3 +64,9 @@ def no_progress_bar(total, initial=0, desc=None):
 
 def is_module_loaded(module_name):
     return module_name in sys.modules
+
+
+def yaml_from_dict(d):
+    import yaml
+
+    return yaml.dump(d, default_flow_style=True).strip()

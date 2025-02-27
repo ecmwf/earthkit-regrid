@@ -7,6 +7,8 @@
 # nor does it submit to any jurisdiction.
 #
 
+from earthkit.regrid.utils import yaml_from_dict
+
 from . import Backend
 
 
@@ -14,17 +16,26 @@ class MirBackend(Backend):
     name = "mir"
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
-        raise NotImplementedError("This method is not implemented yet")
+        try:
+            import mir
+        except ImportError:
+            self.enabled = False
+            raise ImportError("The 'mir' package is required for this operation")
 
         # TODO: Implement the interpolation using the 'mir' package.
-        # The code below is a placeholder and should be replaced with the actual implementation.
-        # try:
-        #     import pymir
-        # except ImportError:
-        #     self.enabled = False
-        #     raise ImportError("The 'mir' package is required for this operation")
+        import mir
 
-        # return pymir.interpolate(values, in_grid, out_grid, method, **kwargs)
+        in_grid = mir.GridSpecInput(yaml_from_dict(in_grid))
+        out_grid = mir.GridSpecOutput(yaml_from_dict(out_grid))
+
+        job = mir.Job()
+
+        job.set("grid", out_grid)
+        job.set("method", method)
+        for key, val in kwargs.items():
+            job.set(key, val)
+
+        # TODO: execute the job, pass the values, and return the result
 
 
 backend = MirBackend

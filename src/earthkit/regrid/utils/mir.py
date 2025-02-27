@@ -18,6 +18,7 @@ import numpy as np
 from scipy.sparse import csr_array
 from scipy.sparse import save_npz
 
+from . import yaml_from_dict
 from .stream import Stream
 
 
@@ -88,12 +89,6 @@ def mir_write_latlon_to_griddef(path, lats, lons):
             s.write_double(lon)
 
 
-def _yaml_from_dict(d):
-    import yaml
-
-    return yaml.dump(d, default_flow_style=True).strip()
-
-
 def _griddef_from_latlon(lat, lon, dir=None):
     import hashlib
 
@@ -130,14 +125,14 @@ def mir_make_matrix(
     job = mir.Job()
 
     if in_grid is not None and in_lat is None and in_lon is None:
-        input = mir.GridSpecInput(_yaml_from_dict(in_grid))
+        input = mir.GridSpecInput(yaml_from_dict(in_grid))
     elif in_grid is None and in_lat is not None and in_lon is not None:
         input = mir.GriddefInput(_griddef_from_latlon(in_lat, in_lon, mir.cache()))
     else:
         raise ValueError("mir_make_matrix: input grid or lats/lons must be provided.")
 
     if out_grid is not None and out_lat is None and out_lon is None:
-        job.set("grid", _yaml_from_dict(out_grid))
+        job.set("grid", yaml_from_dict(out_grid))
     elif out_grid is None and out_lat is not None and out_lon is not None:
         job.set("griddef", _griddef_from_latlon(out_lat, out_lon, mir.cache()))
     else:

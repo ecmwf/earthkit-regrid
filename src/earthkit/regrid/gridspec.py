@@ -14,7 +14,7 @@ import numpy as np
 
 LOG = logging.getLogger(__name__)
 
-FULL_GLOBE = 360.0
+FULL_GLOBE = 360.00
 FULL_GLOBE_EPS = 1e-8
 DEGREE_EPS = 1e-8
 

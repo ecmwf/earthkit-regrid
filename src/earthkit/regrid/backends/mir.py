@@ -1,4 +1,4 @@
-# (C) Copyright 2023 ECMWF.
+# (C) Copyright 2025- ECMWF.
 #
 # This software is licensed under the terms of the Apache Licence Version 2.0
 # which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
@@ -14,17 +14,23 @@ class MirBackend(Backend):
     name = "mir"
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
-        raise NotImplementedError("This method is not implemented yet")
+        import mir
+        import numpy as np
 
-        # TODO: Implement the interpolation using the 'mir' package.
-        # The code below is a placeholder and should be replaced with the actual implementation.
-        # try:
-        #     import pymir
-        # except ImportError:
-        #     self.enabled = False
-        #     raise ImportError("The 'mir' package is required for this operation")
+        in_grid = mir.Grid(in_grid)
+        input = mir.ArrayInput(np.random.rand(in_grid.size()), in_grid.spec_str)
 
-        # return pymir.interpolate(values, in_grid, out_grid, method, **kwargs)
+        job = mir.Job()
+        job.set("grid", out_grid)
+        job.set("interpolation", method)  # NOTE: needs generalisation
+        for k, v in kwargs.items():
+            job.set(k, v)
+
+        output = mir.ArrayOutput()
+        job.execute(input, output)
+
+        # NOTE: this discards output metadata, such as output.spec
+        return output.values()
 
 
 backend = MirBackend

@@ -107,7 +107,7 @@ def test_interpolate_with_mir(gs_in, gs_out):
         if gs_in["grid"] == "eORCA025_T" and method == "grid-box-average":
             continue
 
-        result = interpolate(values, gs_in, gs_out, method="linear", backends=["mir"])
+        result = interpolate(values, gs_in, gs_out, method=method, backends=["mir"])
 
         result_grid = Grid(gs_out)  # NOTE: not necessarily true
         assert result.shape == result_grid.shape

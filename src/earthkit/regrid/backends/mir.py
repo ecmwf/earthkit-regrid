@@ -15,10 +15,8 @@ class MirBackend(Backend):
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         import mir
-        import numpy as np
 
-        in_grid = mir.Grid(in_grid)
-        input = mir.ArrayInput(np.random.rand(in_grid.size()), in_grid.spec_str)
+        input = mir.ArrayInput(values, in_grid)
 
         job = mir.Job()
         job.set("grid", out_grid)

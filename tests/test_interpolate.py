@@ -6,17 +6,11 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import os
-import sys
-
 import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
-
-here = os.path.dirname(__file__)
-sys.path.insert(0, here)
-from testing import get_test_data  # noqa: E402
+from earthkit.regrid.utils.testing import get_test_data
 
 METHODS = ["linear", "nearest-neighbour"]
 

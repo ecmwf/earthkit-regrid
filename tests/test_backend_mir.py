@@ -6,47 +6,16 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import os
-
 import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
+from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
 METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
-def file_in_testdir(filename):
-    return os.path.join(DATA_PATH, filename)
-
-
-def get_local_db():
-    from earthkit.regrid.backends.db import MatrixDb
-
-    return MatrixDb.from_path(DB_PATH)
-
-
-def run_interpolate(v_in, in_grid, out_grid, method):
-    from earthkit.regrid import config
-
-    with config.temporary(local_matrix_directories=DB_PATH, backends=["local-matrix"]):
-        # v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-        # np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
-
-        # in_grid = in_grid or {"grid": "N32"}
-        # out_grid = out_grid or {"grid": [10, 10]}
-
-        return interpolate(
-            v_in,
-            in_grid,
-            out_grid,
-            # matrix_source=DB_PATH,
-            method=method,
-        )
-
-
+@pytest.mark.skipif(NO_MIR, reason="No access to earthkit-data")
 @pytest.mark.parametrize(
     "gs_in, gs_out",
     [

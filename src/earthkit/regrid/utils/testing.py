@@ -7,6 +7,7 @@
 # nor does it submit to any jurisdiction.
 
 import os
+from importlib import import_module
 
 PATH = os.path.dirname(__file__)
 
@@ -42,3 +43,16 @@ def get_test_data(filename, subfolder="global_0_360"):
         return res[0]
     else:
         return res
+
+
+def modules_installed(*modules):
+    for module in modules:
+        try:
+            import_module(module)
+        except ImportError:
+            return False
+    return True
+
+
+NO_EKD = not modules_installed("earthkit.data")
+NO_MIR = not modules_installed("mir")

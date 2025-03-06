@@ -6,25 +6,17 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import os
-import sys
 
 import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
+from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
+from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
+from earthkit.regrid.utils.testing import get_test_data_path  # noqa: E402
 
-here = os.path.dirname(__file__)
-sys.path.insert(0, here)
-from testing import get_test_data  # noqa: E402
-from testing import get_test_data_path  # noqa: E402
-
-try:
+if not NO_EKD:
     from earthkit.data import from_source  # noqa
-
-    NO_EKD = False
-except Exception:
-    NO_EKD = True
 
 
 @pytest.mark.download

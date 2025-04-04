@@ -15,6 +15,7 @@ from abc import abstractmethod
 
 # from collections import namedtuple
 from importlib import import_module
+from typing import Literal
 
 from earthkit.regrid.utils.config import CONFIG
 

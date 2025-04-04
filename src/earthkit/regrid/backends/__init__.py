@@ -31,11 +31,25 @@ class Backend(metaclass=ABCMeta):
     path_config_key = None
     enabled = True
 
+    outputs = ("values_gridspec", "values", "gridspec")
+
     def __init__(self, *args, **kwargs):
         pass
 
     @abstractmethod
     def regrid(self, values, in_grid, out_grid, method, **kwargs):
+        pass
+
+    @abstractmethod
+    def regrid(
+        self,
+        values,
+        in_grid,
+        out_grid,
+        interpolation,
+        output: Literal[*outputs] = outputs[0],
+        **kwargs,
+    ):
         pass
 
 
@@ -64,6 +78,9 @@ class LazyBackend:
 
     def interpolate(self, *args, **kwargs):
         return self.backend.interpolate(*args, **kwargs)
+
+    def regrid(self, *args, output="values_gridspec", **kwargs):
+        return self.backend.interpolate(*args, output, **kwargs)
 
     def __getattr__(self, name):
         if self._exception is not None:

@@ -28,6 +28,7 @@ __all__ = [
     "clear_memory_cache",
     "config",
     "interpolate",
+    "regrid",
     "memory_cache_info",
     "regrid",
     "__version__",

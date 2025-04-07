@@ -143,6 +143,9 @@ class GridSpec(dict):
         else:
             raise NotADirectoryError
 
+    def is_regular_ll(self):
+        return False
+
 
 class LLGridSpec(GridSpec):
     GLOBAL_AREAS = {
@@ -246,6 +249,9 @@ class LLGridSpec(GridSpec):
         if isinstance(grid, list) and len(grid) == 2:
             return True
         return False
+
+    def is_regular_ll(self):
+        return True
 
 
 class ReducedGGGridSpec(GridSpec):

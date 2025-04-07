@@ -101,6 +101,14 @@ class FieldListDataHandler(DataHandler):
                 raise ValueError(f"Cannot get input gridspec from metadata for field[{index}]")
         return in_grid
 
+    def check_out_grid(self, out_grid):
+        # TODO: refactor this when this limitation is removed
+        from .gridspec import GridSpec
+
+        out_grid = GridSpec.from_dict(out_grid)
+        if not out_grid.is_regular_ll():
+            raise ValueError("Fieldlists can only be regridded to global regular lat-lon target grids")
+
     def regrid(self, values, **kwargs):
         import earthkit.data
 
@@ -110,6 +118,7 @@ class FieldListDataHandler(DataHandler):
             in_grid = None
 
         out_grid = kwargs.pop("out_grid")
+        self.check_out_grid(out_grid)
 
         r = earthkit.data.FieldList()
         for i, f in enumerate(ds):
@@ -134,16 +143,18 @@ class FieldListDataHandler(DataHandler):
 
         ds = values
         in_grid = kwargs.pop("in_grid")
-        # if in_grid is not None:
-        #     raise ValueError(f"in_grid {in_grid} cannot be used for FieldList interpolation")
         out_grid = kwargs.pop("out_grid")
+        self.check_out_grid(out_grid)
 
         r = earthkit.data.FieldList()
-        for f in ds:
+        for i, f in enumerate(ds):
             vv = f.to_numpy(flatten=True)
+
+            in_grid_f = self.input_gridspec(in_grid, f, i)
+
             v_res = self._interpolate(
                 vv,
-                f.metadata().gridspec if in_grid is None else in_grid,
+                in_grid_f,
                 out_grid,
                 # method,
                 **kwargs,

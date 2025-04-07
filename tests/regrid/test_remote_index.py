@@ -17,7 +17,7 @@ from earthkit.regrid import regrid
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
-def test_remote_index_handling():
+def test_regrid_remote_matrix_index_handling():
     from earthkit.regrid.backends.db import SYS_DB
 
     method = "linear"

@@ -37,4 +37,3 @@ Examples
     - :ref:`/examples/numpy_arrays.ipynb`
     - :ref:`/examples/healpix_fieldlist.ipynb`
     - :ref:`/examples/octahedral_fieldlist.ipynb`
-

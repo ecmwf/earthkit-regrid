@@ -36,8 +36,10 @@ def test_remote_index_handling():
 
     # this should use the index file in the local cache
     v_in = np.ones(5248)
-    v_res = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, method=method, backend="system-matrix")
-    assert v_res.shape == (19, 36), 1
+    out_grid = {"grid": [10, 10]}
+    v_res, grid_res = regrid(v_in, {"grid": "O32"}, out_grid=out_grid, method=method, backend="system-matrix")
+    assert v_res.shape == (19, 36)
+    assert grid_res == out_grid
     assert db._accessor.index_path() == path_ori
     st = os.stat(path_ori)
     m_time = st.st_mtime_ns

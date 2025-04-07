@@ -1,11 +1,12 @@
+
 Interpolation
 ==============
 
-.. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear', backends=None, **kwargs)
+.. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear')
 
     Interpolate the ``values`` from the ``in_grid`` onto the ``out_grid``.
 
-    :param values: the input data. It has to be an ndarray representing a single field defined on the ``in_grid``. Alternatively, an earthkit-data GRIB :xref:`fieldlist` can be used, but this only works if ``out_grid`` is a global regular latitude-longitude grid.
+    :param values: the input data. It can be an ndarray or an earthkit-data GRIB :xref:`fieldlist`. ndarrays are assumed to be defined on the ``in_grid``. The :xref:`fieldlist` support requires :xref:`earthkit-data` >= 0.6.0 and only works when the ``out_grid`` is a regular latitude-longitude grid.
     :type values: ndarray, :xref:`fieldlist`
     :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. When ``values`` is a :xref:`fieldlist` the input grid is automatically detected if ``in_grid`` is not specified.
     :type in_grid: dict
@@ -13,8 +14,8 @@ Interpolation
     :type out_grid: dict
     :param method: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
     :type method: str
-    :backends: the backend to use for the interpolation. When it is None, the backend specified by the ``backends`` :ref:`config <configs>` option tried in the given order.
-    :type backends: str, list of str, None
+    :param matrix_source: (experimental) the location of a user specified pre-generated matrix inventory. When it is None the default matrix inventory hosted on an ECMWF download server is used.
+    :type matrix_source: str, None
     :return: The same type of data as ``values`` containing the interpolated values.
     :rtype: ndarray, :xref:`fieldlist`
     :raises ValueError: if a pre-generated interpolation matrix is not available
@@ -36,3 +37,4 @@ Examples
     - :ref:`/examples/numpy_arrays.ipynb`
     - :ref:`/examples/healpix_fieldlist.ipynb`
     - :ref:`/examples/octahedral_fieldlist.ipynb`
+

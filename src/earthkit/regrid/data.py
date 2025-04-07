@@ -26,10 +26,13 @@ class DataHandler(metaclass=ABCMeta):
         pass
 
     @staticmethod
-    def _regrid(values, in_grid, out_grid, backend, **kwargs):
+    def _regrid(values, in_grid, out_grid, backend, matrix_source=None, **kwargs):
         from earthkit.regrid.backends import get_backend
 
-        backend = get_backend(backend)
+        if backend == "local-matrix":
+            backend = get_backend("local-matrix", path_or_url=matrix_source)
+        else:
+            backend = get_backend(backend)
 
         if not backend:
             raise ValueError(f"No backend={backend} found")

@@ -17,6 +17,24 @@ class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
+    def regrid(self, values, in_grid, out_grid, method, **kwargs):
+        z, shape = self.db.find(in_grid, out_grid, method, **kwargs)
+
+        if z is None:
+            raise ValueError(f"No precomputed interpolator found! {in_grid=} {out_grid=} {method=}")
+
+        # This should check for 1D (GG) and 2D (LL) matrices
+        values = values.reshape(-1, 1)
+
+        # print("values.shape", values.shape)
+        # print("z.shape", z.shape)
+
+        values = z @ values
+
+        # print("values.shape", values.shape)
+
+        return values.reshape(shape), out_grid
+
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         z, shape = self.db.find(in_grid, out_grid, method, **kwargs)
 
@@ -43,7 +61,7 @@ class MatrixBackend(Backend):
 
 class LocalMatrixBackend(MatrixBackend):
     name = "local-matrix"
-    path_config_key = "local-matrix-directories"
+    # path_config_key = "local-matrix-directories"
 
     @cached_property
     def db(self):
@@ -54,7 +72,7 @@ class LocalMatrixBackend(MatrixBackend):
 
 class RemoteMatrixBackend(MatrixBackend):
     name = "remote-matrix"
-    path_config_key = "remote-matrix-directories"
+    # path_config_key = "remote-matrix-directories"
 
     @cached_property
     def db(self):
@@ -65,7 +83,7 @@ class RemoteMatrixBackend(MatrixBackend):
 
 class SystemRemoteMatrixBackend(RemoteMatrixBackend):
     name = "system-matrix"
-    path_config_key = None
+    # path_config_key = None
 
     @cached_property
     def db(self):

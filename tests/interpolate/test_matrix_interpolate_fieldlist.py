@@ -32,7 +32,7 @@ if not NO_EKD:
         ({"method": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_fieldlist_reg_ll(_kwarg, method):
+def test_matrix_interpolate_fieldlist_reg_ll(_kwarg, method):
     ds = from_source("url", get_test_data_path("5x5.grib"))
 
     f_ref = get_test_data(f"out_5x5_10x10_{method}.npz")
@@ -58,7 +58,7 @@ def test_fieldlist_reg_ll(_kwarg, method):
         ({"method": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_fieldlist_gg(_kwarg, method):
+def test_matrix_interpolate_fieldlist_gg(_kwarg, method):
     ds = from_source("url", get_test_data_path("O32.grib"))
 
     f_ref = get_test_data(f"out_O32_10x10_{method}.npz")

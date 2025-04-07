@@ -13,7 +13,9 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def interpolate(self, values, in_grid, out_grid, method, **kwargs):
+    def regrid(self, values, in_grid, out_grid, method, **kwargs):
+
+        # def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         import mir
 
         input = mir.ArrayInput(values, in_grid)

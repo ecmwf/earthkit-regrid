@@ -13,6 +13,18 @@ PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
+_ROOT_DIR = top = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+if not os.path.exists(os.path.join(_ROOT_DIR, "tests", "data")):
+    _ROOT_DIR = "./"
+
+
+def earthkit_file(*args):
+    return os.path.join(_ROOT_DIR, *args)
+
+
+def earthkit_test_data_path(*args):
+    return os.path.join(_ROOT_DIR, "tests", "data", *args)
+
 
 def simple_download(url, target):
     import requests

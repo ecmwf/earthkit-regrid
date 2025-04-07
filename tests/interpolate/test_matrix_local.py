@@ -12,9 +12,10 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
+from earthkit.regrid.utils.testing import earthkit_test_data_path
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
+DB_PATH = earthkit_test_data_path("local", "db")
+DATA_PATH = earthkit_test_data_path("local")
 METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
@@ -29,22 +30,13 @@ def get_local_db():
 
 
 def run_interpolate(v_in, in_grid, out_grid, method):
-    from earthkit.regrid import config
-
-    with config.temporary(local_matrix_directories=DB_PATH, backends=["local-matrix"]):
-        # v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-        # np.load(file_in_testdir(f"out_N32_10x10_{method}.npz"))["arr_0"]
-
-        # in_grid = in_grid or {"grid": "N32"}
-        # out_grid = out_grid or {"grid": [10, 10]}
-
-        return interpolate(
-            v_in,
-            in_grid,
-            out_grid,
-            # matrix_source=DB_PATH,
-            method=method,
-        )
+    return interpolate(
+        v_in,
+        in_grid,
+        out_grid,
+        method=method,
+        matrix_source=DB_PATH,
+    )
 
 
 def test_local_index():

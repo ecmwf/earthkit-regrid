@@ -7,31 +7,19 @@
 # nor does it submit to any jurisdiction.
 #
 
-import deprecation
+# import logging
 
 from .data import get_data_handler
-
-
-@deprecation.deprecated(deprecated_in="0.5.0", removed_in=None, details="Use regrid() instead")
-def interpolate(values, in_grid=None, out_grid=None, method="linear", **kwargs):
-    h = get_data_handler(values)
-    if h is None:
-        raise ValueError(f"Cannot call interpolate() with data type={type(values)}")
-
-    return h.interpolate(values, in_grid=in_grid, out_grid=out_grid, method=method, **kwargs)
-
-
-# import logging
 
 # LOG = logging.getLogger(__name__)
 
 
-# def interpolate(values, in_grid=None, out_grid=None, method="linear", backends=None, **kwargs):
-#     h = _find_data_handler(values)
-#     if h is None:
-#         raise ValueError(f"Cannot interpolate data with type={type(values)}")
+def regrid(values, in_grid=None, out_grid=None, method="linear", backend="mir", **kwargs):
+    h = get_data_handler(values)
+    if h is None:
+        raise ValueError(f"Cannot regrid data with type={type(values)}")
 
-#     return h(values, in_grid=in_grid, out_grid=out_grid, method=method, backends=backends, **kwargs)
+    return h.regrid(values, in_grid=in_grid, out_grid=out_grid, method=method, backend=backend, **kwargs)
 
 
 # def _find_data_handler(values):

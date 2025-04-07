@@ -4,6 +4,7 @@ channels:
 - nodefaults
 dependencies:
 - pip
+- deprecation
 - multiurl
 - filelock
 - scipy

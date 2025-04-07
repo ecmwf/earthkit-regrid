@@ -28,6 +28,7 @@ classifiers = [
 ]
 dynamic = [ "version" ]
 dependencies = [
+  "deprecation",
   "entrypoints",
   "filelock",
   "multiurl",

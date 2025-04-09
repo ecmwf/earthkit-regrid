@@ -10,9 +10,11 @@
 from .data import get_data_handler
 
 
-def regrid(values, in_grid=None, out_grid=None, method="linear", backend="mir", **kwargs):
+def regrid(values, in_grid=None, out_grid=None, interpolation="linear", backend="mir", **kwargs):
     h = get_data_handler(values)
     if h is None:
         raise ValueError(f"Cannot regrid data with type={type(values)}")
 
-    return h.regrid(values, in_grid=in_grid, out_grid=out_grid, method=method, backend=backend, **kwargs)
+    return h.regrid(
+        values, in_grid=in_grid, out_grid=out_grid, interpolation=interpolation, backend=backend, **kwargs
+    )

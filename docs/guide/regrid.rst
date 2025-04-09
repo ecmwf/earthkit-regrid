@@ -1,7 +1,7 @@
 Interpolation
 ==============
 
-.. py:function:: regrid(values, in_grid=None, out_grid=None, matrix_source=None, method='linear', backend="mir", **kwargs)
+.. py:function:: regrid(values, in_grid=None, out_grid=None, matrix_source=None, interpolation='linear', backend="mir", **kwargs)
 
     Interpolate the ``values`` from the ``in_grid`` onto the ``out_grid``.
 
@@ -11,8 +11,8 @@ Interpolation
     :type in_grid: dict
     :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type out_grid: dict
-    :param method: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
-    :type method: str
+    :param interpolation: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
+    :type interpolation: str
     :backend: the backend to use for the interpolation.
     :type backends: str
     :return: The same type of data as ``values`` containing the interpolated values.
@@ -20,7 +20,7 @@ Interpolation
     :raises ValueError: if a pre-generated interpolation matrix is not available
     :raises ValueError: if ``in_grid`` is specified for a :xref:`fieldlist` input
 
-    The interpolation only works when a pre-generated interpolation matrix is available for the given ``in_grid``, ``out_grid`` and ``method`` combination.
+    The interpolation only works when a pre-generated interpolation matrix is available for the given ``in_grid``, ``out_grid`` and ``interpolation`` combination.
 
     When ``matrix_source`` is None (default) the interpolation matrix is automatically downloaded and stored in a local cache (at ``"~/.cache/earthkit-regrid"``) and when it is needed again the cached version is used.
 

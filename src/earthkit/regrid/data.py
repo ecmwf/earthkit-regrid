@@ -156,7 +156,6 @@ class FieldListDataHandler(DataHandler):
                 vv,
                 in_grid_f,
                 out_grid,
-                # method,
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid)

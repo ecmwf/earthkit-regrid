@@ -23,19 +23,19 @@ if not NO_EKD:
 @pytest.mark.tmp_cache
 @pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
 @pytest.mark.parametrize(
-    "_kwarg,method",
+    "_kwarg,interpolation",
     [
         ({}, "linear"),
-        ({"method": "linear"}, "linear"),
-        ({"method": "nearest-neighbour"}, "nearest-neighbour"),
-        ({"method": "nn"}, "nearest-neighbour"),
-        ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+        ({"interpolation": "linear"}, "linear"),
+        ({"interpolation": "nearest-neighbour"}, "nearest-neighbour"),
+        ({"interpolation": "nn"}, "nearest-neighbour"),
+        ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_regrid_matrix_fieldlist_reg_ll(_kwarg, method):
+def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation):
     ds = from_source("url", get_test_data_path("5x5.grib"))
 
-    f_ref = get_test_data(f"out_5x5_10x10_{method}.npz")
+    f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")
     v_ref = np.load(f_ref)["arr_0"]
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
@@ -49,19 +49,19 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, method):
 @pytest.mark.tmp_cache
 @pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
 @pytest.mark.parametrize(
-    "_kwarg,method",
+    "_kwarg,interpolation",
     [
         ({}, "linear"),
-        ({"method": "linear"}, "linear"),
-        ({"method": "nearest-neighbour"}, "nearest-neighbour"),
-        ({"method": "nn"}, "nearest-neighbour"),
-        ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+        ({"interpolation": "linear"}, "linear"),
+        ({"interpolation": "nearest-neighbour"}, "nearest-neighbour"),
+        ({"interpolation": "nn"}, "nearest-neighbour"),
+        ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_regrid_matrix_fieldlist_gg(_kwarg, method):
+def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation):
     ds = from_source("url", get_test_data_path("O32.grib"))
 
-    f_ref = get_test_data(f"out_O32_10x10_{method}.npz")
+    f_ref = get_test_data(f"out_O32_10x10_{interpolation}.npz")
     v_ref = np.load(f_ref)["arr_0"]
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)

@@ -20,7 +20,7 @@ from earthkit.regrid import regrid
 def test_regrid_remote_matrix_index_handling():
     from earthkit.regrid.backends.db import SYS_DB
 
-    method = "linear"
+    interpolation = "linear"
 
     db = SYS_DB
 
@@ -37,7 +37,9 @@ def test_regrid_remote_matrix_index_handling():
     # this should use the index file in the local cache
     v_in = np.ones(5248)
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(v_in, {"grid": "O32"}, out_grid=out_grid, method=method, backend="system-matrix")
+    v_res, grid_res = regrid(
+        v_in, {"grid": "O32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+    )
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
     assert db._accessor.index_path() == path_ori
@@ -48,7 +50,13 @@ def test_regrid_remote_matrix_index_handling():
     # this should trigger a check between the local and remote index file sha and
     # download the remote index file if they are different
     with pytest.raises(ValueError):
-        regrid(v_in, {"grid": "O32"}, {"grid": [1000, 10000]}, method=method, backend="system-matrix")
+        regrid(
+            v_in,
+            {"grid": "O32"},
+            {"grid": [1000, 10000]},
+            interpolation=interpolation,
+            backend="system-matrix",
+        )
 
     assert db._accessor.checked_remote()
 

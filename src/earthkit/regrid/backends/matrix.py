@@ -17,21 +17,16 @@ class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
-    def regrid(self, values, in_grid, out_grid, method, **kwargs):
-        z, shape = self.db.find(in_grid, out_grid, method, **kwargs)
+    def regrid(self, values, in_grid, out_grid, interpolation, **kwargs):
+        z, shape = self.db.find(in_grid, out_grid, interpolation, **kwargs)
 
         if z is None:
-            raise ValueError(f"No precomputed interpolator found! {in_grid=} {out_grid=} {method=}")
+            raise ValueError(f"No precomputed interpolator found! {in_grid=} {out_grid=} {interpolation=}")
 
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
 
-        # print("values.shape", values.shape)
-        # print("z.shape", z.shape)
-
         values = z @ values
-
-        # print("values.shape", values.shape)
 
         return values.reshape(shape), out_grid
 
@@ -44,12 +39,7 @@ class MatrixBackend(Backend):
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
 
-        # print("values.shape", values.shape)
-        # print("z.shape", z.shape)
-
         values = z @ values
-
-        # print("values.shape", values.shape)
 
         return values.reshape(shape)
 

@@ -12,7 +12,7 @@ import pytest
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 
-METHODS = ["linear", "nearest-neighbour", "grid-box-average"]
+INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
 @pytest.mark.skipif(NO_MIR, reason="No access to earthkit-data")
@@ -72,12 +72,12 @@ def test_regrid_with_mir(gs_in, gs_out):
     in_grid = Grid(**gs_in)
     values = np.random.rand(in_grid.size())
 
-    for method in METHODS:
-        if gs_in["grid"] == "eORCA025_T" and method == "grid-box-average":
+    for interpolation in INTERPOLATIONS:
+        if gs_in["grid"] == "eORCA025_T" and interpolation == "grid-box-average":
             continue
 
         # TODO: make this code work
-        values_res, _ = regrid(values, gs_in, gs_out, method=method, backend="mir")
+        values_res, _ = regrid(values, gs_in, gs_out, interpolation=interpolation, backend="mir")
 
         result_grid = Grid(gs_out)  # NOTE: not necessarily true
         assert values_res.shape == result_grid.shape

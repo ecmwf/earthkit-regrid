@@ -12,9 +12,10 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import interpolate
+from earthkit.regrid.utils.testing import earthkit_test_data_path
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "local", "db")
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "local")
+DB_PATH = earthkit_test_data_path("local", "db")
+DATA_PATH = earthkit_test_data_path("local")
 
 # TODO: these tests cannot be run in parallel as they modify the global settings.
 # We should refactor the tests once the settings are properly implemented.
@@ -25,18 +26,9 @@ def file_in_testdir(filename):
 
 
 def run_interpolate(mode):
-    from earthkit.regrid import config
-
-    with config.temporary(local_matrix_directories=DB_PATH, backends=["local-matrix"]):
-
-        v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-        np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
-        interpolate(
-            v_in,
-            {"grid": "N32"},
-            {"grid": [10, 10]},
-            method=mode,
-        )
+    v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
+    np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
+    interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]}, method=mode, matrix_source=DB_PATH)
 
 
 @pytest.fixture

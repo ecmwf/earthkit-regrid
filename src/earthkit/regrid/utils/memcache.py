@@ -241,11 +241,12 @@ class MemoryCache:
             else:
                 data = self._create(create, *args)
 
-            self.items[key] = _MemoryItem(data, self.size_fn(data[0]), time.time())
-            self.curr_mem += self.items[key].size
-
             self.misses += 1
-            self._reduce()
+
+            if data[0] is not None:
+                self.items[key] = _MemoryItem(data, self.size_fn(data[0]), time.time())
+                self.curr_mem += self.items[key].size
+                self._reduce()
 
             return data
 

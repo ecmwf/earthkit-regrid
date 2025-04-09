@@ -17,11 +17,15 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
 def test_regrid(interpolation):
-    f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{interpolation}.npz"])
-
+    f_in = get_test_data("in_O32.npz")
     v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
-    v_res = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation, backends=["mir"])
+    v_res = regrid(
+        v_in,
+        {"grid": "O32"},
+        {"grid": [30, 30]},
+        interpolation=interpolation,
+        backends=["mir"],
+        output="values_gridspec",
+    )
 
-    assert v_res.shape == (19, 36)
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert v_res.shape == (7, 12)

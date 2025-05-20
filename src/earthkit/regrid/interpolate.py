@@ -75,6 +75,15 @@ class FieldListInterpolator:
         out_grid = kwargs.pop("out_grid")
         method = kwargs.pop("method")
 
+        from earthkit.data.readers.grib.gridspec import GridSpecConverter
+
+        try:
+            GridSpecConverter.infer_spec_type(out_grid)
+        except ValueError:
+            raise ValueError(
+                "The output grid must a be a regular lat-lon grid for FieldList interpolation."
+            )
+
         r = earthkit.data.FieldList()
         for f in ds:
             vv = f.to_numpy(flatten=True)

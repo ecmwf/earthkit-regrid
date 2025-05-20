@@ -1,6 +1,14 @@
 Version 0.4 Updates
 /////////////////////////
 
+Version 0.4.1
+===============
+
+Fixes
+++++++++++++++++++++++++++++
+
+Improved error message when the target grid is not supported for FieldList input
+
 
 Version 0.4.0
 ===============

@@ -77,3 +77,12 @@ def test_fieldlist_gg(_kwarg, method):
     assert len(r) == 1
     assert r[0].shape == (19, 36)
     assert np.allclose(r[0].values, v_ref)
+
+
+def test_fieldlist_unsupporterd_target():
+    ds = from_source("url", get_test_data_path("O32.grib"))
+
+    with pytest.raises(ValueError) as excinfo:
+        interpolate(ds, out_grid={"grid": "O96"})
+
+    assert "The output grid must a be a regular lat-lon grid" in str(excinfo.value)

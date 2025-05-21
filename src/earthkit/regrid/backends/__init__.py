@@ -15,7 +15,6 @@ from abc import abstractmethod
 
 # from collections import namedtuple
 from importlib import import_module
-from typing import Literal
 
 from earthkit.regrid.utils.config import CONFIG
 
@@ -47,7 +46,7 @@ class Backend(metaclass=ABCMeta):
         in_grid,
         out_grid,
         interpolation,
-        output: Literal[*outputs] = outputs[0],
+        output="values_gridspec",
         **kwargs,
     ):
         pass

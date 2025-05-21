@@ -69,3 +69,22 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation):
     assert len(r) == 1
     assert r[0].shape == (19, 36)
     assert np.allclose(r[0].values, v_ref)
+
+
+@pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
+@pytest.mark.parametrize(
+    "_kwarg",
+    [
+        ({}),
+        ({"interpolation": "linear"}),
+        ({"interpolation": "nearest-neighbour"}),
+        ({"interpolation": "nn"}),
+        ({"interpolation": "nearest-neighbor"}),
+    ],
+)
+def test_regrid_grib_fieldlist(_kwarg):
+    ds = from_source("url", get_test_data_path("O32.grib"))
+
+    r = regrid(ds, out_grid={"grid": [10, 10]}, **_kwarg)
+    assert len(r) == 1
+    assert r[0].shape == (19, 36)

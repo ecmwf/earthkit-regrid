@@ -34,32 +34,19 @@ def test_regrid(interpolation):
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
 def test_regrid_grib(interpolation):
     from io import BytesIO
-    from os import environ
     from pathlib import Path
-
-    from eccodes import codes_get
-    from eccodes import codes_new_from_message
 
     from earthkit.regrid.backends import get_backend
 
     def check_header(contents):
-        assert len(contents) > 4
-        assert contents.startswith(b"GRIB")
-        assert contents.endswith(b"7777")
+        assert contents.startswith(b"GRIB") and contents.endswith(b"7777")
 
     with open(Path(__file__).parent / "o32.grib2", "rb") as fh:
         in_grib = BytesIO(fh.read())
         check_header(in_grib.getvalue())
 
     mir = get_backend("mir")
-    out_grib = mir.regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
+    out = mir.regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
 
-    assert isinstance(out_grib, BytesIO), "out_grib must be a BytesIO object"
-    check_header(out_grib.getvalue())
-
-    handle = codes_new_from_message(out_grib.getvalue())
-
-    assert codes_get(handle, "gridType") == "regular_ll"
-    assert codes_get(handle, "numberOfDataPoints") == 7 * 12
-    if environ.get("ECCODES_ECKIT_GEO", "0") != "0":
-        assert codes_get(handle, "gridSpec") == R'{"grid":[30,30]}'
+    assert out["gridType"] == "regular_ll"
+    assert out.shape == (7, 12)

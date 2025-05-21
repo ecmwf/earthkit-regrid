@@ -40,10 +40,17 @@ class MirBackend(Backend):
         from io import BytesIO
 
         import mir
+        from earthkit.data.readers.grib.codes import GribField
+        from earthkit.data.readers.grib.memory import GribFieldInMemory
 
-        assert isinstance(in_grib, BytesIO), "in_grib must be a BytesIO object"
+        if isinstance(in_grib, GribField):
+            buf = BytesIO(in_grib.message())
+            input = mir.GribMemoryInput(buf.getvalue())
+        elif isinstance(in_grib, BytesIO):
+            input = mir.GribMemoryInput(in_grib.getvalue())
+        else:
+            raise ValueError("Input must be a GribField or BytesIO object")
 
-        input = mir.GribMemoryInput(in_grib.getvalue())
         out = BytesIO()
 
         job = mir.Job()
@@ -53,7 +60,7 @@ class MirBackend(Backend):
 
         job.execute(input, out)
 
-        return out
+        return GribFieldInMemory.from_buffer(out.getvalue())
 
 
 backend = MirBackend

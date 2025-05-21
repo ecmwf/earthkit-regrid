@@ -122,6 +122,16 @@ class FieldListDataHandler(DataHandler):
 
         r = earthkit.data.FieldList()
         for i, f in enumerate(ds):
+            from earthkit.data.readers.grib.codes import GribField
+
+            if isinstance(f, GribField):
+                from earthkit.regrid.backends import get_backend
+
+                mir = get_backend("mir")
+                f = mir.regrid_grib(f, out_grid, **kwargs)
+
+                r += ds.from_fields([f])
+                continue
             vv = f.to_numpy(flatten=True)
 
             in_grid_f = self.input_gridspec(in_grid, f, i)

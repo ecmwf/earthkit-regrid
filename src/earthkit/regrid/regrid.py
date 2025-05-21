@@ -18,3 +18,10 @@ def regrid(values, in_grid=None, out_grid=None, interpolation="linear", backend=
     return h.regrid(
         values, in_grid=in_grid, out_grid=out_grid, interpolation=interpolation, backend=backend, **kwargs
     )
+
+
+def regrid_grib(in_grib=None, out_grid=None, **kwargs):
+    from .backends import get_backend
+
+    mir = get_backend("mir")
+    return mir.regrid_grib(in_grib, out_grid=out_grid, **kwargs)

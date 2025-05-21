@@ -13,24 +13,47 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def regrid(self, values, in_grid, out_grid, method, **kwargs):
-
-        # def interpolate(self, values, in_grid, out_grid, method, **kwargs):
+    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs, **kwargs):
         import mir
 
         input = mir.ArrayInput(values, in_grid)
+        out = mir.ArrayOutput()
 
         job = mir.Job()
         job.set("grid", out_grid)
-        job.set("interpolation", method)  # NOTE: needs generalisation
+        job.set("interpolation", interpolation)  # NOTE: needs generalisation
         for k, v in kwargs.items():
             job.set(k, v)
 
-        output = mir.ArrayOutput()
-        job.execute(input, output)
+        job.execute(input, out)
 
-        # NOTE: this discards output metadata, such as output.spec
-        return output.values()
+        if output == "values_gridspec":
+            return out.values(), out.spec
+        elif output == "values":
+            return out.values()
+        elif output == "gridspec":
+            return out.spec
+
+        raise ValueError("No output found!")
+
+    def regrid_grib(self, in_grib, out_grid, **kwargs):
+        from io import BytesIO
+
+        import mir
+
+        assert isinstance(in_grib, BytesIO), "in_grib must be a BytesIO object"
+
+        input = mir.GribMemoryInput(in_grib.getvalue())
+        out = BytesIO()
+
+        job = mir.Job()
+        job.set("grid", out_grid)
+        for k, v in kwargs.items():
+            job.set(k, v)
+
+        job.execute(input, out)
+
+        return out
 
 
 backend = MirBackend

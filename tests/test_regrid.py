@@ -35,25 +35,29 @@ def test_regrid(interpolation):
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
 def test_regrid_grib(interpolation):
     from io import BytesIO
+    from os import environ
     from pathlib import Path
 
+    from eccodes import codes_get
+    from eccodes import codes_new_from_message
+
     def check_header(contents):
-        assert len(contents) > 4 and contents.startswith(b"GRIB")
+        assert len(contents) > 4
+        assert contents.startswith(b"GRIB")
+        assert contents.endswith(b"7777")
 
     with open(Path(__file__).parent / "o32.grib2", "rb") as fh:
         in_grib = BytesIO(fh.read())
         check_header(in_grib.getvalue())
 
     out_grib = regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
+
+    assert isinstance(out_grib, BytesIO), "out_grib must be a BytesIO object"
     check_header(out_grib.getvalue())
 
-    # check result
-    assert isinstance(out_grib, BytesIO), "out_grib must be a BytesIO object"
-
-    from eccodes import codes_get
-    from eccodes import codes_new_from_message
-
     handle = codes_new_from_message(out_grib.getvalue())
+
     assert codes_get(handle, "gridType") == "regular_ll"
     assert codes_get(handle, "numberOfDataPoints") == 7 * 12
-    # assert codes_get(handle, "gridspec") == R'{"grid": [30, 30]}'  # env ECCODES_ECKIT_GEO=1
+    if environ.get("ECCODES_ECKIT_GEO", "0") != "0":
+        assert codes_get(handle, "gridSpec") == R'{"grid":[30,30]}'

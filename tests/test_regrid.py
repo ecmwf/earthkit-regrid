@@ -10,7 +10,6 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
-from earthkit.regrid import regrid_grib
 from earthkit.regrid.utils.testing import get_test_data
 
 INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
@@ -41,6 +40,8 @@ def test_regrid_grib(interpolation):
     from eccodes import codes_get
     from eccodes import codes_new_from_message
 
+    from earthkit.regrid.backends import get_backend
+
     def check_header(contents):
         assert len(contents) > 4
         assert contents.startswith(b"GRIB")
@@ -50,7 +51,8 @@ def test_regrid_grib(interpolation):
         in_grib = BytesIO(fh.read())
         check_header(in_grib.getvalue())
 
-    out_grib = regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
+    mir = get_backend("mir")
+    out_grib = mir.regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
 
     assert isinstance(out_grib, BytesIO), "out_grib must be a BytesIO object"
     check_header(out_grib.getvalue())

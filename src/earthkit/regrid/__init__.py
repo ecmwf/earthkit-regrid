@@ -18,7 +18,6 @@ except ImportError:  # pragma: no cover
 
 from .interpolate import interpolate
 from .regrid import regrid
-from .regrid import regrid_grib
 from .utils.caching import CACHE as cache
 from .utils.config import CONFIG as config
 from .utils.memcache import clear_memory_cache
@@ -31,6 +30,5 @@ __all__ = [
     "interpolate",
     "memory_cache_info",
     "regrid",
-    "regrid_grib",
     "__version__",
 ]

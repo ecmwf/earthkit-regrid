@@ -19,6 +19,16 @@ if not NO_EKD:
     from earthkit.data import from_source  # noqa
 
 
+def _create_fieldlist(filename, field_type):
+    ds = from_source("url", get_test_data_path(filename))
+    if field_type == "array":
+        return ds.to_fieldlist()
+    elif field_type == "grib":
+        return ds
+    else:
+        raise ValueError(f"Unknown field type: {field_type}")
+
+
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
@@ -32,17 +42,25 @@ if not NO_EKD:
         ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation):
-    ds = from_source("url", get_test_data_path("5x5.grib"))
+@pytest.mark.parametrize("field_type", ["grib", "array"])
+def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type):
+    ds = _create_fieldlist("5x5.grib", field_type)
 
     f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")
     v_ref = np.load(f_ref)["arr_0"]
+    metadata_ref = ds.metadata(["param", "level", "date", "time", "gridType"])
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
     assert np.allclose(r[0].values, v_ref)
+    assert r.metadata(["param", "level", "date", "time", "gridType"]) == metadata_ref
+
+    grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
+    for f in r:
+        for k, v in grid_ref.items():
+            assert np.isclose(f.metadata(k), v), k
 
 
 @pytest.mark.download
@@ -58,17 +76,25 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation):
         ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
-def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation):
-    ds = from_source("url", get_test_data_path("O32.grib"))
+@pytest.mark.parametrize("field_type", ["grib", "array"])
+def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
+    ds = _create_fieldlist("O32.grib", field_type)
 
     f_ref = get_test_data(f"out_O32_10x10_{interpolation}.npz")
     v_ref = np.load(f_ref)["arr_0"]
+    metadata_ref = ds.metadata(["param", "level", "date", "time"])
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
     assert np.allclose(r[0].values, v_ref)
+    assert r.metadata(["param", "level", "date", "time"]) == metadata_ref
+
+    grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
+    for f in r:
+        for k, v in grid_ref.items():
+            assert np.isclose(f.metadata(k), v), k
 
 
 @pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")

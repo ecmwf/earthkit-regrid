@@ -13,7 +13,7 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs, **kwargs):
+    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
         import mir
 
         input = mir.ArrayInput(values, in_grid)

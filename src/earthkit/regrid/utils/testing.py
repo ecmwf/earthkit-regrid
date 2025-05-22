@@ -67,4 +67,8 @@ def modules_installed(*modules):
 
 
 NO_EKD = not modules_installed("earthkit.data")
-NO_MIR = not modules_installed("mir")
+
+try:
+    NO_MIR = not modules_installed("mir")
+except Exception:
+    NO_MIR = True

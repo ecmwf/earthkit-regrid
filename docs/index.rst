@@ -22,7 +22,6 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
    :caption: Documentation
 
    guide/index
-   inventory/index
    development
 
 .. toctree::

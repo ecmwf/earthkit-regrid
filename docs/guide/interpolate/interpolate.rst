@@ -1,5 +1,5 @@
 
-Interpolation
+interpolate
 ==============
 
 .. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear')

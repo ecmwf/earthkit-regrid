@@ -17,7 +17,7 @@ class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
-    def regrid(self, values, in_grid, out_grid, interpolation, **kwargs):
+    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
         z, shape = self.db.find(in_grid, out_grid, interpolation, **kwargs)
 
         if z is None:
@@ -27,8 +27,16 @@ class MatrixBackend(Backend):
         values = values.reshape(-1, 1)
 
         values = z @ values
+        values = values.reshape(shape)
 
-        return values.reshape(shape), out_grid
+        if output == "values_gridspec":
+            return values, out_grid
+        elif output == "values":
+            return values
+        elif output == "gridspec":
+            return out_grid
+
+        raise ValueError(f"Unknown output={output} for backend={self.name}")
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         z, shape = self.db.find(in_grid, out_grid, method, **kwargs)

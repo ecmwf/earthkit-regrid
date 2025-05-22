@@ -367,7 +367,10 @@ class MatrixMemoryCache(MemoryCache):
         )
 
 
-MEMORY_CACHE = MatrixMemoryCache()
+# NOTE: This is interface is hidden for now as it is not yet decided
+# if the matrix based interpolation will be used in the future.
+# MEMORY_CACHE = MatrixMemoryCache()
+MEMORY_CACHE = None
 
 
 def clear_memory_cache():

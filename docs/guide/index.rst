@@ -4,8 +4,14 @@ User guide
 .. toctree::
    :maxdepth: 1
 
-   interpolate
+   regrid
    gridspec
-   config
-   memory_cache
-   caching
+
+
+Legacy interface
++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   interpolate/index

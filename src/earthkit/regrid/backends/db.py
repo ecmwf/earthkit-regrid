@@ -456,22 +456,26 @@ class MatrixDb:
         method,
         **kwargs,
     ):
-        from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
         if gridspec_in is None or gridspec_out is None:
             return None, None
 
-        return MEMORY_CACHE.get(
-            gridspec_in,
-            gridspec_out,
-            method,
-            create=self._create_matrix,
-            find_entry=self.find_entry,
-            create_from_entry=self._create_matrix_from_entry,
-            **kwargs,
-        )
+        return self._create_matrix(gridspec_in, gridspec_out, method)
+
+        # NOTE: This is memory cache interface is hidden for now as it is not yet decided
+        # if the matrix based interpolation will be used in the future.
+        # from earthkit.regrid.utils.memcache import MEMORY_CACHE
+        # return MEMORY_CACHE.get(
+        #     gridspec_in,
+        #     gridspec_out,
+        #     method,
+        #     create=self._create_matrix,
+        #     find_entry=self.find_entry,
+        #     create_from_entry=self._create_matrix_from_entry,
+        #     **kwargs,
+        # )
 
     def _create_matrix(self, gridspec_in, gridspec_out, method):
         return self._create_matrix_from_entry(self.find_entry(gridspec_in, gridspec_out, method))

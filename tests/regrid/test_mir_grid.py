@@ -15,7 +15,7 @@ from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
-@pytest.mark.skipif(NO_MIR, reason="No access to earthkit-data")
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize(
     "gs_in, gs_out",
     [
@@ -77,7 +77,7 @@ def test_regrid_with_mir(gs_in, gs_out):
             continue
 
         # TODO: make this code work
-        values_res, _ = regrid(values, gs_in, gs_out, interpolation=interpolation, backend="mir")
+        values_res, _ = regrid(values, gs_in, gs_out, interpolation=interpolation)
 
         result_grid = Grid(gs_out)  # NOTE: not necessarily true
         assert values_res.shape == result_grid.shape

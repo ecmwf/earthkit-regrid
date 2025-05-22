@@ -36,21 +36,12 @@ class MirBackend(Backend):
 
         raise ValueError("No output found!")
 
-    def regrid_grib(self, in_grib, out_grid, **kwargs):
+    def regrid_grib(self, message, out_grid, **kwargs):
         from io import BytesIO
 
         import mir
-        from earthkit.data.readers.grib.codes import GribField
-        from earthkit.data.readers.grib.memory import GribFieldInMemory
 
-        if isinstance(in_grib, GribField):
-            buf = BytesIO(in_grib.message())
-            input = mir.GribMemoryInput(buf.getvalue())
-        elif isinstance(in_grib, BytesIO):
-            input = mir.GribMemoryInput(in_grib.getvalue())
-        else:
-            raise ValueError("Input must be a GribField or BytesIO object")
-
+        in_data = mir.GribMemoryInput(message.getvalue())
         out = BytesIO()
 
         job = mir.Job()
@@ -58,9 +49,9 @@ class MirBackend(Backend):
         for k, v in kwargs.items():
             job.set(k, v)
 
-        job.execute(input, out)
+        job.execute(in_data, out)
 
-        return GribFieldInMemory.from_buffer(out.getvalue())
+        return out.getvalue()
 
 
 backend = MirBackend

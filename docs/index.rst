@@ -33,12 +33,12 @@ Quick start
     from earthkit.regrid import regrid
     import numpy as np
 
-    grid_in = {
-        "grid": [0.25, 0.25]
-    }  # regular latitude-longitude grid with 0.25° increments
-    grid_out = {"grid": "O320"}  # octahedral reduced Gaussian grid
+    # regular latitude-longitude grid with 0.25° increments
+    grid_in = {"grid": [0.25, 0.25]}
+    # octahedral reduced Gaussian grid
+    grid_out = {"grid": "O320"}
 
-    # regrid the data with the MIR (default)
+    # regrid the data with MIR (default)
     r = regrid(
         np.random.rand(721, 1440),  # input data
         grid_in=grid_in,  # input grid

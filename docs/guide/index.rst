@@ -1,3 +1,5 @@
+.. _guide:
+
 User guide
 =============
 
@@ -5,10 +7,20 @@ User guide
    :maxdepth: 1
 
    regrid
-   gridspec
+
+Backends
+++++++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   mir/index
+   precomputed/system/index
+   precomputed/local/index
 
 
-Legacy interface
+
+Deprecated interface
 +++++++++++++++++
 
 .. toctree::

@@ -58,7 +58,7 @@ class MatrixBackend(Backend):
 
 
 class LocalMatrixBackend(MatrixBackend):
-    name = "local-matrix"
+    name = "precomputed-local"
     # path_config_key = "local-matrix-directories"
 
     @cached_property
@@ -69,7 +69,7 @@ class LocalMatrixBackend(MatrixBackend):
 
 
 class RemoteMatrixBackend(MatrixBackend):
-    name = "remote-matrix"
+    name = "precomputed-remote"
     # path_config_key = "remote-matrix-directories"
 
     @cached_property
@@ -80,7 +80,7 @@ class RemoteMatrixBackend(MatrixBackend):
 
 
 class SystemRemoteMatrixBackend(RemoteMatrixBackend):
-    name = "system-matrix"
+    name = "precomputed"
     # path_config_key = None
 
     @cached_property

@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import LOCAL_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
 DB_PATH = earthkit_test_data_path("local", "db")
@@ -35,8 +36,8 @@ def run_regrid(v_in, in_grid, out_grid, interpolation):
         in_grid,
         out_grid,
         interpolation=interpolation,
-        backend="local-matrix",
-        matrix_source=DB_PATH,
+        backend=LOCAL_MATRIX_BACKEND_NAME,
+        inventory_path=DB_PATH,
     )
 
 
@@ -160,7 +161,7 @@ def test_regrid_local_matrix_nested_to_ll(interpolation):
 #         v_in,
 #         {"grid": "eORCA025_T"},
 #         {"grid": [10, 10]},
-#         matrix_source=DB_PATH,
+#         inventory_path=DB_PATH,
 #         interpolation=interpolation,
 #     )
 

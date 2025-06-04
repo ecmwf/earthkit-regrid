@@ -1,4 +1,8 @@
 
+.. warning::
+
+    This methods is deprecated and will be removed in a future version. Please use the new interface based on :func:`regrid` instead.
+
 interpolate
 ==============
 

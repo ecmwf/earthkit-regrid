@@ -15,6 +15,8 @@ import deprecation
 
 LOG = logging.getLogger(__name__)
 
+# TODO: this module is deprecated and will be removed in a future version.
+
 
 class DataHandler(metaclass=ABCMeta):
     @abstractmethod
@@ -29,9 +31,9 @@ class DataHandler(metaclass=ABCMeta):
         from earthkit.regrid.backends import get_backend
 
         if matrix_source is not None:
-            backend = get_backend("local-matrix", path_or_url=matrix_source)
+            backend = get_backend("precomputed-local", path_or_url=matrix_source)
         else:
-            backend = get_backend("system-matrix")
+            backend = get_backend("precomputed")
 
         if not backend:
             raise ValueError(f"No backend={backend} found")

@@ -20,14 +20,19 @@ class DataHandler(metaclass=ABCMeta):
         pass
 
     def backend_from_kwargs(self, kwargs):
-        return self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
+        return self.get_backend(kwargs.pop("backend"), inventory_path=kwargs.pop("inventory_path", None))
 
-    def get_backend(self, backend, matrix_source=None):
+    def get_backend(self, backend, inventory_path=None):
         from earthkit.regrid.backends import get_backend
 
-        if backend == "local-matrix":
-            backend = get_backend("local-matrix", path_or_url=matrix_source)
+        if backend == "precomputed-local":
+            backend = get_backend(backend, path_or_url=inventory_path)
         else:
+            if inventory_path:
+                raise ValueError(
+                    f"Cannot use inventory_path={inventory_path} with backend={backend}. "
+                    "Only available for backend='precomputed-local'."
+                )
             backend = get_backend(backend)
 
         if not backend:
@@ -184,7 +189,8 @@ class GribMessageDataHandler(DataHandler):
         return False
 
     def regrid(self, values, **kwargs):
-        backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
+        backend = self.backend_from_kwargs(kwargs)
+        # backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
         if backend.hasattr(backend, "regrid_grib"):
             return backend.regrid_grib(values, **kwargs)
         else:

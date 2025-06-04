@@ -12,6 +12,7 @@ import pytest
 
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
+from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data_path  # noqa: E402
 
@@ -50,7 +51,7 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time", "gridType"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
+    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -84,7 +85,7 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
+    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -111,7 +112,7 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
 def test_regrid_matrix_grib_fieldlist(_kwarg):
     ds = from_source("url", get_test_data_path("O32.grib"))
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
+    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
     assert len(r) == 1
     assert r[0].shape == (19, 36)
 
@@ -138,7 +139,7 @@ def test_regrid_matrix_field(_kwarg, interpolation, field_type):
     field = ds[0]
     metadata_ref = field.metadata(["param", "level", "date", "time", "gridType"])
 
-    r = regrid(field, out_grid={"grid": [10, 10]}, backend="system-matrix", **_kwarg)
+    r = regrid(field, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert r.shape == (19, 36)
     assert np.allclose(r.values, v_ref)

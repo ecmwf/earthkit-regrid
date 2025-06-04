@@ -8,7 +8,7 @@ regrid
     Regrid the ``values`` with the given ``backend`` and options.  To see the available ``**kwargs`` please refer to the documentation of the specific backend. The default backend is :ref:`mir <mir-regrid>`.
 
 
-    The following backends are available:
+    The following ``backends``\ s are available:
 
     .. list-table::
         :widths: 25 75

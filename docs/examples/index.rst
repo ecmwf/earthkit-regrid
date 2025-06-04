@@ -5,12 +5,23 @@ Examples
 
 Here is a list of example notebooks to illustrate how to use earthkit-regrid.
 
-Legacy interface
+MIR
++++++++++++++++++++++
+
+.. toctree::
+    :maxdepth: 1
+
+    mir_numpy_array.ipynb
+    mir_octahedral_fieldlist.ipynb
+    mir_healpix_fieldlist.ipynb
+
+
+Precomputed
 +++++++++++++++++
 
 .. toctree::
     :maxdepth: 1
 
-    numpy_arrays.ipynb
-    healpix_fieldlist.ipynb
-    octahedral_fieldlist.ipynb
+    precomp_numpy_array.ipynb
+    precomp_octahedral_fieldlist.ipynb
+    precomp_healpix_fieldlist.ipynb

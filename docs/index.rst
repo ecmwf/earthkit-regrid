@@ -21,11 +21,30 @@ Release|
 
 **earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.
 
-The API features the :func:`regrid` function to regrid values stored in an ndarray or earthkit-data GRIB :xref:`fieldlist`.
 
-.. note::
+The API features the :func:`regrid` function taking inputs of Numpy arrays or earthkit-data GRIB :xref:`fieldlist` objects. It is implemented with various backends, the default  :ref:`default backend <mir-regrid>` uses ECMWF's **MIR (Meteorological Interpolation and Regridding)** library to perform the regridding.
 
-    :func:`regrid` is implemented with various backends. The :ref:`default backend <mir-regrid>` uses ECMWF's **MIR (Meteorological Interpolation and Regridding)** library to perform the regridding.
+
+Quick start
+-----------
+
+.. code-block:: python
+
+    from earthkit.regrid import regrid
+    import numpy as np
+
+    grid_in = {
+        "grid": [0.25, 0.25]
+    }  # regular latitude-longitude grid with 0.25° increments
+    grid_out = {"grid": "O320"}  # octahedral reduced Gaussian grid
+
+    # regrid the data with the MIR (default)
+    r = regrid(
+        np.random.rand(721, 1440),  # input data
+        grid_in=grid_in,  # input grid
+        grid_out=grid_out,  # output grid
+    )
+
 
 
 .. toctree::

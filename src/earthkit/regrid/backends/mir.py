@@ -41,7 +41,7 @@ class MirBackend(Backend):
 
         import mir
 
-        in_data = mir.GribMemoryInput(message.getvalue())
+        in_data = mir.GribMemoryInput(message)
         out = BytesIO()
 
         job = mir.Job()

@@ -70,7 +70,7 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -100,7 +100,7 @@ def test_regrid_numpy_ngg_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = regrid(v_in, {"grid": "N32"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid(v_in, {"grid": "N32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
     assert np.allclose(v_res.flatten(), v_ref)
@@ -113,10 +113,14 @@ def test_regrid_healpix_ring_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = regrid(v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid(
+        v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, interpolation=interpolation
+    )
 
     assert v_res.shape == (19, 36)
-    assert np.allclose(v_res.flatten(), v_ref)
+    np.testing.assert_allclose(v_res.flatten(), v_ref, verbose=False)
+
+    v_ref = v_ref.reshape(v_res.shape)
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -126,9 +130,19 @@ def test_regrid_healpix_nested_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res = regrid(
+    v_res, _ = regrid(
         v_in, {"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}, interpolation=interpolation
     )
 
     assert v_res.shape == (19, 36)
-    assert np.allclose(v_res.flatten(), v_ref)
+    v_ref = v_ref.reshape(v_res.shape)
+
+    print(v_res[0, :20])
+    print(v_res[1, :20])
+    print(v_res[2, :20])
+    print()
+    print(v_ref[0, :20])
+    print(v_ref[1, :20])
+    print(v_ref[2, :20])
+
+    np.testing.assert_allclose(v_res.flatten(), v_ref, verbose=False)

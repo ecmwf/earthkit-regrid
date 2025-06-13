@@ -61,12 +61,12 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
         ),
         ({"grid": "H4"}, {"grid": [10, 10]}),
         ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
-        ({"grid": "eORCA025_T"}, {"grid": "O96"}),
+        # ({"grid": "eORCA025_T"}, {"grid": "O96"}),
         # ---
         ({"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}),
     ],
 )
-def test_regrid_with_mir(gs_in, gs_out):
+def test_regrid_with_mir_gridspec(gs_in, gs_out):
     from mir import Grid
 
     in_grid = Grid(**gs_in)

@@ -131,7 +131,7 @@ def test_regrid_matrix_grib_fieldlist(_kwarg):
     ],
 )
 @pytest.mark.parametrize("field_type", ["grib", "array"])
-def test_regrid_matrix_field(_kwarg, interpolation, field_type):
+def test_regrid_matrix_single_field(_kwarg, interpolation, field_type):
     ds = _create_fieldlist("5x5.grib", field_type)
 
     f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")

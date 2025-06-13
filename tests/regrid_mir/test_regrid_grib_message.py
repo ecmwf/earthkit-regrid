@@ -8,6 +8,8 @@
 
 import pytest
 
+from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
@@ -15,11 +17,12 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_grib(interpolation):
+def test_regrid_grib_message(interpolation):
     from io import BytesIO
 
-    from earthkit.regrid.backends import get_backend
+    from earthkit.data.readers.grib.memory import GribFieldInMemory
 
     def check_header(contents):
         assert contents.startswith(b"GRIB") and contents.endswith(b"7777")
@@ -28,8 +31,8 @@ def test_regrid_grib(interpolation):
         in_grib = BytesIO(fh.read())
         check_header(in_grib.getvalue())
 
-    mir = get_backend("mir")
-    out = mir.regrid_grib(in_grib, {"grid": [30, 30]}, interpolation=interpolation)
+    out = regrid(in_grib, out_grid={"grid": [30, 30]}, interpolation=interpolation)
 
-    assert out["gridType"] == "regular_ll"
-    assert out.shape == (7, 12)
+    field = GribFieldInMemory.from_buffer(out)
+    assert field.metadata("gridType") == "regular_ll"
+    assert field.shape == (7, 12)

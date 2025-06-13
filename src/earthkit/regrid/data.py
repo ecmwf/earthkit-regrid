@@ -151,7 +151,7 @@ class FieldListDataHandler(DataHandler):
                 raise ValueError(f"field type={type(f)} is not supported in regrid!")
 
             v_res = backend.regrid_grib(message, out_grid, **kwargs)
-            r.append(GribFieldInMemory.from_buffer(v_res.getvalue()))
+            r.append(GribFieldInMemory.from_buffer(v_res))
 
         return ds.from_fields(r)
 
@@ -181,17 +181,27 @@ class FieldDataHandler(DataHandler):
 class GribMessageDataHandler(DataHandler):
     @staticmethod
     def match(values):
-        from io import BytesIO
-
-        # TODO: add further checks to see if the object is a GRIB message
-        if isinstance(values, BytesIO):
+        if isinstance(values, bytes):
             return True
+        else:
+            from io import BytesIO
+
+            # TODO: add further checks to see if the object is a GRIB message
+            if isinstance(values, BytesIO):
+                return True
         return False
 
     def regrid(self, values, **kwargs):
         backend = self.backend_from_kwargs(kwargs)
         # backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
-        if backend.hasattr(backend, "regrid_grib"):
+        if hasattr(backend, "regrid_grib"):
+            if not isinstance(values, bytes):
+                from io import BytesIO
+
+                if isinstance(values, BytesIO):
+                    values = values.getvalue()
+
+            kwargs.pop("in_grid", None)
             return backend.regrid_grib(values, **kwargs)
         else:
             raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")

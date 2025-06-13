@@ -35,6 +35,7 @@ dependencies = [
   "scipy",
 ]
 optional-dependencies.test = [
+  "earthkit-data",
   "pytest",
   "pytest-cov",
   "requests",

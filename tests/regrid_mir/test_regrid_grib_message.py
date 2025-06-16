@@ -18,8 +18,9 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
+@pytest.mark.parametrize("input_format", ["BytesIO", "bytes"])
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_grib_message(interpolation):
+def test_regrid_grib_message(input_format, interpolation):
     from io import BytesIO
 
     from earthkit.data.readers.grib.memory import GribFieldInMemory
@@ -30,6 +31,8 @@ def test_regrid_grib_message(interpolation):
     with open(earthkit_test_data_path("o32.grib2"), "rb") as fh:
         in_grib = BytesIO(fh.read())
         check_header(in_grib.getvalue())
+        if input_format == "bytes":
+            in_grib = in_grib.getvalue()
 
     out = regrid(in_grib, out_grid={"grid": [30, 30]}, interpolation=interpolation)
 

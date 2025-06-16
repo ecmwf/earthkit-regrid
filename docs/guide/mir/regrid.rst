@@ -13,14 +13,14 @@ regrid
         - an ndarray representing a single field defined on the ``in_grid``. A valid ``in_grid`` must be specified.
         - an earthkit-data GRIB :xref:`fieldlist` (requires :xref:`earthkit-data` >= 0.6.0). The input grid is automatically detected from the data (``in_grid`` is ignored).
         - an earthkit-data GRIB :xref:`field` (requires :xref:`earthkit-data` >= 0.6.0). The input grid is automatically detected from the data (``in_grid`` is ignored).
-        - a GRIB message as a bytesarray. The input grid is automatically detected from the data (``in_grid`` is ignored).
+        - a GRIB message as a bytes or :class:`io.BytesIO` object. The input grid is automatically detected from the data (``in_grid`` is ignored).
 
-    :type values: ndarray, :xref:`fieldlist`, :xref:`field`, bytesarray
+    :type values: ndarray, :xref:`fieldlist`, :xref:`field`, bytes, or :class:`io.BytesIO`
     :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. Ignored when ``values`` is not an ndarray.
     :type in_grid: dict
     :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type out_grid: dict
-    :param interpolation: the interpolation method. Possible values are ``linear`` and ``nearest-neighbour``. For ``nearest-neighbour`` the following aliases are also supported: ``nn``, ``nearest-neighbor``.
+    :param interpolation: the interpolation method.
     :type interpolation: str
     :param output: define what is returned. Possible values are as follows:
 

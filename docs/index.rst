@@ -22,7 +22,7 @@ Release|
 **earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.
 
 
-The API features the :func:`regrid` function taking inputs of Numpy arrays or earthkit-data GRIB :xref:`fieldlist` objects. It is implemented with various backends, the default  :ref:`default backend <mir-regrid>` uses ECMWF's **MIR (Meteorological Interpolation and Regridding)** library to perform the regridding.
+The API features the :func:`regrid` function taking inputs of Numpy arrays or earthkit-data GRIB :xref:`fieldlist` objects. It is implemented with various backends, the :ref:`default backend <mir-regrid>` uses ECMWF's **MIR (Meteorological Interpolation and Regridding)** library to perform the regridding.
 
 
 Quick start

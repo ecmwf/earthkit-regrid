@@ -73,7 +73,11 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
     v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
-    assert np.allclose(v_res.flatten(), v_ref)
+    # for x, y in zip(v_res.flatten(), v_ref.flatten()):
+    #     print(f"{x:10.4f} {y:10.4f} {x - y:10.4f}")
+
+    np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False)
+    # assert np.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")

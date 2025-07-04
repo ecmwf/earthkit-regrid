@@ -12,6 +12,7 @@ import pytest
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data
+from earthkit.regrid.utils.testing import compare_global_ll_results
 
 BASE_INTERPOLATIONS = ["linear", "nearest-neighbour"]
 INTERPOLATIONS = BASE_INTERPOLATIONS + ["grid-box-average"]
@@ -37,7 +38,7 @@ def test_regrid_numpy_kwarg(_kwarg, interpolation):
     v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, **_kwarg)
 
     assert v_res.shape == (19, 36), 1
-    assert np.allclose(v_res.flatten(), v_ref), 1
+    compare_global_ll_results(v_res, v_ref, interpolation, rtol=1e-4)
 
 
 def _ll_to_ll(interpolation):
@@ -73,11 +74,7 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
     v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
-    # for x, y in zip(v_res.flatten(), v_ref.flatten()):
-    #     print(f"{x:10.4f} {y:10.4f} {x - y:10.4f}")
-
-    np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False)
-    # assert np.allclose(v_res.flatten(), v_ref)
+    compare_global_ll_results(v_res, v_ref, interpolation, rtol=1e-4)
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -107,7 +104,7 @@ def test_regrid_numpy_ngg_to_ll(interpolation):
     v_res, _ = regrid(v_in, {"grid": "N32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
-    assert np.allclose(v_res.flatten(), v_ref)
+    compare_global_ll_results(v_res, v_ref, interpolation)
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")

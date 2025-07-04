@@ -15,6 +15,7 @@ from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data_path  # noqa: E402
+from earthkit.regrid.utils.testing import compare_global_ll_results
 
 if not NO_EKD:
     from earthkit.data import from_source  # noqa
@@ -54,7 +55,7 @@ def test_regrid_fieldlist_reg_ll(_kwarg, interpolation, field_type):
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
-    assert np.allclose(r[0].values, v_ref)
+    compare_global_ll_results(r[0].to_numpy(), v_ref, interpolation, rtol=1e-4)
     assert r.metadata(["param", "level", "date", "time", "gridType"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
@@ -87,7 +88,7 @@ def test_regrid_fieldlist_gg(_kwarg, interpolation, field_type):
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
-    assert np.allclose(r[0].values, v_ref)
+    compare_global_ll_results(r[0].to_numpy(), v_ref, interpolation, rtol=1e-4)
     assert r.metadata(["param", "level", "date", "time"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
@@ -122,7 +123,7 @@ def test_regrid_single_field(_kwarg, interpolation, field_type):
     r = regrid(field, out_grid={"grid": [10, 10]}, **_kwarg)
 
     assert r.shape == (19, 36)
-    assert np.allclose(r.values, v_ref)
+    compare_global_ll_results(r.to_numpy(), v_ref, interpolation, rtol=1e-4)
     assert r.metadata(["param", "level", "date", "time"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}

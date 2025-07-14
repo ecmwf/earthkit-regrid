@@ -13,9 +13,9 @@ import pytest
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
+from earthkit.regrid.utils.testing import compare_global_ll_results
 from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data_path  # noqa: E402
-from earthkit.regrid.utils.testing import compare_global_ll_results
 
 if not NO_EKD:
     from earthkit.data import from_source  # noqa

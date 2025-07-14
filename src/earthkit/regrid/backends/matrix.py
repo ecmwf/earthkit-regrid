@@ -10,7 +10,31 @@
 from abc import abstractmethod
 from functools import cached_property
 
+from earthkit.utils.array import backend_from_array, ArrayBackend
+
 from . import Backend
+
+
+
+def npz_to_backend(z, backend: ArrayBackend):
+    """Convert a numpy sparse matrix to the specified backend."""
+    xp = backend.namespace
+    if backend.name == "numpy":
+        return z
+    elif backend.name == "torch":
+        return xp.sparse_csr_tensor(
+            z.indptr,
+            z.indices,
+            z.data,
+            size=z.shape,
+        )
+    elif backend.name == "cupy":
+        return xp.sparse.csr_matrix(
+            z,
+            shape=z.shape,
+        )
+    
+    raise NotImplementedError(f"Unsupported backend: {backend.name}. Supported backends are: numpy, torch, cupy.")
 
 
 class MatrixBackend(Backend):
@@ -23,25 +47,20 @@ class MatrixBackend(Backend):
         if z is None:
             raise ValueError(f"No precomputed interpolator found! {in_grid=} {out_grid=} {interpolation=}")
 
+        array_backend = backend_from_array(values)
+
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
+        z =  npz_to_backend(z, array_backend)
 
+        if array_backend.name == 'torch': # TODO: Use from utils
+            z = z.to(values)
         values = z @ values
 
         return values.reshape(shape), out_grid
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
-        z, shape = self.db.find(in_grid, out_grid, method, **kwargs)
-
-        if z is None:
-            raise ValueError(f"No matrix found! {in_grid=} {out_grid=} {method=}")
-
-        # This should check for 1D (GG) and 2D (LL) matrices
-        values = values.reshape(-1, 1)
-
-        values = z @ values
-
-        return values.reshape(shape)
+        return self.regrid(values, in_grid, out_grid, method, **kwargs)[0]
 
     @property
     @abstractmethod

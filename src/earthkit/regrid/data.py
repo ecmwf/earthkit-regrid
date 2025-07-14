@@ -12,6 +12,7 @@ from abc import ABCMeta
 from abc import abstractmethod
 
 import deprecation
+from earthkit.utils.array import backend_from_array
 
 LOG = logging.getLogger(__name__)
 
@@ -54,12 +55,14 @@ class DataHandler(metaclass=ABCMeta):
         return backend.interpolate(values, in_grid, out_grid, **kwargs)
 
 
-class NumpyDataHandler(DataHandler):
+class ArrayDataHandler(DataHandler):
     @staticmethod
     def match(values):
-        import numpy as np
-
-        return isinstance(values, np.ndarray)
+        try:
+            backend_from_array(values)
+            return True
+        except Exception:
+            return False
 
     def regrid(self, values, **kwargs):
         in_grid = kwargs.pop("in_grid")
@@ -174,7 +177,7 @@ class FieldListDataHandler(DataHandler):
         return r
 
 
-DATA_HANDLERS = [NumpyDataHandler(), FieldListDataHandler()]
+DATA_HANDLERS = [ArrayDataHandler(), FieldListDataHandler()]
 
 
 def get_data_handler(values):

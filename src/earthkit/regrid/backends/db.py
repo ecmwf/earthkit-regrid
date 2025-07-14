@@ -12,7 +12,12 @@ import logging
 import os
 from abc import ABCMeta
 from abc import abstractmethod
+from dataclasses import dataclass
+from typing import Any
 
+import numpy as np
+from earthkit.utils.array import ArrayBackend
+from earthkit.utils.array import backend_from_name
 from scipy.sparse import load_npz
 
 from earthkit.regrid.gridspec import GridSpec
@@ -40,6 +45,20 @@ _GRIDBOX_DEFAULT = {
 }
 
 
+@dataclass(unsafe_hash=True)
+class MatrixLoader:
+    backend: str
+    device: Any
+    dtype: Any
+
+
+DEFAULT_MATRIX_LOADER = MatrixLoader(
+    backend="numpy",
+    device="cpu",
+    dtype=np.float64,
+)
+
+
 def is_gridbox_default(inter):
     """Check if the interpolation method is the default grid-box-average.
 
@@ -64,6 +83,37 @@ def make_sha(data):
     else:
         m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
     return m.hexdigest()
+
+
+def load_matrix_to_backend(path, matrix_loader: MatrixLoader):
+    """Convert a numpy sparse matrix to the specified backend."""
+
+    backend: ArrayBackend = backend_from_name(matrix_loader.backend)  # type: ignore
+    xp = backend.namespace
+
+    z = load_npz(path)
+
+    if backend.name == "numpy":
+        return z
+    if backend.name == "torch":
+        return xp.sparse_csr_tensor(
+            z.indptr,
+            z.indices,
+            z.data,
+            size=z.shape,
+            device=matrix_loader.device,
+            dtype=matrix_loader.dtype,
+        )
+    if backend.name == "cupy":
+        return xp.sparse.csr_matrix(
+            z,
+            shape=z.shape,
+            dtype=matrix_loader.dtype,
+        )
+
+    raise NotImplementedError(
+        f"Unsupported backend: {backend.name}. Supported backends are: numpy, torch, cupy."
+    )
 
 
 class MatrixAccessor(metaclass=ABCMeta):
@@ -454,6 +504,7 @@ class MatrixDb:
         gridspec_in,
         gridspec_out,
         method,
+        matrix_loader: MatrixLoader = DEFAULT_MATRIX_LOADER,
         **kwargs,
     ):
         from earthkit.regrid.utils.memcache import MEMORY_CACHE
@@ -467,22 +518,25 @@ class MatrixDb:
             gridspec_in,
             gridspec_out,
             method,
+            matrix_loader,
             create=self._create_matrix,
             find_entry=self.find_entry,
-            create_from_entry=self._create_matrix_from_entry,
             **kwargs,
         )
 
-    def _create_matrix(self, gridspec_in, gridspec_out, method):
-        return self._create_matrix_from_entry(self.find_entry(gridspec_in, gridspec_out, method))
+    def _create_matrix(self, gridspec_in, gridspec_out, method, matrix_loader):
+        return self._create_matrix_from_entry(
+            self.find_entry(gridspec_in, gridspec_out, method), matrix_loader
+        )
 
-    def _create_matrix_from_entry(self, entry):
+    def _create_matrix_from_entry(self, entry, matrix_loader):
         if entry is not None:
-            z = self.load_matrix(entry)
+            path = self._matrix_fs_path(entry)
+            z = load_matrix_to_backend(path, matrix_loader)
             return z, entry["output"]["shape"]
         return None, None
 
-    def find_entry(self, gridspec_in, gridspec_out, method):
+    def find_entry(self, gridspec_in, gridspec_out, method, *_):
         method = self._method_alias(method)
         entry = self.index.find(gridspec_in, gridspec_out, method)
         if entry is None and not self._accessor.is_local() and not self._accessor.checked_remote():
@@ -493,11 +547,6 @@ class MatrixDb:
             entry = self.index.find(gridspec_in, gridspec_out, method)
 
         return entry
-
-    def load_matrix(self, entry):
-        path = self._matrix_fs_path(entry)
-        z = load_npz(path)
-        return z
 
     def _matrix_index_filename(self, entry):
         return self.index.matrix_filename(entry)

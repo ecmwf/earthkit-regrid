@@ -220,7 +220,7 @@ class MemoryCache:
         self.lock = threading.Lock()
         self.update()
 
-    def get(self, *args, create=None, find_entry=None, create_from_entry=None):
+    def get(self, *args, create=None, find_entry=None):
         if not self.policy.has_cache():
             return create(*args)
 
@@ -237,7 +237,7 @@ class MemoryCache:
                 return item.data
 
             if self.policy.has_limit():
-                data = self._create_with_pre_check(find_entry, create_from_entry, *args)
+                data = self._create_with_pre_check(find_entry, create, *args)
             else:
                 data = self._create(create, *args)
 
@@ -255,11 +255,11 @@ class MemoryCache:
             raise ValueError("create must be provided")
         return create(*args)
 
-    def _create_with_pre_check(self, find_entry, create_from_entry, *args):
+    def _create_with_pre_check(self, find_entry, create, *args):
         if find_entry is None:
             raise ValueError("find_entry must be provided")
-        if create_from_entry is None:
-            raise ValueError("create_from_entry must be provided")
+        if create is None:
+            raise ValueError("create must be provided")
 
         entry = find_entry(*args)
         if entry is not None:
@@ -279,7 +279,7 @@ class MemoryCache:
                     )
                 )
 
-        return create_from_entry(entry)
+        return create(*args)
 
     def update(self):
         """Called when settings change"""

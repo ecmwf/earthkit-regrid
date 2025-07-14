@@ -11,12 +11,14 @@ import pytest
 
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import get_test_data
+from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 
 INTERPOLATIONS = ["linear", "nearest-neighbour"]
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
 @pytest.mark.parametrize(
     "_kwarg,interpolation",
     [
@@ -28,24 +30,24 @@ INTERPOLATIONS = ["linear", "nearest-neighbour"]
         # ({"interpolation": "grid-box-average"}, "grid-box-average"),
     ],
 )
-def test_regrid_matrix_interpolation_kwarg(_kwarg, interpolation):
+def test_regrid_matrix_interpolation_kwarg(_kwarg, interpolation, array_backend):
     f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{interpolation}.npz"])
 
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(v_in, {"grid": "O32"}, out_grid=out_grid, backend="system-matrix", **_kwarg)
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
-def _ll_to_ll(interpolation):
+def _ll_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{interpolation}.npz"])
-
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, res_grid = regrid(
         v_in, {"grid": [5, 5]}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
@@ -53,7 +55,7 @@ def _ll_to_ll(interpolation):
 
     assert v_res.shape == (19, 36), 1
     assert res_grid == out_grid, 1
-    assert np.allclose(v_res.flatten(), v_ref), 1
+    assert array_backend.allclose(v_res.flatten(), v_ref), 1
 
     # repeated use
     v_res, grid_res = regrid(
@@ -62,30 +64,33 @@ def _ll_to_ll(interpolation):
 
     assert v_res.shape == (19, 36), 2
     assert grid_res == out_grid, 2
-    assert np.allclose(v_res.flatten(), v_ref), 2
+    assert array_backend.allclose(v_res.flatten(), v_ref), 2
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_ll_to_ll(interpolation):
-    _ll_to_ll(interpolation)
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_ll_to_ll(interpolation, array_backend):
+    _ll_to_ll(interpolation, array_backend)
 
 
 @pytest.mark.download
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_ll_to_ll_user_cache(interpolation):
-    _ll_to_ll(interpolation)
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_ll_to_ll_user_cache(interpolation, array_backend):
+    _ll_to_ll(interpolation, array_backend)
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_ogg_to_ll(interpolation):
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_ogg_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_O32.npz", f"out_O32_10x10_{interpolation}.npz"])
 
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in, {"grid": "O32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
@@ -93,17 +98,18 @@ def test_regrid_matrix_ogg_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_ngg_to_ll(interpolation):
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_ngg_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_N32.npz", f"out_N32_10x10_{interpolation}.npz"])
 
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in, {"grid": "N32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
@@ -111,17 +117,18 @@ def test_regrid_matrix_ngg_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_healpix_ring_to_ll(interpolation):
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_healpix_ring_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_H4_ring.npz", f"out_H4_ring_10x10_{interpolation}.npz"])
 
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in,
@@ -133,17 +140,18 @@ def test_regrid_matrix_healpix_ring_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.download
 @pytest.mark.tmp_cache
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_matrix_healpix_nested_to_ll(interpolation):
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_healpix_nested_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_H4_nested.npz", f"out_H4_nested_10x10_{interpolation}.npz"])
 
-    v_in = np.load(f_in)["arr_0"]
-    v_ref = np.load(f_out)["arr_0"]
+    v_in = array_backend.asarray(np.load(f_in)["arr_0"])
+    v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in,
@@ -155,7 +163,7 @@ def test_regrid_matrix_healpix_nested_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.tmp_cache

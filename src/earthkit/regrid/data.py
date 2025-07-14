@@ -135,7 +135,7 @@ class FieldListDataHandler(DataHandler):
 
                 r += ds.from_fields([f])
                 continue
-            vv = f.to_numpy(flatten=True)
+            vv = f.to_array(flatten=True)
 
             in_grid_f = self.input_gridspec(in_grid, f, i)
 
@@ -146,7 +146,7 @@ class FieldListDataHandler(DataHandler):
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid_f)
-            r += ds.from_numpy(v_res, md_res)
+            r += ds.from_array(v_res, md_res)
 
         return r
 

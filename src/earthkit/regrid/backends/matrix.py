@@ -10,10 +10,10 @@
 from abc import abstractmethod
 from functools import cached_property
 
-from earthkit.utils.array import backend_from_array, ArrayBackend
+from earthkit.utils.array import ArrayBackend
+from earthkit.utils.array import backend_from_array
 
 from . import Backend
-
 
 
 def npz_to_backend(z, backend: ArrayBackend):
@@ -33,8 +33,10 @@ def npz_to_backend(z, backend: ArrayBackend):
             z,
             shape=z.shape,
         )
-    
-    raise NotImplementedError(f"Unsupported backend: {backend.name}. Supported backends are: numpy, torch, cupy.")
+
+    raise NotImplementedError(
+        f"Unsupported backend: {backend.name}. Supported backends are: numpy, torch, cupy."
+    )
 
 
 class MatrixBackend(Backend):
@@ -51,9 +53,9 @@ class MatrixBackend(Backend):
 
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
-        z =  npz_to_backend(z, array_backend)
+        z = npz_to_backend(z, array_backend)
 
-        if array_backend.name == 'torch': # TODO: Use from utils
+        if array_backend.name == "torch":  # TODO: Use from utils
             z = z.to(values)
         values = z @ values
 

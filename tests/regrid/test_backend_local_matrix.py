@@ -12,8 +12,8 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
-from earthkit.regrid.utils.testing import earthkit_test_data_path
 from earthkit.regrid.utils.testing import ARRAY_BACKENDS
+from earthkit.regrid.utils.testing import earthkit_test_data_path
 
 DB_PATH = earthkit_test_data_path("local", "db")
 DATA_PATH = earthkit_test_data_path("local")
@@ -143,7 +143,9 @@ def test_regrid_local_matrix_healpix_ring_to_ll(interpolation, array_backend):
 @pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
 def test_regrid_local_matrix_nested_to_ll(interpolation, array_backend):
     v_in = array_backend.asarray(np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"])
-    v_ref = array_backend.asarray(np.load(file_in_testdir(f"out_H4_nested_10x10_{interpolation}.npz"))["arr_0"])
+    v_ref = array_backend.asarray(
+        np.load(file_in_testdir(f"out_H4_nested_10x10_{interpolation}.npz"))["arr_0"]
+    )
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,

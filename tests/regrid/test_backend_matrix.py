@@ -10,8 +10,8 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
-from earthkit.regrid.utils.testing import get_test_data
 from earthkit.regrid.utils.testing import ARRAY_BACKENDS
+from earthkit.regrid.utils.testing import get_test_data
 
 INTERPOLATIONS = ["linear", "nearest-neighbour"]
 
@@ -45,7 +45,7 @@ def test_regrid_matrix_interpolation_kwarg(_kwarg, interpolation, array_backend)
 
 def _ll_to_ll(interpolation, array_backend):
     f_in, f_out = get_test_data(["in_5x5.npz", f"out_5x5_10x10_{interpolation}.npz"])
-    
+
     v_in = array_backend.asarray(np.load(f_in)["arr_0"])
     v_ref = array_backend.asarray(np.load(f_out)["arr_0"])
     out_grid = {"grid": [10, 10]}

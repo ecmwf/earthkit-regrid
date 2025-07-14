@@ -11,10 +11,10 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data_path  # noqa: E402
-from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 
 if not NO_EKD:
     from earthkit.data import from_source  # noqa
@@ -35,7 +35,7 @@ if not NO_EKD:
     ],
 )
 def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, array_backend):
-    ds = from_source("url", get_test_data_path("5x5.grib")).to_fieldlist(array_backend = array_backend)
+    ds = from_source("url", get_test_data_path("5x5.grib")).to_fieldlist(array_backend=array_backend)
 
     f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")
     v_ref = array_backend.asarray(np.load(f_ref)["arr_0"])
@@ -62,7 +62,7 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, array_backend):
     ],
 )
 def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, array_backend):
-    ds = from_source("url", get_test_data_path("O32.grib")).to_fieldlist(array_backend = array_backend)
+    ds = from_source("url", get_test_data_path("O32.grib")).to_fieldlist(array_backend=array_backend)
 
     f_ref = get_test_data(f"out_O32_10x10_{interpolation}.npz")
     v_ref = array_backend.asarray(np.load(f_ref)["arr_0"])
@@ -87,7 +87,7 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, array_backend):
     ],
 )
 def test_regrid_grib_fieldlist(_kwarg, array_backend):
-    ds = from_source("url", get_test_data_path("O32.grib")).to_fieldlist(array_backend = array_backend)
+    ds = from_source("url", get_test_data_path("O32.grib")).to_fieldlist(array_backend=array_backend)
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, **_kwarg)
     assert len(r) == 1

@@ -29,6 +29,7 @@ classifiers = [
 dynamic = [ "version" ]
 dependencies = [
   "deprecation",
+  "earthkit-utils>=0.0.1",
   "entrypoints",
   "filelock",
   "multiurl",

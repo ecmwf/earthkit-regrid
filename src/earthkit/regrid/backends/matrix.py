@@ -9,25 +9,90 @@
 
 from abc import abstractmethod
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from earthkit.utils.array import backend_from_array
+from scipy.sparse import load_npz
 
 from . import Backend
-from .db import MatrixLoader
+
+if TYPE_CHECKING:
+    from .db import MatrixDb
+
+
+class BaseMatrixLoader:
+    name: str
+
+    def __init__(self, device=None, dtype=None):
+        self.device = device
+        self.dtype = dtype
+
+    @abstractmethod
+    def load(self, path):
+        """
+        Load the matrix from the given path.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def __hash__(self):
+        return hash((self.__class__, str(self.device), str(self.dtype)))
+
+
+class NumpyMatrixLoader(BaseMatrixLoader):
+    name = "numpy"
+
+    def load(self, path):
+        return load_npz(path).astype(self.dtype)
+
+
+class TorchMatrixLoader(BaseMatrixLoader):
+    name = "torch"
+
+    def load(self, path):
+        z = load_npz(path)
+        import torch
+
+        return torch.sparse_csr_tensor(
+            z.indptr,
+            z.indices,
+            z.data,
+            size=z.shape,
+            device=self.device,
+            dtype=self.dtype,
+        )
+
+
+class CupyMatrixLoader(BaseMatrixLoader):
+    name = "cupy"
+
+    def load(self, path):
+        import cupy as cp
+
+        z = load_npz(path)
+        return cp.sparse.csr_matrix((z.data, z.indices, z.indptr), shape=z.shape, dtype=self.dtype)
+
+
+MATRIX_LOADERS = [NumpyMatrixLoader, TorchMatrixLoader, CupyMatrixLoader]
 
 
 class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
-    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
+    def _get_matrix_loader(self, values) -> BaseMatrixLoader:
+        values_backend = backend_from_array(values).name
 
-        matrix_loader = MatrixLoader(
-            backend=backend_from_array(values).name,
-            device=getattr(values, "device", None),
-            dtype=getattr(values, "dtype", None),
+        for loader in MATRIX_LOADERS:
+            if loader.name == values_backend:
+                return loader(getattr(values, "device", None), getattr(values, "dtype", None))
+
+        raise ValueError(
+            f"Unsupported backend: {values_backend}. Supported backends are numpy, torch, and cupy."
         )
 
+    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
+
+        matrix_loader = self._get_matrix_loader(values)
         z, shape = self.db.find(in_grid, out_grid, interpolation, matrix_loader, **kwargs)
 
         if z is None:
@@ -53,7 +118,7 @@ class MatrixBackend(Backend):
 
     @property
     @abstractmethod
-    def db(self):
+    def db(self) -> "MatrixDb":
         pass
 
 

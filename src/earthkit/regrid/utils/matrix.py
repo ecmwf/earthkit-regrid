@@ -8,6 +8,11 @@
 #
 
 
+import logging
+
+LOG = logging.getLogger(__name__)
+
+
 def matrix_memory_size(m):
     # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
     try:
@@ -15,5 +20,5 @@ def matrix_memory_size(m):
         return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
 
     except Exception as e:
-        print(e)
+        LOG.info("Failed to get matrix memory size: %s", e)
         return 0

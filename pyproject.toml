@@ -36,10 +36,12 @@ dependencies = [
   "scipy",
 ]
 optional-dependencies.test = [
+  "cupy",
   "earthkit-data",
   "pytest",
   "pytest-cov",
   "requests",
+  "torch",
 ]
 urls.Documentation = "https://earthkit-regrid.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/earthkit-regrid/"

@@ -20,9 +20,7 @@ if not os.path.exists(os.path.join(_ROOT_DIR, "tests", "data")):
     _ROOT_DIR = "./"
 
 
-ARRAY_BACKENDS = get_array_backend(
-    ["numpy", "torch"], raise_on_missing=False
-)  # TODO: Add cupy when supported
+ARRAY_BACKENDS = get_array_backend(["numpy", "torch", "cupy"], raise_on_missing=False)
 
 
 def earthkit_file(*args):

@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME
 
 
 @pytest.mark.download
@@ -38,7 +39,11 @@ def test_regrid_remote_matrix_index_handling():
     v_in = np.ones(5248)
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
-        v_in, {"grid": "O32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+        v_in,
+        {"grid": "O32"},
+        out_grid=out_grid,
+        interpolation=interpolation,
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
@@ -55,7 +60,7 @@ def test_regrid_remote_matrix_index_handling():
             {"grid": "O32"},
             {"grid": [1000, 10000]},
             interpolation=interpolation,
-            backend="system-matrix",
+            backend=SYSTEM_MATRIX_BACKEND_NAME,
         )
 
     assert db._accessor.checked_remote()

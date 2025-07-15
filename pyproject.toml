@@ -29,13 +29,13 @@ classifiers = [
 dynamic = [ "version" ]
 dependencies = [
   "deprecation",
-  "entrypoints",
   "filelock",
   "multiurl",
   "pyyaml",
   "scipy",
 ]
 optional-dependencies.test = [
+  "earthkit-data",
   "pytest",
   "pytest-cov",
   "requests",

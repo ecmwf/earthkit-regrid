@@ -1,14 +1,50 @@
 Welcome to earthkit-regrids's documentation
 ======================================================
 
-.. warning::
+|Static Badge| |image1| |License: Apache 2.0| |Latest
+Release|
 
-    This project is **BETA** and will be **Experimental** for the foreseeable future. Interfaces and functionality are likely to change, and the project itself may be scrapped. **DO NOT** use this software in any project/software that is operational.
+.. |Static Badge| image:: https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE/foundation_badge.svg
+   :target: https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE
+.. |image1| image:: https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/incubating_badge.svg
+   :target: https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity
+.. |License: Apache 2.0| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/apache-2-0
+.. |Latest Release| image:: https://img.shields.io/github/v/release/ecmwf/earthkit-regrid?color=blue&label=Release&style=flat-square
+   :target: https://github.com/ecmwf/earthkit-regrid/releases
+
+
+.. important::
+
+    This software is **Incubating** and subject to ECMWF's guidelines on `Software Maturity <https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity>`_.
 
 
 **earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.
 
-The **earthkit-regrid** API features the :func:`interpolate` function to regrid values stored in an ndarray or earthkit-data GRIB :xref:`fieldlist`. At the moment, regridding is only available for a **pre-defined** set of source and target global grid combinations.
+
+The API features the :func:`regrid` function taking inputs of Numpy arrays or earthkit-data GRIB :xref:`fieldlist` objects. It is implemented with various backends, the :ref:`default backend <mir-regrid>` uses ECMWF's **MIR (Meteorological Interpolation and Regridding)** library to perform the regridding.
+
+
+Quick start
+-----------
+
+.. code-block:: python
+
+    from earthkit.regrid import regrid
+    import numpy as np
+
+    # regular latitude-longitude grid with 0.25° increments
+    grid_in = {"grid": [0.25, 0.25]}
+    # octahedral reduced Gaussian grid
+    grid_out = {"grid": "O320"}
+
+    # regrid the data with MIR (default)
+    r = regrid(
+        np.random.rand(721, 1440),  # input data
+        grid_in=grid_in,  # input grid
+        grid_out=grid_out,  # output grid
+    )
+
 
 
 .. toctree::
@@ -22,7 +58,6 @@ The **earthkit-regrid** API features the :func:`interpolate` function to regrid 
    :caption: Documentation
 
    guide/index
-   inventory/index
    development
 
 .. toctree::

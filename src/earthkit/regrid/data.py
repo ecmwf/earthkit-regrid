@@ -11,8 +11,6 @@ import logging
 from abc import ABCMeta
 from abc import abstractmethod
 
-import deprecation
-
 LOG = logging.getLogger(__name__)
 
 
@@ -21,37 +19,26 @@ class DataHandler(metaclass=ABCMeta):
     def regrid(self, values, **kwargs):
         pass
 
-    @abstractmethod
-    def interpolate(self, values, **kwargs):
-        pass
+    def backend_from_kwargs(self, kwargs):
+        return self.get_backend(kwargs.pop("backend"), inventory_path=kwargs.pop("inventory_path", None))
 
-    @staticmethod
-    def _regrid(values, in_grid, out_grid, backend, matrix_source=None, **kwargs):
+    def get_backend(self, backend, inventory_path=None):
         from earthkit.regrid.backends import get_backend
 
-        if backend == "local-matrix":
-            backend = get_backend("local-matrix", path_or_url=matrix_source)
+        if backend == "precomputed-local":
+            backend = get_backend(backend, path_or_url=inventory_path)
         else:
+            if inventory_path:
+                raise ValueError(
+                    f"Cannot use inventory_path={inventory_path} with backend={backend}. "
+                    "Only available for backend='precomputed-local'."
+                )
             backend = get_backend(backend)
 
         if not backend:
             raise ValueError(f"No backend={backend} found")
 
-        return backend.regrid(values, in_grid, out_grid, **kwargs)
-
-    @staticmethod
-    def _interpolate(values, in_grid, out_grid, matrix_source=None, **kwargs):
-        from earthkit.regrid.backends import get_backend
-
-        if matrix_source is not None:
-            backend = get_backend("local-matrix", path_or_url=matrix_source)
-        else:
-            backend = get_backend("system-matrix")
-
-        if not backend:
-            raise ValueError("No backend found")
-
-        return backend.interpolate(values, in_grid, out_grid, **kwargs)
+        return backend
 
 
 class NumpyDataHandler(DataHandler):
@@ -64,13 +51,8 @@ class NumpyDataHandler(DataHandler):
     def regrid(self, values, **kwargs):
         in_grid = kwargs.pop("in_grid")
         out_grid = kwargs.pop("out_grid")
-        return self._regrid(values, in_grid, out_grid, **kwargs)
-
-    @deprecation.deprecated(deprecated_in="0.5.0", removed_in=None, details="Use regrid() instead")
-    def interpolate(self, values, **kwargs):
-        in_grid = kwargs.pop("in_grid")
-        out_grid = kwargs.pop("out_grid")
-        return self._interpolate(values, in_grid, out_grid, **kwargs)
+        backend = self.backend_from_kwargs(kwargs)
+        return backend.regrid(values, in_grid, out_grid, **kwargs)
 
 
 class FieldListDataHandler(DataHandler):
@@ -101,15 +83,16 @@ class FieldListDataHandler(DataHandler):
                 raise ValueError(f"Cannot get input gridspec from metadata for field[{index}]")
         return in_grid
 
-    def check_out_grid(self, out_grid):
-        # TODO: refactor this when this limitation is removed
-        from .gridspec import GridSpec
-
-        out_grid = GridSpec.from_dict(out_grid)
-        if not out_grid.is_regular_ll():
-            raise ValueError("Fieldlists can only be regridded to global regular lat-lon target grids")
-
     def regrid(self, values, **kwargs):
+        backend = self.backend_from_kwargs(kwargs)
+
+        if hasattr(backend, "regrid_grib"):
+            # TODO: remove this when ecCodes supports setting the gridSpec on a GRIB handle
+            return self._regrid_grib(values, backend, **kwargs)
+        else:
+            return self._regrid_array(values, backend, **kwargs)
+
+    def _regrid_array(self, values, backend, **kwargs):
         import earthkit.data
 
         ds = values
@@ -118,43 +101,12 @@ class FieldListDataHandler(DataHandler):
             in_grid = None
 
         out_grid = kwargs.pop("out_grid")
-        self.check_out_grid(out_grid)
+        # TODO: refactor this when this limitation is removed
+        from .gridspec import GridSpec
 
-        r = earthkit.data.FieldList()
-        for i, f in enumerate(ds):
-            from earthkit.data.readers.grib.codes import GribField
-
-            if isinstance(f, GribField):
-                from earthkit.regrid.backends import get_backend
-
-                mir = get_backend("mir")
-                f = mir.regrid_grib(f, out_grid, **kwargs)
-
-                r += ds.from_fields([f])
-                continue
-            vv = f.to_numpy(flatten=True)
-
-            in_grid_f = self.input_gridspec(in_grid, f, i)
-
-            v_res, out_grid_f = self._regrid(
-                vv,
-                in_grid_f,
-                out_grid,
-                **kwargs,
-            )
-            md_res = f.metadata().override(gridspec=out_grid_f)
-            r += ds.from_numpy(v_res, md_res)
-
-        return r
-
-    @deprecation.deprecated(deprecated_in="0.5.0", removed_in=None, details="Use regrid() instead")
-    def interpolate(self, values, **kwargs):
-        import earthkit.data
-
-        ds = values
-        in_grid = kwargs.pop("in_grid")
-        out_grid = kwargs.pop("out_grid")
-        self.check_out_grid(out_grid)
+        out_grid = GridSpec.from_dict(out_grid)
+        if not out_grid.is_regular_ll():
+            raise ValueError("Fieldlists can only be regridded to global regular lat-lon target grids")
 
         r = earthkit.data.FieldList()
         for i, f in enumerate(ds):
@@ -162,10 +114,11 @@ class FieldListDataHandler(DataHandler):
 
             in_grid_f = self.input_gridspec(in_grid, f, i)
 
-            v_res = self._interpolate(
+            v_res, out_grid = backend.regrid(
                 vv,
                 in_grid_f,
                 out_grid,
+                output="values_gridspec",
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid)
@@ -173,8 +126,89 @@ class FieldListDataHandler(DataHandler):
 
         return r
 
+    def _regrid_grib(self, values, backend, **kwargs):
+        # TODO: remove this when ecCodes supports setting the gridSpec on a GRIB handle
+        from earthkit.data.readers.grib.codes import GribField
+        from earthkit.data.readers.grib.memory import GribFieldInMemory
 
-DATA_HANDLERS = [NumpyDataHandler(), FieldListDataHandler()]
+        assert hasattr(backend, "regrid_grib")
+
+        ds = values
+        kwargs.pop("in_grid", None)
+        out_grid = kwargs.pop("out_grid")
+        kwargs.pop("output", None)
+
+        r = []
+        for i, f in enumerate(ds):
+            if isinstance(f, GribField):
+                message = f.message()
+            elif hasattr(f, "handle"):
+                from earthkit.data import create_encoder
+
+                encoder = create_encoder("grib")
+                message = encoder.encode(f).to_bytes()
+            else:
+                raise ValueError(f"field type={type(f)} is not supported in regrid!")
+
+            v_res = backend.regrid_grib(message, out_grid, **kwargs)
+            r.append(GribFieldInMemory.from_buffer(v_res))
+
+        return ds.from_fields(r)
+
+
+class FieldDataHandler(DataHandler):
+    @staticmethod
+    def match(values):
+        from earthkit.regrid.utils import is_module_loaded
+
+        if not is_module_loaded("earthkit.data"):
+            return False
+
+        try:
+            import earthkit.data
+
+            return isinstance(values, earthkit.data.Field)
+        except Exception:
+            return False
+
+    def regrid(self, values, **kwargs):
+        from earthkit.data import FieldList
+
+        ds = FieldList.from_fields([values])
+        return FIELDLIST_DATA_HANDLER.regrid(ds, **kwargs)[0]
+
+
+class GribMessageDataHandler(DataHandler):
+    @staticmethod
+    def match(values):
+        if isinstance(values, bytes):
+            return True
+        else:
+            from io import BytesIO
+
+            # TODO: add further checks to see if the object is a GRIB message
+            if isinstance(values, BytesIO):
+                return True
+        return False
+
+    def regrid(self, values, **kwargs):
+        backend = self.backend_from_kwargs(kwargs)
+        # backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
+        if hasattr(backend, "regrid_grib"):
+            if not isinstance(values, bytes):
+                from io import BytesIO
+
+                if isinstance(values, BytesIO):
+                    values = values.getvalue()
+
+            kwargs.pop("in_grid", None)
+            return backend.regrid_grib(values, **kwargs)
+        else:
+            raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")
+
+
+FIELDLIST_DATA_HANDLER = FieldListDataHandler()
+DATA_HANDLERS = [NumpyDataHandler(), FIELDLIST_DATA_HANDLER, FieldDataHandler(), GribMessageDataHandler()]
 
 
 def get_data_handler(values):

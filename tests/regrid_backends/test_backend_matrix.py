@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import get_test_data
 
 INTERPOLATIONS = ["linear", "nearest-neighbour"]
@@ -34,7 +35,9 @@ def test_regrid_matrix_interpolation_kwarg(_kwarg, interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(v_in, {"grid": "O32"}, out_grid=out_grid, backend="system-matrix", **_kwarg)
+    v_res, grid_res = regrid(
+        v_in, {"grid": "O32"}, out_grid=out_grid, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg
+    )
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
@@ -48,7 +51,11 @@ def _ll_to_ll(interpolation):
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
     v_res, res_grid = regrid(
-        v_in, {"grid": [5, 5]}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+        v_in,
+        {"grid": [5, 5]},
+        out_grid=out_grid,
+        interpolation=interpolation,
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36), 1
@@ -57,7 +64,11 @@ def _ll_to_ll(interpolation):
 
     # repeated use
     v_res, grid_res = regrid(
-        v_in, {"grid": [5, 5]}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+        v_in,
+        {"grid": [5, 5]},
+        out_grid=out_grid,
+        interpolation=interpolation,
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36), 2
@@ -88,7 +99,11 @@ def test_regrid_matrix_ogg_to_ll(interpolation):
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
-        v_in, {"grid": "O32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+        v_in,
+        {"grid": "O32"},
+        out_grid=out_grid,
+        interpolation=interpolation,
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36)
@@ -106,7 +121,11 @@ def test_regrid_matrix_ngg_to_ll(interpolation):
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
-        v_in, {"grid": "N32"}, out_grid=out_grid, interpolation=interpolation, backend="system-matrix"
+        v_in,
+        {"grid": "N32"},
+        out_grid=out_grid,
+        interpolation=interpolation,
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36)
@@ -128,7 +147,7 @@ def test_regrid_matrix_healpix_ring_to_ll(interpolation):
         {"grid": "H4", "ordering": "ring"},
         out_grid=out_grid,
         interpolation=interpolation,
-        backend="system-matrix",
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36)
@@ -150,7 +169,7 @@ def test_regrid_matrix_healpix_nested_to_ll(interpolation):
         {"grid": "H4", "ordering": "nested"},
         out_grid=out_grid,
         interpolation=interpolation,
-        backend="system-matrix",
+        backend=SYSTEM_MATRIX_BACKEND_NAME,
     )
 
     assert v_res.shape == (19, 36)
@@ -163,7 +182,11 @@ def test_regrid_matrix_unsupported_input_grid() -> None:
     a = np.ones(91 * 180)
     with pytest.raises(ValueError):
         _ = regrid(
-            a, {"grid": [2.2333424, 2]}, {"grid": [1, 1]}, interpolation="linear", backend="system-matrix"
+            a,
+            {"grid": [2.2333424, 2]},
+            {"grid": [1, 1]},
+            interpolation="linear",
+            backend=SYSTEM_MATRIX_BACKEND_NAME,
         )
 
 
@@ -172,5 +195,9 @@ def test_regrid_matrix_unsupported_output_grid() -> None:
     a = np.ones(181 * 360)
     with pytest.raises(ValueError):
         _ = regrid(
-            a, {"grid": [1.11323424, 1]}, {"grid": [5, 5]}, interpolation="linear", backend="system-matrix"
+            a,
+            {"grid": [1.11323424, 1]},
+            {"grid": [5, 5]},
+            interpolation="linear",
+            backend=SYSTEM_MATRIX_BACKEND_NAME,
         )

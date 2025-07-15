@@ -74,4 +74,29 @@ def modules_installed(*modules):
 
 
 NO_EKD = not modules_installed("earthkit.data")
-NO_MIR = not modules_installed("mir")
+
+try:
+    NO_MIR = not modules_installed("mir")
+except Exception:
+    NO_MIR = True
+
+# TODO: remove these constants when the backend names are finalized
+LOCAL_MATRIX_BACKEND_NAME = "precomputed-local"
+SYSTEM_MATRIX_BACKEND_NAME = "precomputed"
+REMOTE_MATRIX_BACKEND_NAME = "precomputed-remote"
+
+
+def compare_global_ll_results(v_res, v_ref, interpolation, **kwargs):
+    """
+    Compare the results of the regrid operation with the reference values.
+    """
+    import numpy as np
+
+    if interpolation in ("nearest-neighbour", "nn", "nearest-neighbor"):
+        v_ref = v_ref.reshape(v_res.shape)
+
+        np.testing.assert_allclose(v_res[0].flatten(), v_ref[0].flatten(), rtol=10, verbose=False)
+        np.testing.assert_allclose(v_res[-1].flatten(), v_ref[0].flatten(), rtol=10, verbose=False)
+        np.testing.assert_allclose(v_res[1:-1].flatten(), v_ref[1:-1].flatten(), verbose=False, **kwargs)
+    else:
+        np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False, **kwargs)

@@ -83,4 +83,8 @@ xref_links = {
         "fieldlist",
         "https://earthkit-data.readthedocs.io/en/latest/guide/data_format/grib.html",
     ),
+    "field": (
+        "field",
+        "https://earthkit-data.readthedocs.io/en/latest/guide/data_format/grib.html",
+    ),
 }

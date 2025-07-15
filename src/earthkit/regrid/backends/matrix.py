@@ -20,7 +20,7 @@ class MatrixBackend(Backend):
     def __init__(self, path_or_url=None):
         self.path_or_url = path_or_url
 
-    def regrid(self, values, in_grid, out_grid, interpolation, **kwargs):
+    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
 
         matrix_loader = MatrixLoader(
             backend=backend_from_array(values).name,
@@ -37,8 +37,16 @@ class MatrixBackend(Backend):
         values = values.reshape(-1, 1)
 
         values = z @ values
+        values = values.reshape(shape)
 
-        return values.reshape(shape), out_grid
+        if output == "values_gridspec":
+            return values, out_grid
+        elif output == "values":
+            return values
+        elif output == "gridspec":
+            return out_grid
+
+        raise ValueError(f"Unknown output={output} for backend={self.name}")
 
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         return self.regrid(values, in_grid, out_grid, method, **kwargs)[0]
@@ -50,7 +58,7 @@ class MatrixBackend(Backend):
 
 
 class LocalMatrixBackend(MatrixBackend):
-    name = "local-matrix"
+    name = "precomputed-local"
     # path_config_key = "local-matrix-directories"
 
     @cached_property
@@ -61,7 +69,7 @@ class LocalMatrixBackend(MatrixBackend):
 
 
 class RemoteMatrixBackend(MatrixBackend):
-    name = "remote-matrix"
+    name = "precomputed-remote"
     # path_config_key = "remote-matrix-directories"
 
     @cached_property
@@ -72,7 +80,7 @@ class RemoteMatrixBackend(MatrixBackend):
 
 
 class SystemRemoteMatrixBackend(RemoteMatrixBackend):
-    name = "system-matrix"
+    name = "precomputed"
     # path_config_key = None
 
     @cached_property

@@ -1,11 +1,29 @@
+.. _guide:
+
 User guide
 =============
 
 .. toctree::
    :maxdepth: 1
 
-   interpolate
-   gridspec
-   config
-   memory_cache
-   caching
+   regrid
+
+Backends
+++++++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   mir/index
+   precomputed/system/index
+   precomputed/local/index
+
+
+
+Deprecated interface
++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   interpolate/index

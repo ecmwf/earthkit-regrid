@@ -1,5 +1,9 @@
 
-Interpolation
+.. warning::
+
+    This methods is deprecated and will be removed in a future version. Please use the new interface based on :func:`regrid` instead.
+
+interpolate
 ==============
 
 .. py:function:: interpolate(values, in_grid=None, out_grid=None, matrix_source=None, method='linear')

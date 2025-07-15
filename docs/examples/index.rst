@@ -5,31 +5,23 @@ Examples
 
 Here is a list of example notebooks to illustrate how to use earthkit-regrid.
 
-Interpolation
-+++++++++++++
+MIR
++++++++++++++++++++++
 
 .. toctree::
     :maxdepth: 1
 
-    numpy_arrays.ipynb
-    healpix_fieldlist.ipynb
-    octahedral_fieldlist.ipynb
+    mir_numpy_array.ipynb
+    mir_octahedral_fieldlist.ipynb
+    mir_healpix_fieldlist.ipynb
 
-Caching
-++++++++++
 
-.. toctree::
-    :maxdepth: 1
-
-    memory_cache.ipynb
-    cache.ipynb
-
-Configuration
-+++++++++++++
+Precomputed
++++++++++++++++++
 
 .. toctree::
     :maxdepth: 1
-    :glob:
 
-    config.ipynb
-    config_env_vars.ipynb
+    precomp_numpy_array.ipynb
+    precomp_octahedral_fieldlist.ipynb
+    precomp_healpix_fieldlist.ipynb

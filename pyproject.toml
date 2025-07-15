@@ -30,13 +30,13 @@ dynamic = [ "version" ]
 dependencies = [
   "deprecation",
   "earthkit-utils>=0.0.1",
-  "entrypoints",
   "filelock",
   "multiurl",
   "pyyaml",
   "scipy",
 ]
 optional-dependencies.test = [
+  "earthkit-data",
   "pytest",
   "pytest-cov",
   "requests",

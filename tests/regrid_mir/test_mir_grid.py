@@ -32,6 +32,7 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
         ({"grid": [5, 5]}, {"grid": [10, 10]}),
         ({"grid": [5, 5]}, {"grid": [10, 10]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
+        ({"grid": "o32"}, {"grid": [10, 10]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
         ({"grid": "O32", "area": [90, 0, -90, 360]}, {"grid": [10, 10]}),
         ({"grid": "O32", "area": [87.8638, 0, -87.8638, 357.5]}, {"grid": [10, 10]}),
@@ -55,6 +56,7 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
             {"grid": [10, 10]},
         ),
         ({"grid": "N32", "global": 1}, {"grid": [10, 10]}),
+        ({"grid": "n32"}, {"grid": [10, 10]}),
         (
             {"grid": "N32", "global": 1, "area": [87.8638, 0, -87.8638, 357.188]},
             {"grid": [10, 10]},
@@ -64,6 +66,7 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
         # ({"grid": "eORCA025_T"}, {"grid": "O96"}),
         # ---
         ({"grid": "H4", "order": "nested"}, {"grid": [10, 10]}),
+        ({"grid": "h4", "order": "nested"}, {"grid": [10, 10]}),
     ],
 )
 def test_regrid_with_mir_gridspec(gs_in, gs_out):

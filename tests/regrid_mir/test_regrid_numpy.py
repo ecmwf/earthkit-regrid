@@ -79,12 +79,13 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_numpy_ogg_to_ll_2(interpolation):
+@pytest.mark.parametrize("in_grid", ["O32", "o32"])
+def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
     values_in = np.load(get_test_data("in_O32.npz"))["arr_0"]
 
     values, gridspec = regrid(
         values_in,
-        {"grid": "O32"},
+        {"grid": in_grid},
         {"grid": [30, 30]},
         interpolation=interpolation,
         output="values_gridspec",
@@ -109,12 +110,15 @@ def test_regrid_numpy_ngg_to_ll(interpolation):
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize("interpolation", BASE_INTERPOLATIONS)
-def test_regrid_healpix_ring_to_ll(interpolation):
+@pytest.mark.parametrize("in_grid", ["H4", "h4"])
+def test_regrid_healpix_ring_to_ll(interpolation, in_grid):
     f_in, f_out = get_test_data(["in_H4_ring.npz", f"out_H4_ring_10x10_{interpolation}.npz"])
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(v_in, {"grid": "H4", "order": "ring"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid(
+        v_in, {"grid": in_grid, "order": "ring"}, {"grid": [10, 10]}, interpolation=interpolation
+    )
 
     assert v_res.shape == (19, 36)
     np.testing.assert_allclose(v_res.flatten(), v_ref, verbose=False)

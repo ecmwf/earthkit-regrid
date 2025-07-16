@@ -17,7 +17,7 @@ Global octahedral reduced Gaussian grid
 
 The ``grid`` format is::
 
-    OXXX
+    [Oo]XXX
 
 where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Introducing+the+octahedral+reduced+Gaussian+grid>`_.
 
@@ -26,6 +26,7 @@ Example:
 .. code-block::
 
     {"grid": "O320"}
+    {"grid": "o320"}
 
 
 Global (non-octahedral) reduced Gaussian grid
@@ -33,7 +34,7 @@ Global (non-octahedral) reduced Gaussian grid
 
 The ``grid`` format is::
 
-    NXXX
+    [Nn]XXX
 
 where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Gaussian+grids>`_.
 
@@ -42,6 +43,7 @@ Example:
 .. code-block::
 
     {"grid": "N320"}
+    {"grid": "n320"}
 
 
 Global regular latitude-longitude grid
@@ -66,7 +68,7 @@ HEALPix nested grid
 
 The ``grid`` format is::
 
-    HXXX
+    [Hh]XXX
 
 The ``order`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
@@ -75,6 +77,7 @@ Example:
 .. code-block::
 
     {"grid": "H512", "order": "nested"}
+    {"grid": "h512", "order": "nested"}
 
 
 HEALPix ring grid
@@ -82,7 +85,7 @@ HEALPix ring grid
 
 The ``grid`` format is::
 
-    HXXX
+    [Hh]XXX
 
 The ``order`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
@@ -92,6 +95,7 @@ Example:
 
     {"grid": "H512", "order": "ring"}
     {"grid": "H512"}
+    {"grid": "h512"}
 
 
 ORCA grid

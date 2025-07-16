@@ -141,3 +141,29 @@ def test_regrid_healpix_nested_to_ll(interpolation):
     # print(v_res[2, :20] - v_ref[2, :20])
 
     np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.skipif(True, reason="No ORCA support for numpy in MIR")
+@pytest.mark.parametrize("interpolation", ["linear"])
+def test_regrid_orca_to_ogg(interpolation):
+    f_in, f_out = get_test_data(
+        ["in_eORCA025_T.npz", f"out_eORCA025_T_O96_{interpolation}.npz"], subfolder="local"
+    )
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+
+    out_grid = {"grid": "O96"}
+    v_res, grid_res = regrid(
+        v_in,
+        {
+            "grid": "eORCA025_T",
+        },
+        out_grid,
+        interpolation=interpolation,
+    )
+
+    assert v_res.shape == (40320,)
+    assert grid_res == out_grid
+    np.testing.assert_allclose(v_res, v_ref, verbose=False)

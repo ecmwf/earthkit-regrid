@@ -126,7 +126,7 @@ class FieldListDataHandler(DataHandler):
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid)
-            r += ds.from_array(v_res, md_res)
+            r += ds.from_array([v_res], [md_res])
 
         return r
 

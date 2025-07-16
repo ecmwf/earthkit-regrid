@@ -167,3 +167,36 @@ def test_regrid_orca_to_ogg(interpolation):
     assert v_res.shape == (40320,)
     assert grid_res == out_grid
     np.testing.assert_allclose(v_res, v_ref, verbose=False)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+def test_regrid_numpy_output_kwarg():
+    values_in = np.load(get_test_data("in_O32.npz"))["arr_0"]
+
+    values, gridspec = regrid(
+        values_in,
+        {"grid": "O32"},
+        {"grid": [30, 30]},
+        output="values_gridspec",
+    )
+
+    assert values.shape == (7, 12)
+    assert gridspec == dict(grid=[30, 30])
+
+    values = regrid(
+        values_in,
+        {"grid": "O32"},
+        {"grid": [30, 30]},
+        output="values",
+    )
+
+    assert values.shape == (7, 12)
+
+    gridspec = regrid(
+        values_in,
+        {"grid": "O32"},
+        {"grid": [30, 30]},
+        output="gridspec",
+    )
+
+    assert gridspec == dict(grid=[30, 30])

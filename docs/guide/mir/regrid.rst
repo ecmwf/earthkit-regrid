@@ -20,11 +20,11 @@ regrid
     :type in_grid: dict
     :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type out_grid: dict
-    :param output: define what is returned. Possible values are as follows:
+    :param output: define what is returned when the input is an array, ignored otherwise. Possible values are as follows:
 
         - "values_gridpec": return a tuple with the interpolated values and the :ref:`gridspec <gridspec>` of the output grid. This is the default option.
-        - "values": return the interpolated values only.
-        - "gridpec": return the :ref:`gridspec <gridspec>` of the output grid only.
+        - "values": return the interpolated values only
+        - "gridpec": return the :ref:`gridspec <gridspec>` of the output grid only
 
     :type output: str
     :param interpolation: the interpolation method. The possible values are as follows:

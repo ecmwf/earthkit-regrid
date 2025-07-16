@@ -81,6 +81,7 @@ from earthkit.regrid.backends.db import SYS_DB
             {"grid": [10, 10]},
         ),
         ({"grid": "H128"}, {"grid": [1, 1]}),
+        ({"grid": "H128", "order": "ring"}, {"grid": [1, 1]}),
         ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
         ({"grid": (5, 5)}, {"grid": (10, 10)}),
         ({"grid": "eORCA025_T"}, {"grid": "O96"}),

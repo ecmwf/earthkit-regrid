@@ -6,7 +6,7 @@ regrid
 .. py:function:: regrid(values, in_grid=None, out_grid=None, interpolation='linear', output="values_gridspec", backend="precomputed", **kwargs)
     :noindex:
 
-    Regrid the ``values`` with using precomputed weights stored in a remote inventory managed by ECMWF.
+    Regrid the ``values`` using precomputed weights stored in a remote inventory managed by ECMWF.
 
     :param values: the following input data types are supported:
 

@@ -6,7 +6,7 @@ regrid
 .. py:function:: regrid(values, in_grid=None, out_grid=None, interpolation='linear', output="values_gridspec", backend="precomputed-local", inventory_path=None)
     :noindex:
 
-    Regrid the ``values`` with using precomputed weights stored at a local path.
+    Regrid the ``values`` using precomputed weights stored at a local path.
 
     :param values: the following input data types are supported:
 

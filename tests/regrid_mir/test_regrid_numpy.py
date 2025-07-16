@@ -114,9 +114,7 @@ def test_regrid_healpix_ring_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(
-        v_in, {"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}, interpolation=interpolation
-    )
+    v_res, _ = regrid(v_in, {"grid": "H4", "order": "ring"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
     np.testing.assert_allclose(v_res.flatten(), v_ref, verbose=False)
@@ -132,18 +130,14 @@ def test_regrid_healpix_nested_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     v_res, _ = regrid(
-        v_in, {"grid": "H4", "ordering": "nested"}, {"grid": [10, 10]}, interpolation=interpolation
+        v_in, {"grid": "H4", "order": "nested"}, {"grid": [10, 10]}, interpolation=interpolation
     )
 
     assert v_res.shape == (19, 36)
     v_ref = v_ref.reshape(v_res.shape)
 
-    print(v_res[0, :20])
-    print(v_res[1, :20])
-    print(v_res[2, :20])
-    print()
-    print(v_ref[0, :20])
-    print(v_ref[1, :20])
-    print(v_ref[2, :20])
+    # print(v_res[0, :20] - v_ref[0, :20])
+    # print(v_res[1, :20] - v_ref[1, :20])
+    # print(v_res[2, :20] - v_ref[2, :20])
 
-    np.testing.assert_allclose(v_res.flatten(), v_ref, verbose=False)
+    np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False)

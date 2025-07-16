@@ -144,7 +144,7 @@ def test_regrid_matrix_healpix_ring_to_ll(interpolation):
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in,
-        {"grid": "H4", "ordering": "ring"},
+        {"grid": "H4", "order": "ring"},
         out_grid=out_grid,
         interpolation=interpolation,
         backend=SYSTEM_MATRIX_BACKEND_NAME,
@@ -166,7 +166,7 @@ def test_regrid_matrix_healpix_nested_to_ll(interpolation):
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = regrid(
         v_in,
-        {"grid": "H4", "ordering": "nested"},
+        {"grid": "H4", "order": "nested"},
         out_grid=out_grid,
         interpolation=interpolation,
         backend=SYSTEM_MATRIX_BACKEND_NAME,

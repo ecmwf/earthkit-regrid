@@ -64,13 +64,13 @@ The ``grid`` format is::
 
     HXXX
 
-The ``ordering`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+The ``order`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
 Example:
 
 .. code-block::
 
-    {"grid": "H512", "ordering": "nested"}
+    {"grid": "H512", "order": "nested"}
 
 
 HEALPix ring grid
@@ -80,13 +80,13 @@ The ``grid`` format is::
 
     HXXX
 
-The ``ordering`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+The ``order`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
 Example:
 
 .. code-block::
 
-    {"grid": "H512", "ordering": "ring"}
+    {"grid": "H512", "order": "ring"}
     {"grid": "H512"}
 
 

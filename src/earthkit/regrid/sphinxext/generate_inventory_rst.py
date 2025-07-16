@@ -12,7 +12,7 @@ import json
 from collections import defaultdict
 from collections import namedtuple
 
-from earthkit.regrid.db import SYS_DB as DB
+from earthkit.regrid.backends.db import SYS_DB as DB
 from earthkit.regrid.gridspec import GridSpec
 
 Specs = namedtuple("Specs", ["source", "target"])
@@ -27,7 +27,7 @@ def to_str(gs):
 
     grid = gs["grid"]
     if isinstance(grid, str) and grid.startswith("H"):
-        return {"grid": gs["grid"], "ordering": gs["ordering"]}
+        return {"grid": gs["grid"], "order": gs["order"]}
     else:
         return {"grid": gs["grid"]}
 
@@ -155,10 +155,10 @@ def execute(*args):
         gs["octahedral"] = False
     elif grid_type == "healpix_ring":
         gs["type"] = "healpix"
-        gs["ordering"] = "ring"
+        gs["order"] = "ring"
     elif grid_type == "healpix_nested":
         gs["type"] = "healpix"
-        gs["ordering"] = "nested"
+        gs["order"] = "nested"
     else:
         gs["type"] = grid_type
 

@@ -99,7 +99,10 @@ class GridSpec(dict):
     @staticmethod
     def compare_key(key, v1, v2):
         if isinstance(v1, str) and isinstance(v2, str):
-            return v1 == v2
+            if key == "grid":
+                return v1.lower() == v2.lower()
+            else:
+                return v1 == v2
         elif key == "grid" and isinstance(v1, list) and isinstance(v2, list):
             return np.allclose(np.array(v1), np.array(v2), atol=1e-6)
         elif isinstance(v1, list) and isinstance(v2, list):
@@ -326,6 +329,7 @@ class ReducedGGGridSpec(GridSpec):
             if not isinstance(grid, str) or not RGG_PATTERN.match(grid):
                 raise ValueError(f"Invalid {grid=}")
             try:
+                grid = grid.upper()
                 if grid[0] == "N":
                     N = int(grid[1:])
                     octahedral = 0

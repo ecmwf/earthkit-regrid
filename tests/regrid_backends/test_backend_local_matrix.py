@@ -239,6 +239,8 @@ def test_regrid_local_matrix_orca_to_ogg(interpolation):
         ({"grid": "H4"}, {"grid": [10, 10]}),
         ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
         ({"grid": "eORCA025_T"}, {"grid": "O96"}),
+        ({"grid": "n32"}, {"grid": [10, 10]}),
+        ({"grid": "h4"}, {"grid": [10, 10]}),
     ],
 )
 def test_local_matrix_gridspec_ok(gs_in, gs_out):
@@ -279,6 +281,7 @@ def test_local_matrix_gridspec_ok(gs_in, gs_out):
         ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),
         ({"grid": "bORCA025_T"}, {"grid": "O96"}, ValueError),
         ({"grid": "ORCA025_TU"}, {"grid": "O96"}, ValueError),
+        ({"grid": "eorca025_t"}, {"grid": "O96"}, ValueError),
     ],
 )
 def test_local_matrix_gridspec_bad(gs_in, gs_out, err):

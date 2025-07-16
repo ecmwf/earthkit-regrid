@@ -69,7 +69,7 @@ class CupyMatrixLoader(BaseMatrixLoader):
         import cupy as cp
 
         z = load_npz(path)
-        return cp.sparse.csr_matrix((z.data, z.indices, z.indptr), shape=z.shape, dtype=self.dtype)
+        return cp.sparse.csr_matrix(z, shape=z.shape, dtype=self.dtype)
 
 
 MATRIX_LOADERS = [NumpyMatrixLoader, TorchMatrixLoader, CupyMatrixLoader]

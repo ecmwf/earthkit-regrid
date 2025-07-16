@@ -1,14 +1,18 @@
 .. _gridspec-precomputed:
 
-Gridspec
-==========
+Gridspec (for precomputed backends)
+=====================================
 
-A gridspec describes spatial grids in the form a dict. Its specification is yet to be finalised. However, at the moment, only the ``grid`` key has to be used for the source and target grids earthkit-regrid supports.
+A gridspec describes spatial grids in the form a dict.
 
-The grids supported by earthkit-regrid and their gridspecs are summarised below:
+.. warning::
+
+    The gridspec format is not finalised yet and may change in future releases. Subarea specification is not yet supported.
+
+The gridspecs supported by the ``in_grid`` and ``out_grid`` options in ``regrid()`` with the :ref:`precomputed <precomputed-regrid>` and the :ref:`precomputed-local <precomputed-local-regrid>` backends are summarised below:
 
 
-global octahedral reduced gaussian grid
+Global octahedral reduced Gaussian grid
 ------------------------------------------
 
 The ``grid`` format is::
@@ -24,7 +28,7 @@ Example:
     {"grid": "O320"}
 
 
-global (non-octahedral) reduced gaussian grid
+Global (non-octahedral) reduced Gaussian grid
 ------------------------------------------------
 
 The ``grid`` format is::
@@ -40,7 +44,7 @@ Example:
     {"grid": "N320"}
 
 
-global regular latitude-longitude grid
+Global regular latitude-longitude grid
 ----------------------------------------
 
 The ``grid`` format is::

@@ -1,14 +1,18 @@
 .. _gridspec:
 
-Gridspec
-==========
+Gridspecs (with the MIR backend)
+====================================
 
-A gridspec describes spatial grids in the form a dict. Its specification is yet to be finalised. However, at the moment, only the ``grid`` key has to be used for the source and target grids earthkit-regrid supports.
+A gridspec describes spatial grids in the form a dict.
 
-The grids supported by earthkit-regrid and their gridspecs are summarised below:
+.. warning::
+
+    The gridspec format is not finalised yet and may change in future releases. Subarea specification is not yet supported.
+
+The gridspecs supported by the ``in_grid`` and ``out_grid`` options in :ref:`regrid() <mir-regrid>` with the (default) MIR backend are summarised below:
 
 
-global octahedral reduced gaussian grid
+Global octahedral reduced Gaussian grid
 ------------------------------------------
 
 The ``grid`` format is::
@@ -24,7 +28,7 @@ Example:
     {"grid": "O320"}
 
 
-global (non-octahedral) reduced gaussian grid
+Global (non-octahedral) reduced Gaussian grid
 ------------------------------------------------
 
 The ``grid`` format is::
@@ -40,7 +44,7 @@ Example:
     {"grid": "N320"}
 
 
-global regular latitude-longitude grid
+Global regular latitude-longitude grid
 ----------------------------------------
 
 The ``grid`` format is::
@@ -90,17 +94,17 @@ Example:
     {"grid": "H512"}
 
 
-ORCA grid
-------------------------------------------
+.. ORCA grid
+.. ------------------------------------------
 
-The ``grid`` format is::
+.. The ``grid`` format is::
 
-    eORCAXXX_subtype
+..     eORCAXXX_subtype
 
-The ``subtype`` must be "T", "U", "V" or "W".
+.. The ``subtype`` must be "T", "U", "V" or "W".
 
-Example:
+.. Example:
 
-.. code-block::
+.. .. code-block::
 
-    {"grid": "eORCA025_T"}
+..     {"grid": "eORCA025_T"}

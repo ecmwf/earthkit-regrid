@@ -35,6 +35,9 @@ dependencies = [
   "pyyaml",
   "scipy",
 ]
+optional-dependencies.benchmark = [
+  "pytest-benchmark",
+]
 optional-dependencies.test = [
   "cupy",
   "earthkit-data",

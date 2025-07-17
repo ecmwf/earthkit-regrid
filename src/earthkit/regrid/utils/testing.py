@@ -98,3 +98,33 @@ def compare_global_ll_results(v_res, v_ref, interpolation, **kwargs):
         np.testing.assert_allclose(v_res[1:-1].flatten(), v_ref[1:-1].flatten(), verbose=False, **kwargs)
     else:
         np.testing.assert_allclose(v_res.flatten(), v_ref.flatten(), verbose=False, **kwargs)
+
+
+TORCH_AVAILABLE = modules_installed("torch")
+if TORCH_AVAILABLE:
+    import torch
+    from earthkit.utils.array import TorchBackend
+
+    torch_backends = ["cuda", "mps"]
+
+    if torch.cuda.is_available():
+
+        class EagerCudaTorchBackend(TorchBackend):
+            name = "torch-cuda"
+
+            def asarray(self, *args, **kwargs):
+                tensor: torch.Tensor = super().asarray(*args, **kwargs)
+                return tensor.to(device="cuda")
+
+        ARRAY_BACKENDS.append(EagerCudaTorchBackend())
+
+    if torch.mps.is_available():
+
+        class EagerMPSTorchBackend(TorchBackend):
+            name = "torch-mps"
+
+            def asarray(self, *args, **kwargs):
+                tensor: torch.Tensor = super().asarray(*args, **kwargs)
+                return tensor.to(device="mps")
+
+        ARRAY_BACKENDS.append(EagerMPSTorchBackend())

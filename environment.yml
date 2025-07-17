@@ -25,3 +25,5 @@ dependencies:
 - nbsphinx
 - ipykernel
 - sphinx-issues
+- pip:
+  - mir-python==1.27.1.dev20250627

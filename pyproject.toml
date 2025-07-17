@@ -30,6 +30,7 @@ dynamic = [ "version" ]
 dependencies = [
   "deprecation",
   "filelock",
+  "mir-python==1.27.1.dev20250627",
   "multiurl",
   "pyyaml",
   "scipy",

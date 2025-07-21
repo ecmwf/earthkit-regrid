@@ -18,6 +18,35 @@ BASE_INTERPOLATIONS = ["linear", "nearest-neighbour"]
 INTERPOLATIONS = BASE_INTERPOLATIONS + ["grid-box-average"]
 
 
+LATLON_REFS = [
+    (0.05, (3601, 7200)),
+    (0.1, (1801, 3600)),
+    (0.125, (1441, 2880)),
+    (0.15, (1201, 2400)),
+    (0.2, (901, 1800)),
+    (0.25, (721, 1440)),
+    (0.3, (601, 1200)),
+    (0.35, (517, 1024)),
+    (0.4, (451, 900)),
+    (0.5, (361, 720)),
+    (0.6, (301, 600)),
+    (0.7, (257, 515)),
+    (0.8, (225, 450)),
+    (0.9, (201, 400)),
+    (1, (181, 360)),
+    (1.2, (151, 300)),
+    (1.25, (145, 288)),
+    (1.4, (129, 258)),
+    (1.5, (121, 240)),
+    (1.6, (113, 225)),
+    (1.8, (101, 200)),
+    (2, (91, 180)),
+    (2.5, (73, 144)),
+    (5, (37, 72)),
+    (10, (19, 36)),
+]
+
+
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize(
     "_kwarg,interpolation",
@@ -96,6 +125,40 @@ def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.parametrize("interpolation", INTERPOLATIONS)
+@pytest.mark.parametrize("res_dx,res_shape", LATLON_REFS)
+def test_regrid_numpy_ogg_to_ll_3(interpolation, res_dx, res_shape):
+    # O32
+    values = np.random.random(5248)
+    res_v, _ = regrid(
+        values, in_grid={"grid": "O32"}, out_grid={"grid": [res_dx, res_dx]}, interpolation=interpolation
+    )
+    assert res_v.shape == res_shape, f"Expected shape {res_shape}, got {res_v.shape}"
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.parametrize(
+    "interpolation",
+    [
+        "linear",
+        "nearest-neighbour",
+        "grid-box-average",
+        "grid-box-statistics",
+        "nn",
+        "bilinear",
+        "k_nearest_neighbours",
+    ],
+)
+def test_regrid_numpy_ogg_to_ll_interpolations(interpolation):
+    # O32
+    values = np.random.random(5248)
+    res_v, _ = regrid(
+        values, in_grid={"grid": "O32"}, out_grid={"grid": [10, 10]}, interpolation=interpolation
+    )
+    assert res_v.shape == (19, 36), f"{interpolation=} failed"
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize("interpolation", BASE_INTERPOLATIONS)
 def test_regrid_numpy_ngg_to_ll(interpolation):
     f_in, f_out = get_test_data(["in_N32.npz", f"out_N32_10x10_{interpolation}.npz"])
@@ -148,7 +211,7 @@ def test_regrid_healpix_nested_to_ll(interpolation):
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
-@pytest.mark.skipif(True, reason="No ORCA support for numpy in MIR")
+# @pytest.mark.skipif(True, reason="No ORCA support for numpy in MIR")
 @pytest.mark.parametrize("interpolation", ["linear"])
 def test_regrid_orca_to_ogg(interpolation):
     f_in, f_out = get_test_data(

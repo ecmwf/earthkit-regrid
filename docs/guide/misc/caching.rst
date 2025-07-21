@@ -5,16 +5,14 @@ Disk-based precomputed weights caching
 
 .. note::
 
-    This document describes the disk-based caching of precomputed weights
-    used by the :ref:`precomputed <precomputed-regrid>` and :ref:`precomputed-local <precomputed-local-regrid>` backends in :func:`regrid`.
-
-    It does not apply to the :ref:`mir <mir-regrid>` backend.
+    This caching is only related to the :ref:`precomputed <precomputed-regrid>`
+    and :ref:`precomputed-local <precomputed-local-regrid>` backends in :func:`regrid`.
 
 
 Purpose
 -------
 
-earthkit-regrid uses a dedicated **directory** to store interpolation matrices and the related index file downloaded from the remote inventory. By default this directory serves a **cache** and is **managed** (its size is checked/limited).  It means if we run :func:`interpolate` again with the same input and output grid it will load the matrix from the cache instead of downloading it again. Additionally, caching offers **monitoring and disk space management**. When the cache is full, cached data is deleted according to the configuration (i.e. oldest data is deleted first). The cache is implemented by using a sqlite database running in a separate thread.
+earthkit-regrid uses a dedicated **directory** to store interpolation matrices and the related index file downloaded from the remote inventory. By default this directory serves a **cache** and is **managed** (its size is checked/limited).  It means if we run :func:`regrid` again with the same input and output grid it will load the matrix from the cache instead of downloading it again. Additionally, caching offers **monitoring and disk space management**. When the cache is full, cached data is deleted according to the configuration (i.e. oldest data is deleted first). The cache is implemented by using a sqlite database running in a separate thread.
 
 Please note that the earthkit-regrid cache configuration is managed through the :doc:`config`.
 
@@ -129,7 +127,7 @@ We can specify the parent directory for the the temporary cache by using the ``t
 Off cache policy
 ++++++++++++++++++++++++
 
-When the ``cache-policy`` is "off" no disk-based caching is available. In this case all files are downloaded into an **unmanaged** temporary directory created by ``tempfile.TemporaryDirectory``. Since caching is disabled, all repeated calls to :func:`interpolate` will download the interpolation matrix again! This temporary directory will be unique for each earthkit-regrid session. When the directory object goes out of scope (at the latest on exit) the directory will be **cleaned up**.
+When the ``cache-policy`` is "off" no disk-based caching is available. In this case all files are downloaded into an **unmanaged** temporary directory created by ``tempfile.TemporaryDirectory``. Since caching is disabled, all repeated calls to :func:`regrid` will download the interpolation matrix again! This temporary directory will be unique for each earthkit-regrid session. When the directory object goes out of scope (at the latest on exit) the directory will be **cleaned up**.
 
 Due to the temporary nature of this directory path it cannot be queried via the :doc:`config`, but we need to call the :meth:`~data.core.caching.Cache.directory` :ref:`cache method <cache_methods>`.
 

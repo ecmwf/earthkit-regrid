@@ -6,9 +6,10 @@ Configuration
 *New in version 0.5.0.*
 
 
-.. warning::
+.. note::
 
-    At the moment, this configuration **does not control** anything related to the :ref:`mir <mir-regrid>` backend.
+    The configuration is only related to the :ref:`precomputed <precomputed-regrid>`
+    and :ref:`precomputed-local <precomputed-local-regrid>` backends in :func:`regrid`.
 
 
 *earthkit-regrid* maintains a global configuration.

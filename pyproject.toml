@@ -62,3 +62,6 @@ branch = "true"
 [tool.pydocstyle]
 add_ignore = [ "D1", "D200", "D205", "D400", "D401" ]
 convention = "numpy"
+
+[tool.uv]
+prerelease = "allow"

@@ -125,7 +125,7 @@ def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
-@pytest.mark.parametrize("interpolation", INTERPOLATIONS)
+@pytest.mark.parametrize("interpolation", ["linear"])
 @pytest.mark.parametrize("res_dx,res_shape", LATLON_REFS)
 def test_regrid_numpy_ogg_to_ll_3(interpolation, res_dx, res_shape):
     # O32

@@ -64,7 +64,7 @@ def modules_installed(*modules):
         try:
             import_module(module)
         except ImportError as e:
-            print(f"Module {module} is not installed: {e}")
+            print(f"earthkit-regrid testing: {module=} is not installed: {e}")
             return False
     return True
 

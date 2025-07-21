@@ -37,7 +37,7 @@ jobs:
     with:
       earthkit-regrid: ecmwf/earthkit-regrid@${{ github.event.pull_request.head.sha || github.sha }}
       codecov_upload: true
-      python_qa: falsed
+      python_qa: false
     secrets: inherit
 
   # Build downstream packages on HPC

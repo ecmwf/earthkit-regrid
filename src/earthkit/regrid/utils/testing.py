@@ -73,6 +73,7 @@ NO_EKD = not modules_installed("earthkit.data")
 
 try:
     NO_MIR = not modules_installed("mir")
+
     NO_MIR = True
 except Exception:
     NO_MIR = True

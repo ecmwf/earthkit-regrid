@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pytest
 
-from earthkit.regrid import interpolate
+from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
 DB_PATH = earthkit_test_data_path("local", "db")
@@ -28,10 +28,17 @@ def file_in_testdir(filename):
     return os.path.join(DATA_PATH, filename)
 
 
-def run_interpolate(mode):
+def run_regrid(mode):
     v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
     np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
-    interpolate(v_in, {"grid": "N32"}, {"grid": [10, 10]}, method=mode, matrix_source=DB_PATH)
+    regrid(
+        v_in,
+        {"grid": "N32"},
+        {"grid": [10, 10]},
+        interpolation=mode,
+        backend="precomputed-local",
+        inventory_path=DB_PATH,
+    )
 
 
 @pytest.fixture
@@ -67,7 +74,7 @@ def test_local_memcache_core_1(policy, adjust_to, evict):
         assert MEMORY_CACHE.misses == 0
         assert MEMORY_CACHE.info() == (0, 0, max_mem, 0, 0, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 1
@@ -79,20 +86,20 @@ def test_local_memcache_core_1(policy, adjust_to, evict):
         assert info.count == 1
         mem_first = MEMORY_CACHE.curr_mem
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 1
         assert MEMORY_CACHE.info() == (1, 1, max_mem, mem_first, 1, policy)
 
-        run_interpolate("nearest-neighbour")
+        run_regrid("nearest-neighbour")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 2
         mem_second = MEMORY_CACHE.curr_mem - mem_first
         MEMORY_CACHE.info() == (1, 2, max_mem, MEMORY_CACHE.curr_mem, 2, policy)
 
-        run_interpolate("nearest-neighbour")
+        run_regrid("nearest-neighbour")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 2
         assert MEMORY_CACHE.misses == 2
@@ -141,7 +148,7 @@ def test_local_memcache_core_2(policy, adjust_to, evict):
         assert MEMORY_CACHE.misses == 0
         assert MEMORY_CACHE.info() == (0, 0, max_mem, 0, 0, policy)
 
-        run_interpolate("nearest-neighbour")
+        run_regrid("nearest-neighbour")
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 1
         info = MEMORY_CACHE.info()
@@ -152,20 +159,20 @@ def test_local_memcache_core_2(policy, adjust_to, evict):
         assert info.count == 1
         mem_first = MEMORY_CACHE.curr_mem
 
-        run_interpolate("nearest-neighbour")
+        run_regrid("nearest-neighbour")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 1
         assert MEMORY_CACHE.info() == (1, 1, max_mem, mem_first, 1, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 2
         mem_second = MEMORY_CACHE.curr_mem - mem_first
         MEMORY_CACHE.info() == (1, 2, max_mem, MEMORY_CACHE.curr_mem, 2, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 2
         assert MEMORY_CACHE.misses == 2
@@ -211,7 +218,7 @@ def test_local_memcache_small(policy):
         assert MEMORY_CACHE.misses == 0
         assert MEMORY_CACHE.info() == (0, 0, max_mem, 0, 0, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 1
@@ -222,7 +229,7 @@ def test_local_memcache_small(policy):
         assert info.currsize == 0
         assert info.count == 0
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 2
@@ -250,7 +257,7 @@ def test_local_memcache_off_policy():
         assert MEMORY_CACHE.misses == 0
         assert MEMORY_CACHE.info() == (0, 0, 0, 0, 0, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 0
@@ -261,7 +268,7 @@ def test_local_memcache_off_policy():
         assert info.currsize == 0
         assert info.count == 0
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == 0
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 0
@@ -287,7 +294,7 @@ def test_local_memcache_unlimited():
         assert MEMORY_CACHE.misses == 0
         assert MEMORY_CACHE.info() == (0, 0, None, 0, 0, policy)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem is None
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 1
@@ -298,7 +305,7 @@ def test_local_memcache_unlimited():
         assert info.currsize > 0
         assert info.count == 1
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem is None
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 1
@@ -334,7 +341,7 @@ def test_local_memcache_ensure_strict_1(monkeypatch):
         monkeypatch.setattr(memcache, "estimate_matrix_size", _estimate_memory)
 
         with pytest.raises(ValueError) as excinfo:
-            run_interpolate("linear")
+            run_regrid("linear")
 
         assert "Matrix too large" in str(excinfo.value)
 
@@ -367,7 +374,7 @@ def test_local_memcache_strict_2(monkeypatch):
 
         monkeypatch.setattr(memcache, "estimate_matrix_size", _estimate_memory)
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 0
         assert MEMORY_CACHE.misses == 1
@@ -379,14 +386,14 @@ def test_local_memcache_strict_2(monkeypatch):
         assert info.count == 1
         mem_first = info.currsize
 
-        run_interpolate("linear")
+        run_regrid("linear")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 1
         assert MEMORY_CACHE.info() == (1, 1, max_mem, MEMORY_CACHE.curr_mem, 1, policy)
 
         # The first weights should be evicted
-        run_interpolate("nearest-neighbour")
+        run_regrid("nearest-neighbour")
         assert MEMORY_CACHE.max_mem == max_mem
         assert MEMORY_CACHE.hits == 1
         assert MEMORY_CACHE.misses == 2

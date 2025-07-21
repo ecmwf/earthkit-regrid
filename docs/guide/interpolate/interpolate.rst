@@ -38,6 +38,6 @@ interpolate
 Examples
 --------
 
-    - :ref:`/examples/numpy_arrays.ipynb`
-    - :ref:`/examples/healpix_fieldlist.ipynb`
-    - :ref:`/examples/octahedral_fieldlist.ipynb`
+    - :ref:`/examples/deprecated/numpy_arrays.ipynb`
+    - :ref:`/examples/deprecated/healpix_fieldlist.ipynb`
+    - :ref:`/examples/deprecated/octahedral_fieldlist.ipynb`

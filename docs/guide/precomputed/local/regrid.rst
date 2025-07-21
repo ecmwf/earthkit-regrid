@@ -3,6 +3,9 @@
 regrid
 ===========================================
 
+*New in version 0.5.0.*
+
+
 .. py:function:: regrid(values, in_grid=None, out_grid=None, interpolation='linear', output="values_gridspec", backend="precomputed-local", inventory_path=None)
     :noindex:
 

@@ -13,8 +13,7 @@ from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
-# INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
-INTERPOLATIONS = ["linear"]
+INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")

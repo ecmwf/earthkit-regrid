@@ -21,9 +21,18 @@ Backends
 
 
 Deprecated interface
-+++++++++++++++++
+++++++++++++++++++++++++
 
 .. toctree::
    :maxdepth: 1
 
    interpolate/index
+
+
+Miscellaneous
+++++++++++++++++++++++
+
+.. toctree::
+   :maxdepth: 1
+
+   misc/index

@@ -32,7 +32,7 @@ def matrix_size(m):
     try:
         return matrix_memory_size(m)
     except Exception as e:
-        LOG.warning("Could not compute matrix memory size", e)
+        LOG.warning("Could not compute weights memory size", e)
         return 0
 
 
@@ -41,7 +41,7 @@ def estimate_matrix_size(entry):
     try:
         return entry["_raw"]["memory"]
     except Exception as e:
-        LOG.warning(f"Could not estimate matrix memory size from entry={entry}. {e}")
+        LOG.warning(f"Could not estimate weights memory size from entry={entry}. {e}")
         return 0
 
 
@@ -173,9 +173,9 @@ CACHE_POLICIES = {p.name: p for p in [NoPolicy, UnlimitedPolicy, LRUPolicy, Larg
 
 
 class MemoryCache:
-    MAX_SIZE_KEY = "maximum-matrix-memory-cache-size"
-    POLICY_KEY = "matrix-memory-cache-policy"
-    STRICT_KEY = "matrix-memory-cache-strict-mode"
+    MAX_SIZE_KEY = "maximum-weights-memory-cache-size"
+    POLICY_KEY = "weights-memory-cache-policy"
+    STRICT_KEY = "weights-memory-cache-strict-mode"
 
     def __init__(
         self,
@@ -274,7 +274,7 @@ class MemoryCache:
             if self.strict and self._capacity() < estimated_memory:
                 raise ValueError(
                     (
-                        "Matrix too large to fit in memory cache. "
+                        "Weights too large to fit in memory cache. "
                         f"Estimated size: {estimated_memory} bytes > capacity: {self._capacity()} bytes"
                     )
                 )
@@ -367,10 +367,7 @@ class MatrixMemoryCache(MemoryCache):
         )
 
 
-# NOTE: This is interface is hidden for now as it is not yet decided
-# if the matrix based interpolation will be used in the future.
-# MEMORY_CACHE = MatrixMemoryCache()
-MEMORY_CACHE = None
+MEMORY_CACHE = MatrixMemoryCache()
 
 
 def clear_memory_cache():

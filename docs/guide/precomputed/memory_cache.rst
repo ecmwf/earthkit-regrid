@@ -5,6 +5,15 @@ In-memory matrix caching
 
 *New in version 0.5.0.*
 
+
+.. note::
+
+    This document describes the memory-based caching of precomputed weights
+    used by the :ref:`precomputed <precomputed-regrid>` and :ref:`precomputed-local <precomputed-local-regrid>` backends in :func:`regrid`.
+
+    It does not apply to the :ref:`mir <mir-regrid>` backend.
+
+
 Purpose
 -------
 

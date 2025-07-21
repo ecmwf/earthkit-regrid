@@ -5,7 +5,13 @@ Configuration
 
 *New in version 0.5.0.*
 
-*earthkit-regrid* is maintaining a global configuration.
+
+.. warning::
+
+    At the moment, this configuration **does not control** anything related to the :ref:`mir <mir-regrid>` backend.
+
+
+*earthkit-regrid* maintains a global configuration.
 
 The configuration is automatically loaded from and saved into a yaml file located at ``~/.config/earthkit/regrid/config.yaml``. An alternative path can be specified via the ``EARTHKIT_REGRID_CONFIG_FILE`` environmental variable (it is only read at startup).
 

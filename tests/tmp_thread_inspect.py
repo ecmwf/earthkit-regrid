@@ -1,6 +1,5 @@
 from earthkit.regrid import regrid
 
-
 grids = [
     ({"grid": "H4", "order": "nested"}, {"grid": [10, 10]}),
     ({"grid": "h4", "order": "nested"}, {"grid": [10, 10]}),

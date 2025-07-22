@@ -4,11 +4,11 @@ def __main__():
 
     print("1", flush=True)
     values = np.random.rand(192)
-    values = np.random.rand(37, 72)
+    # values = np.random.rand(37, 72)
 
     print("2", flush=True)
     in_grid = {"grid": "H4", "order": "nested"}
-    in_grid = {"grid": [5, 5]}
+    # in_grid = {"grid": [5, 5]}
     out_grid = {"grid": [10, 10]}
 
     print("3", flush=True)

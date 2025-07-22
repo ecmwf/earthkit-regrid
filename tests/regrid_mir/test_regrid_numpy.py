@@ -206,7 +206,7 @@ def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
         "grid-box-statistics",
         "nn",
         "bilinear",
-        "k_nearest_neighbours",
+        "k-nearest-neighbours",
     ],
 )
 def test_regrid_numpy_ogg_to_ll_interpolations(interpolation):

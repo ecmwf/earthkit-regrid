@@ -30,6 +30,7 @@ dynamic = [ "version" ]
 dependencies = [
   "deprecation",
   "filelock",
+  "mir-python>=1.27.1.dev20250627",
   "multiurl",
   "pyyaml",
   "scipy",
@@ -61,3 +62,6 @@ branch = "true"
 [tool.pydocstyle]
 add_ignore = [ "D1", "D200", "D205", "D400", "D401" ]
 convention = "numpy"
+
+[tool.uv]
+prerelease = "allow"

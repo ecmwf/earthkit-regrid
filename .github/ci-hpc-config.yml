@@ -1,3 +1,6 @@
 build:
   python: 3.10
   parallel: 1
+  pytest_cmd: |
+    FINDLIBS_DISABLE_PACKAGE=no pytest --cov=./ --cov-report=xml
+    FINDLIBS_DISABLE_PACKAGE=no python -m coverage report

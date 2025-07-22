@@ -214,9 +214,8 @@ def test_regrid_healpix_nested_to_ll(interpolation):
 # @pytest.mark.skipif(True, reason="No ORCA support for numpy in MIR")
 @pytest.mark.parametrize("interpolation", ["linear"])
 def test_regrid_orca_to_ogg(interpolation):
-    f_in, f_out = get_test_data(
-        ["in_eORCA025_T.npz", f"out_eORCA025_T_O96_{interpolation}.npz"], subfolder="local"
-    )
+    f_in = get_test_data("in_eORCA025_T.npz", subfolder="orca")
+    f_out = get_test_data(f"out_eORCA025_T_O96_{interpolation}.npz", subfolder="local")
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]

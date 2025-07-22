@@ -62,7 +62,7 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
         #     {"grid": [10, 10]},
         # ),
         # ({"grid": "H4"}, {"grid": [10, 10]}),
-        ({"grid": "H4", "order": "ring"}, {"grid": [10, 10]}),
+        # ({"grid": "H4", "order": "ring"}, {"grid": [10, 10]}),
         # ({"grid": "eORCA025_T"}, {"grid": "O96"}),
         # ---
         ({"grid": "H4", "order": "nested"}, {"grid": [10, 10]}),

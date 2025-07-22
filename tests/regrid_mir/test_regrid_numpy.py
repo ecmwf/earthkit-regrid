@@ -18,7 +18,7 @@ BASE_INTERPOLATIONS = ["linear", "nearest-neighbour"]
 INTERPOLATIONS = BASE_INTERPOLATIONS + ["grid-box-average"]
 
 
-LATLON_REFS = [
+LATLON_REFS_FULL = [
     (0.05, (3601, 7200)),
     (0.1, (1801, 3600)),
     (0.125, (1441, 2880)),
@@ -45,6 +45,66 @@ LATLON_REFS = [
     (5, (37, 72)),
     (10, (19, 36)),
 ]
+
+LATLON_REFS = [
+    (0.5, (361, 720)),
+]
+
+RED_GG_O_REFS = [
+    ("O48", (10944,)),
+    # ("O1280", (6599680,)),
+]
+
+RED_GG_N_REFS = [
+    ("N48", (13280,)),
+    # ("N320", (542080,)),
+]
+
+REG_GG_REFS = [
+    ("F32", (64, 128)),
+]
+
+H_RING_REFS = [
+    ("H4", (192,)),
+]
+
+H_NESTED_REFS = [
+    ("H4", (192,)),
+]
+
+ORCA_REFS = [
+    ("eORCA025_T", (1740494,)),
+]
+
+
+def make_refs():
+    """Create references for the tests."""
+    refs = []
+    for res_dx, res_shape in LATLON_REFS:
+        refs.append(({"grid": [res_dx, res_dx]}, res_shape))
+
+    for out_grid, res_shape in RED_GG_O_REFS:
+        refs.append(({"grid": out_grid}, res_shape))
+
+    for out_grid, res_shape in RED_GG_N_REFS:
+        refs.append(({"grid": out_grid}, res_shape))
+
+    for out_grid, res_shape in REG_GG_REFS:
+        refs.append(({"grid": out_grid}, res_shape))
+
+    for out_grid, res_shape in H_RING_REFS:
+        refs.append(({"grid": out_grid, "order": "ring"}, res_shape))
+
+    for out_grid, res_shape in H_NESTED_REFS:
+        refs.append(({"grid": out_grid, "order": "nested"}, res_shape))
+
+    for out_grid, res_shape in ORCA_REFS:
+        refs.append(({"grid": out_grid}, res_shape))
+
+    return refs
+
+
+REFS = make_refs()
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -89,8 +149,20 @@ def _ll_to_ll(interpolation):
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize("interpolation", BASE_INTERPOLATIONS)
-def test_regrid_numpy_ll_to_ll(interpolation):
+def test_regrid_numpy_ll_to_ll_1(interpolation):
     _ll_to_ll(interpolation)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.parametrize("interpolation", ["linear"])
+@pytest.mark.parametrize("res_dx,res_shape", LATLON_REFS_FULL)
+def test_regrid_numpy_ll_to_ll_2(res_dx, res_shape, interpolation):
+
+    values = np.random.random(37, 72)
+    res_v, _ = regrid(
+        values, in_grid={"grid": [5, 5]}, out_grid={"grid": [res_dx, res_dx]}, interpolation=interpolation
+    )
+    assert res_v.shape == res_shape
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -122,18 +194,6 @@ def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
 
     assert values.shape == (7, 12)
     assert gridspec == dict(grid=[30, 30])
-
-
-@pytest.mark.skipif(NO_MIR, reason="No mir available")
-@pytest.mark.parametrize("interpolation", ["linear"])
-@pytest.mark.parametrize("res_dx,res_shape", LATLON_REFS)
-def test_regrid_numpy_ogg_to_ll_3(interpolation, res_dx, res_shape):
-    # O32
-    values = np.random.random(5248)
-    res_v, _ = regrid(
-        values, in_grid={"grid": "O32"}, out_grid={"grid": [res_dx, res_dx]}, interpolation=interpolation
-    )
-    assert res_v.shape == res_shape, f"Expected shape {res_shape}, got {res_v.shape}"
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -233,6 +293,27 @@ def test_regrid_orca_to_ogg(interpolation):
     assert v_res.shape == (40320,)
     assert grid_res == out_grid
     np.testing.assert_allclose(v_res, v_ref, verbose=False)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.parametrize("interpolation", ["linear"])
+@pytest.mark.parametrize(
+    "in_grid,in_shape",
+    [
+        ({"grid": [5, 5]}, (37, 72)),
+        ({"grid": "O32"}, (5248,)),
+        ({"grid": "N32"}, (6114,)),
+        ({"grid": "F48"}, (96, 192)),
+        ({"grid": "H8", "order": "ring"}, (768,)),
+        ({"grid": "H8", "order": "nested"}, (768,)),
+        ({"grid": "eORCA025_T"}, (1740494,)),
+    ],
+)
+@pytest.mark.parametrize("out_grid,res_shape", REFS)
+def test_regrid_numpy_any_to_any(interpolation, in_grid, in_shape, out_grid, res_shape):
+    values = np.random.random(in_shape)
+    res_v, _ = regrid(values, in_grid=in_grid, out_grid=out_grid, interpolation=interpolation)
+    assert res_v.shape == res_shape, f"Expected shape {res_shape}, got {res_v.shape}"
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")

@@ -46,6 +46,16 @@ Example:
     {"grid": "n320"}
 
 
+Global regular (full) Gaussian grid
+----------------------------------------
+
+The ``grid`` format is::
+
+    [Ff]XXX
+
+where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Gaussian+grids>`_.
+
+
 Global regular latitude-longitude grid
 ----------------------------------------
 

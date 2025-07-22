@@ -38,7 +38,7 @@ def __main__():
     job.set("interpolation", "linear")
     job.execute(input, out)
 
-    assert out.values()
+    assert len(out.values())
     assert out.spec
 
 

@@ -1,4 +1,4 @@
-.. _mir-regrid:
+
 
 regrid
 =============================
@@ -33,14 +33,14 @@ regrid
 
         - "linear": Finite Element based interpolation with linear base functions with supporting triangular mesh
         - "bilinear": Finite Element based interpolation with supporting quadrilateral mesh (for reduced grids, possibly containing triangles instead of highly-distorted quadrilaterals)
-        - "grid_box_average": input/output grid box (see [model_grid_box]_) intersections interpolation preserving input value integrals (conservative interpolation).
-        - "grid_box_statistics": input/output grid box (see [model_grid_box]_) intersections value statistics - see ``interpolation_statistics`` for possible computations
-        - "voronoi_statistics"
-        - "k_nearest_neighbours": general method combining nearest method (choice of neighbours) and distance weighting (choice of interpolating neighbour values)
-        - "nearest_neighbour":  parametrised version of "k_nearest_neighbours" to chose a nearest neighbouring input point to define output point value
-        - "structured_bicubic": structured methods exploiting grid structure and configurable stencil for fast interpolations (non cacheable, so do not benefit from speedups on subsequent runs).
-        - "structured_bilinear"
-        - "structured_biquasicubic": computationally economic bicubic interpolation
+        - "grid-box-average": input/output grid box (see [model_grid_box]_) intersections interpolation preserving input value integrals (conservative interpolation).
+        - "grid-box-statistics": input/output grid box (see [model_grid_box]_) intersections value statistics - see ``interpolation_statistics`` for possible computations
+        - "voronoi-statistics"
+        - "k-nearest-neighbours": general method combining nearest method (choice of neighbours) and distance weighting (choice of interpolating neighbour values)
+        - "nearest-neighbour":  parametrised version of "k-nearest-neighbours" to chose a nearest neighbouring input point to define output point value
+        - "structured-bicubic": structured methods exploiting grid structure and configurable stencil for fast interpolations (non cacheable, so do not benefit from speedups on subsequent runs).
+        - "structured-bilinear"
+        - "structured-biquasicubic": computationally economic bicubic interpolation
         - "automatic"
         .. - "nearest_lsm": interpolated output point takes input only from input points of the same type (land or sea — requires setting land/sea masks)
 

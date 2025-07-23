@@ -14,6 +14,7 @@ MIR
     mir_numpy_array.ipynb
     mir_octahedral_fieldlist.ipynb
     mir_healpix_fieldlist.ipynb
+    mir_interpolation_types.ipynb
 
 
 Precomputed

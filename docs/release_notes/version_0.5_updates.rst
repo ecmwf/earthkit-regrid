@@ -20,6 +20,7 @@ The default backend for the newly added :func:`regrid` method is now :ref:`MIR <
 - :ref:`/examples/mir_numpy_array.ipynb`
 - :ref:`/examples/mir_healpix_fieldlist.ipynb`
 - :ref:`/examples/mir_octahedral_fieldlist.ipynb`
+- :ref:`/examples/mir_interpolation_types.ipynb`
 
 
 The regrid method

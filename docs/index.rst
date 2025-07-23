@@ -38,8 +38,9 @@ Quick start
     # octahedral reduced Gaussian grid
     grid_out = {"grid": "O320"}
 
-    # regrid the data with MIR (default)
-    r = regrid(
+    # regrid the data with MIR (the default backend)
+    # returns a tuple with the regridded values and the output grid
+    vals_res, grid_res = regrid(
         np.random.rand(721, 1440),  # input data
         grid_in=grid_in,  # input grid
         grid_out=grid_out,  # output grid

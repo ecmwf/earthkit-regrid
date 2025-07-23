@@ -32,8 +32,8 @@ regrid
     :param interpolation: the interpolation method. There is a high degree of customisation available to parametrise the available interpolation methods. Please note ot all the interpolation methods support all possible grid types. The possible values are as follows:
 
         - "linear": Finite Element based interpolation with linear base functions with supporting triangular mesh
-        - "grid_box_average": input/output grid box (see [model_grid_box]_) intersections interpolation preserving input value integrals (conservative interpolation).
-        - "nearest_neighbour":  parametrised version of "k_nearest_neighbours" to chose a nearest neighbouring input point to define output point value
+        - "grid-box-average": input/output grid box (see [model_grid_box]_) intersections interpolation preserving input value integrals (conservative interpolation).
+        - "nearest-neighbour": choose a nearest neighbouring input point to define output point value
 
     :type interpolation: str
 
@@ -70,3 +70,4 @@ Examples
 - :ref:`/examples/mir_numpy_array.ipynb`
 - :ref:`/examples/mir_healpix_fieldlist.ipynb`
 - :ref:`/examples/mir_octahedral_fieldlist.ipynb`
+- :ref:`/examples/mir_interpolation_types.ipynb`

@@ -158,7 +158,7 @@ def test_regrid_numpy_ll_to_ll_1(interpolation):
 @pytest.mark.parametrize("res_dx,res_shape", LATLON_REFS_FULL)
 def test_regrid_numpy_ll_to_ll_2(res_dx, res_shape, interpolation):
 
-    values = np.random.random(37, 72)
+    values = np.random.random((37, 72))
     res_v, _ = regrid(
         values, in_grid={"grid": [5, 5]}, out_grid={"grid": [res_dx, res_dx]}, interpolation=interpolation
     )

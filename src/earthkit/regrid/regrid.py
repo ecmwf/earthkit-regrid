@@ -7,11 +7,10 @@
 # nor does it submit to any jurisdiction.
 #
 
-from .data import get_data_handler
-from warnings import warn
-
 
 def regrid(values, in_grid=None, out_grid=None, *, interpolation="linear", backend="mir", **kwargs):
+    from earthkit.regrid.data import get_data_handler
+
     h = get_data_handler(values)
     if h is None:
         raise ValueError(f"Cannot regrid data with type={type(values)}")

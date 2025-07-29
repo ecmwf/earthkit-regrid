@@ -7,8 +7,9 @@
 # nor does it submit to any jurisdiction.
 #
 
-from . import Backend
 from warnings import warn
+
+from . import Backend
 
 
 class MirBackend(Backend):
@@ -20,7 +21,8 @@ class MirBackend(Backend):
         if "area" in grid:
             warn(
                 "The area key is a temporary workaround for area in gridspec",
-                 DeprecationWarning, stacklevel=2
+                DeprecationWarning,
+                stacklevel=2,
             )
             area = grid.pop("area")
             kwargs["area"] = area

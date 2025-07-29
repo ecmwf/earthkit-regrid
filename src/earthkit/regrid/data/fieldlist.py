@@ -8,52 +8,10 @@
 #
 
 import logging
-from abc import ABCMeta
-from abc import abstractmethod
-import functools
+
+from .handler import DataHandler
 
 LOG = logging.getLogger(__name__)
-
-
-class DataHandler(metaclass=ABCMeta):
-    @abstractmethod
-    def regrid(self, values, **kwargs):
-        pass
-
-    def backend_from_kwargs(self, kwargs):
-        return self.get_backend(kwargs.pop("backend"), inventory_path=kwargs.pop("inventory_path", None))
-
-    def get_backend(self, backend, inventory_path=None):
-        from earthkit.regrid.backends import get_backend
-
-        if backend == "precomputed-local":
-            backend = get_backend(backend, path_or_url=inventory_path)
-        else:
-            if inventory_path:
-                raise ValueError(
-                    f"Cannot use inventory_path={inventory_path} with backend={backend}. "
-                    "Only available for backend='precomputed-local'."
-                )
-            backend = get_backend(backend)
-
-        if not backend:
-            raise ValueError(f"No backend={backend} found")
-
-        return backend
-
-
-class NumpyDataHandler(DataHandler):
-    @staticmethod
-    def match(values):
-        import numpy as np
-
-        return isinstance(values, np.ndarray)
-
-    def regrid(self, values, **kwargs):
-        in_grid = kwargs.pop("in_grid")
-        out_grid = kwargs.pop("out_grid")
-        backend = self.backend_from_kwargs(kwargs)
-        return backend.regrid(values, in_grid, out_grid, **kwargs)
 
 
 class FieldListDataHandler(DataHandler):
@@ -103,7 +61,7 @@ class FieldListDataHandler(DataHandler):
 
         out_grid = kwargs.pop("out_grid")
         # TODO: refactor this when this limitation is removed
-        from .gridspec import GridSpec
+        from earthkit.regrid.gridspec import GridSpec
 
         out_grid = GridSpec.from_dict(out_grid)
         if not out_grid.is_regular_ll():
@@ -208,87 +166,5 @@ class GribMessageDataHandler(DataHandler):
             raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")
 
 
-class XarrayDataHandler(DataHandler):
-    @staticmethod
-    def match(values):
-        try:
-            import xarray as xr
-
-            return isinstance(values, xr.DataArray) or isinstance(values, xr.Dataset)
-        except ImportError:
-            return False
-
-    def _find_dim_names(self, size):
-        match size:
-            case 1:
-                return ["values"]
-            case 2:
-                return ["latitude", "longitude"]
-            case _:
-                return None
-
-    def regrid(self, values, **kwargs):
-        import xarray as xr
-
-        in_grid = kwargs.pop("in_grid", None)
-        if in_grid is None:
-            in_grid = values.attrs.get("gridspec", None)
-        if in_grid is None and 'earthkit' in values:
-            in_grid = values.earthkit.metadata.gridspec
-
-        out_grid = kwargs.pop("out_grid")
-
-        assert in_grid is not None, "in_grid must be provided"
-        assert out_grid is not None, "out_grid must be provided"
-
-        _, shape = find(in_grid, out_grid, **kwargs)
-
-        default_in_dims = self._find_dim_names(len(values.dims))
-        if "in_dims" not in kwargs and default_in_dims is None:
-            raise ValueError(f"Unknown number of input dimensions: {len(values.dims)}")
-
-        in_dims = kwargs.pop("in_dims", default_in_dims)
-        in_dims = [in_dims] if not isinstance(in_dims, list) else in_dims
-
-        default_out_dims = self._find_dim_names(len(shape))
-        if "out_dims" not in kwargs and default_out_dims is None:
-            raise ValueError("Unknown number of output dimensions.")
-
-        out_dims = kwargs.pop("out_dims", default_out_dims)
-        out_dims = [out_dims] if not isinstance(out_dims, list) else out_dims
-
-        ds_out = xr.apply_ufunc(
-            functools.partial(
-                NumpyDataHandler().regrid, in_grid=in_grid, out_grid=out_grid, **kwargs
-            ),
-            values,
-            input_core_dims=[in_dims],
-            output_core_dims=[out_dims],
-            vectorize=True,
-            dask="parallelized",
-            dask_gufunc_kwargs={
-                "output_sizes": {dim: shape[i] for i, dim in enumerate(out_dims)},
-                "allow_rechunk": True,
-            },
-            output_dtypes=[values.dtype],
-        )
-        # self.set_coords(ds_out, out_grid, **kwargs)
-        # ds_out.earthkit.set_grid(out_grid)
-
-        return ds_out
-
-    def set_coords(self, ds_out, out_grid, **kwargs):
-        import earthkit.geo as ekg
-        lat, lon = ekg.to_latlon(out_grid)
-        ds_out.coords["latitude"] = lat
-        ds_out.coords["longitude"] = lon
-
-
 FIELDLIST_DATA_HANDLER = FieldListDataHandler()
-DATA_HANDLERS = [NumpyDataHandler(), FIELDLIST_DATA_HANDLER, FieldDataHandler(), GribMessageDataHandler(), XarrayDataHandler()]
-
-
-def get_data_handler(values):
-    for h in DATA_HANDLERS:
-        if h.match(values):
-            return h
+handler = [FIELDLIST_DATA_HANDLER, FieldDataHandler()]

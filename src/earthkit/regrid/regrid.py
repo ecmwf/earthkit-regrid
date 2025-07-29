@@ -8,6 +8,7 @@
 #
 
 from .data import get_data_handler
+from warnings import warn
 
 
 def regrid(values, in_grid=None, out_grid=None, *, interpolation="linear", backend="mir", **kwargs):

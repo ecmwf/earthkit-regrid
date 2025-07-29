@@ -9,6 +9,8 @@
 import os
 from importlib import import_module
 
+from earthkit.utils.testing import get_array_backend
+
 PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
@@ -18,6 +20,9 @@ _ROOT_DIR = top = os.path.dirname(
 )
 if not os.path.exists(os.path.join(_ROOT_DIR, "tests", "data")):
     _ROOT_DIR = "./"
+
+
+ARRAY_BACKENDS = get_array_backend(["numpy", "torch", "cupy"], raise_on_missing=False)
 
 
 def earthkit_file(*args):

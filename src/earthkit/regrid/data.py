@@ -11,6 +11,8 @@ import logging
 from abc import ABCMeta
 from abc import abstractmethod
 
+from earthkit.utils.array import backend_from_array
+
 LOG = logging.getLogger(__name__)
 
 
@@ -41,12 +43,14 @@ class DataHandler(metaclass=ABCMeta):
         return backend
 
 
-class NumpyDataHandler(DataHandler):
+class ArrayDataHandler(DataHandler):
     @staticmethod
     def match(values):
-        import numpy as np
-
-        return isinstance(values, np.ndarray)
+        try:
+            backend_from_array(values)
+            return True
+        except Exception:
+            return False
 
     def regrid(self, values, **kwargs):
         in_grid = kwargs.pop("in_grid")
@@ -110,7 +114,7 @@ class FieldListDataHandler(DataHandler):
 
         r = earthkit.data.FieldList()
         for i, f in enumerate(ds):
-            vv = f.to_numpy(flatten=True)
+            vv = f.to_array(flatten=True)
 
             in_grid_f = self.input_gridspec(in_grid, f, i)
 
@@ -122,7 +126,7 @@ class FieldListDataHandler(DataHandler):
                 **kwargs,
             )
             md_res = f.metadata().override(gridspec=out_grid)
-            r += ds.from_numpy(v_res, md_res)
+            r += ds.from_array([v_res], [md_res])
 
         return r
 
@@ -208,7 +212,7 @@ class GribMessageDataHandler(DataHandler):
 
 
 FIELDLIST_DATA_HANDLER = FieldListDataHandler()
-DATA_HANDLERS = [NumpyDataHandler(), FIELDLIST_DATA_HANDLER, FieldDataHandler(), GribMessageDataHandler()]
+DATA_HANDLERS = [ArrayDataHandler(), FIELDLIST_DATA_HANDLER, FieldDataHandler(), GribMessageDataHandler()]
 
 
 def get_data_handler(values):

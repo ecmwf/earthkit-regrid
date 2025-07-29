@@ -7,6 +7,8 @@
 # nor does it submit to any jurisdiction.
 #
 
+from earthkit.utils.array import backend_from_array
+
 from . import Backend
 
 
@@ -14,6 +16,9 @@ class MirBackend(Backend):
     name = "mir"
 
     def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
+        if not backend_from_array(values).name == "numpy":
+            raise ValueError("MirBackend only supports numpy arrays")
+
         import mir
 
         input = mir.ArrayInput(values, in_grid)

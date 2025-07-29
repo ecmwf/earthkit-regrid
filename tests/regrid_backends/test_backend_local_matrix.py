@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 from earthkit.regrid.utils.testing import LOCAL_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 from earthkit.regrid.utils.testing import get_test_data
@@ -75,9 +76,10 @@ def test_regrid_local_matrix_index():
 
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_local_matrix_ll_to_ll(interpolation):
-    v_in = np.load(file_in_testdir("in_5x5.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_5x5_10x10_{interpolation}.npz"))["arr_0"]
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_local_matrix_ll_to_ll(interpolation, array_backend):
+    v_in = array_backend.asarray(np.load(file_in_testdir("in_5x5.npz"))["arr_0"])
+    v_ref = array_backend.asarray(np.load(file_in_testdir(f"out_5x5_10x10_{interpolation}.npz"))["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in, in_grid={"grid": [5, 5]}, out_grid=out_grid, interpolation=interpolation
@@ -85,13 +87,14 @@ def test_regrid_local_matrix_ll_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_local_matrix_ogg_to_ll(interpolation):
-    v_in = np.load(file_in_testdir("in_O32.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_O32_10x10_{interpolation}.npz"))["arr_0"]
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_local_matrix_ogg_to_ll(interpolation, array_backend):
+    v_in = array_backend.asarray(np.load(file_in_testdir("in_O32.npz"))["arr_0"])
+    v_ref = array_backend.asarray(np.load(file_in_testdir(f"out_O32_10x10_{interpolation}.npz"))["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in, in_grid={"grid": "O32"}, out_grid=out_grid, interpolation=interpolation
@@ -99,13 +102,14 @@ def test_regrid_local_matrix_ogg_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_local_matrix_ngg_to_ll(interpolation):
-    v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_N32_10x10_{interpolation}.npz"))["arr_0"]
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_local_matrix_ngg_to_ll(interpolation, array_backend):
+    v_in = array_backend.asarray(np.load(file_in_testdir("in_N32.npz"))["arr_0"])
+    v_ref = array_backend.asarray(np.load(file_in_testdir(f"out_N32_10x10_{interpolation}.npz"))["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,
@@ -116,13 +120,14 @@ def test_regrid_local_matrix_ngg_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_local_matrix_healpix_ring_to_ll(interpolation):
-    v_in = np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{interpolation}.npz"))["arr_0"]
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_local_matrix_healpix_ring_to_ll(interpolation, array_backend):
+    v_in = array_backend.asarray(np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"])
+    v_ref = array_backend.asarray(np.load(file_in_testdir(f"out_H4_ring_10x10_{interpolation}.npz"))["arr_0"])
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,
@@ -133,13 +138,16 @@ def test_regrid_local_matrix_healpix_ring_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.parametrize("interpolation", INTERPOLATIONS)
-def test_regrid_local_matrix_nested_to_ll(interpolation):
-    v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
-    v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{interpolation}.npz"))["arr_0"]
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_local_matrix_nested_to_ll(interpolation, array_backend):
+    v_in = array_backend.asarray(np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"])
+    v_ref = array_backend.asarray(
+        np.load(file_in_testdir(f"out_H4_nested_10x10_{interpolation}.npz"))["arr_0"]
+    )
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,
@@ -150,7 +158,7 @@ def test_regrid_local_matrix_nested_to_ll(interpolation):
 
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
-    assert np.allclose(v_res.flatten(), v_ref)
+    assert array_backend.allclose(v_res.flatten(), v_ref)
 
 
 @pytest.mark.parametrize("interpolation", ["linear"])

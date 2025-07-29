@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
+from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
 from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME  # noqa: E402
 from earthkit.regrid.utils.testing import get_test_data  # noqa: E402
@@ -43,19 +44,20 @@ def _create_fieldlist(filename, field_type):
         ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
 @pytest.mark.parametrize("field_type", ["grib", "array"])
-def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type):
-    ds = _create_fieldlist("5x5.grib", field_type)
+def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type, array_backend):
+    ds = _create_fieldlist("5x5.grib", field_type).to_fieldlist(array_backend=array_backend)
 
     f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")
-    v_ref = np.load(f_ref)["arr_0"]
+    v_ref = array_backend.from_numpy(np.load(f_ref)["arr_0"])
     metadata_ref = ds.metadata(["param", "level", "date", "time", "gridType"])
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
-    assert np.allclose(r[0].values, v_ref)
+    assert array_backend.allclose(r[0].values, v_ref)
     assert r.metadata(["param", "level", "date", "time", "gridType"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
@@ -77,19 +79,20 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type):
         ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
 @pytest.mark.parametrize("field_type", ["grib", "array"])
-def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
-    ds = _create_fieldlist("O32.grib", field_type)
+def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type, array_backend):
+    ds = _create_fieldlist("O32.grib", field_type).to_fieldlist(array_backend=array_backend)
 
     f_ref = get_test_data(f"out_O32_10x10_{interpolation}.npz")
-    v_ref = np.load(f_ref)["arr_0"]
+    v_ref = array_backend.from_numpy(np.load(f_ref)["arr_0"])
     metadata_ref = ds.metadata(["param", "level", "date", "time"])
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
-    assert np.allclose(r[0].values, v_ref)
+    assert array_backend.allclose(r[0].values, v_ref)
     assert r.metadata(["param", "level", "date", "time"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}
@@ -109,8 +112,9 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
         ({"interpolation": "nearest-neighbor"}),
     ],
 )
-def test_regrid_matrix_grib_fieldlist(_kwarg):
-    ds = from_source("url", get_test_data_path("O32.grib"))
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
+def test_regrid_matrix_grib_fieldlist(_kwarg, array_backend):
+    ds = from_source("url", get_test_data_path("O32.grib")).to_fieldlist(array_backend=array_backend)
 
     r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
     assert len(r) == 1
@@ -130,19 +134,20 @@ def test_regrid_matrix_grib_fieldlist(_kwarg):
         ({"interpolation": "nearest-neighbor"}, "nearest-neighbour"),
     ],
 )
+@pytest.mark.parametrize("array_backend", ARRAY_BACKENDS)
 @pytest.mark.parametrize("field_type", ["grib", "array"])
-def test_regrid_matrix_single_field(_kwarg, interpolation, field_type):
-    ds = _create_fieldlist("5x5.grib", field_type)
+def test_regrid_matrix_single_field(_kwarg, interpolation, field_type, array_backend):
+    ds = _create_fieldlist("5x5.grib", field_type).to_fieldlist(array_backend=array_backend)
 
     f_ref = get_test_data(f"out_5x5_10x10_{interpolation}.npz")
-    v_ref = np.load(f_ref)["arr_0"]
+    v_ref = array_backend.from_numpy(np.load(f_ref)["arr_0"])
     field = ds[0]
     metadata_ref = field.metadata(["param", "level", "date", "time", "gridType"])
 
     r = regrid(field, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert r.shape == (19, 36)
-    assert np.allclose(r.values, v_ref)
+    assert array_backend.allclose(r.values, v_ref)
     assert r.metadata(["param", "level", "date", "time", "gridType"]) == metadata_ref
 
     grid_ref = {"iDirectionIncrementInDegrees": 10.0, "jDirectionIncrementInDegrees": 10.0}

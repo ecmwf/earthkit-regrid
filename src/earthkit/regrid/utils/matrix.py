@@ -8,12 +8,28 @@
 #
 
 
-def matrix_memory_size(m):
-    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
-    try:
-        # TODO: This works for bsr, csc and csr matrices but not for other types.
-        return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
+import logging
 
-    except Exception as e:
-        print(e)
-        return 0
+LOG = logging.getLogger(__name__)
+
+
+def numpy_memory_size(m):
+    # see: https://stackoverflow.com/questions/11173019/determining-the-byte-size-of-a-scipy-sparse-matrix
+    return m.data.nbytes + m.indptr.nbytes + m.indices.nbytes
+
+
+def torch_memory_size(m):
+    indices_bytes = m.indices().element_size() * m.indices().nelement()
+    values_bytes = m.values().element_size() * m.values().nelement()
+    return indices_bytes + values_bytes
+
+
+def matrix_memory_size(m):
+
+    for method in [numpy_memory_size, torch_memory_size]:
+        try:
+            return method(m)
+        except Exception as e:
+            LOG.info("Failed to get matrix memory size with %s: %s", method.__name__, e)
+
+    return 0

@@ -29,6 +29,7 @@ classifiers = [
 dynamic = [ "version" ]
 dependencies = [
   "deprecation",
+  "earthkit-utils>=0.0.1",
   "filelock",
   #"mir-python>=1.27.2.dev20250723",
   "multiurl",
@@ -36,10 +37,12 @@ dependencies = [
   "scipy",
 ]
 optional-dependencies.test = [
+  "cupy",
   "earthkit-data",
   "pytest",
   "pytest-cov",
   "requests",
+  "torch",
 ]
 urls.Documentation = "https://earthkit-regrid.readthedocs.io/"
 urls.Homepage = "https://github.com/ecmwf/earthkit-regrid/"

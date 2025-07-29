@@ -13,8 +13,6 @@ import os
 from abc import ABCMeta
 from abc import abstractmethod
 
-from scipy.sparse import load_npz
-
 from earthkit.regrid.gridspec import GridSpec
 from earthkit.regrid.utils import no_progress_bar
 from earthkit.regrid.utils.download import download_and_cache
@@ -454,8 +452,10 @@ class MatrixDb:
         gridspec_in,
         gridspec_out,
         method,
+        matrix_loader,
         **kwargs,
     ):
+        from earthkit.regrid.utils.memcache import MEMORY_CACHE
 
         gridspec_in = GridSpec.from_dict(gridspec_in)
         gridspec_out = GridSpec.from_dict(gridspec_out)
@@ -470,22 +470,24 @@ class MatrixDb:
             gridspec_in,
             gridspec_out,
             method,
+            matrix_loader,
             create=self._create_matrix,
             find_entry=self.find_entry,
-            create_from_entry=self._create_matrix_from_entry,
             **kwargs,
         )
 
-    def _create_matrix(self, gridspec_in, gridspec_out, method):
-        return self._create_matrix_from_entry(self.find_entry(gridspec_in, gridspec_out, method))
+    def _create_matrix(self, gridspec_in, gridspec_out, method, matrix_loader):
+        return self._create_matrix_from_entry(
+            self.find_entry(gridspec_in, gridspec_out, method), matrix_loader
+        )
 
-    def _create_matrix_from_entry(self, entry):
+    def _create_matrix_from_entry(self, entry, matrix_loader):
         if entry is not None:
-            z = self.load_matrix(entry)
-            return z, entry["output"]["shape"]
+            path = self._matrix_fs_path(entry)
+            return matrix_loader.load(path), entry["output"]["shape"]
         return None, None
 
-    def find_entry(self, gridspec_in, gridspec_out, method):
+    def find_entry(self, gridspec_in, gridspec_out, method, *_):
         method = self._method_alias(method)
         entry = self.index.find(gridspec_in, gridspec_out, method)
         if entry is None and not self._accessor.is_local() and not self._accessor.checked_remote():
@@ -496,11 +498,6 @@ class MatrixDb:
             entry = self.index.find(gridspec_in, gridspec_out, method)
 
         return entry
-
-    def load_matrix(self, entry):
-        path = self._matrix_fs_path(entry)
-        z = load_npz(path)
-        return z
 
     def _matrix_index_filename(self, entry):
         return self.index.matrix_filename(entry)

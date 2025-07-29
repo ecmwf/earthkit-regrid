@@ -15,6 +15,11 @@ def make_sha(data):
     m = hashlib.sha256()
     if isinstance(data, str):
         m.update(data.encode("utf-8"))
-    else:
+    elif isinstance(data, dict):
         m.update(json.dumps(data, sort_keys=True).encode("utf-8"))
+    elif isinstance(data, (tuple, list)):
+        for item in data:
+            m.update(make_sha(item).encode("utf-8"))
+    else:
+        m.update(str(hash(data)).encode("utf-8"))
     return m.hexdigest()

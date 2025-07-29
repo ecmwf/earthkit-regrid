@@ -15,7 +15,9 @@ PATH = os.path.dirname(__file__)
 
 URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
 
-_ROOT_DIR = top = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+_ROOT_DIR = top = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+)
 if not os.path.exists(os.path.join(_ROOT_DIR, "tests", "data")):
     _ROOT_DIR = "./"
 
@@ -49,7 +51,7 @@ def get_test_data(filename, subfolder="global_0_360"):
 
     res = []
     for fn in filename:
-        d_path = os.path.join(PATH, "data", subfolder)
+        d_path = earthkit_test_data_path(subfolder)
         os.makedirs(d_path, exist_ok=True)
         f_path = os.path.join(d_path, fn)
         if not os.path.exists(f_path):
@@ -66,7 +68,8 @@ def modules_installed(*modules):
     for module in modules:
         try:
             import_module(module)
-        except ImportError:
+        except ImportError as e:
+            print(f"earthkit-regrid testing: {module=} is not installed: {e}")
             return False
     return True
 

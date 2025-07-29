@@ -99,7 +99,10 @@ class GridSpec(dict):
     @staticmethod
     def compare_key(key, v1, v2):
         if isinstance(v1, str) and isinstance(v2, str):
-            return v1 == v2
+            if key == "grid":
+                return v1.lower() == v2.lower()
+            else:
+                return v1 == v2
         elif key == "grid" and isinstance(v1, list) and isinstance(v2, list):
             return np.allclose(np.array(v1), np.array(v2), atol=1e-6)
         elif isinstance(v1, list) and isinstance(v2, list):
@@ -326,6 +329,7 @@ class ReducedGGGridSpec(GridSpec):
             if not isinstance(grid, str) or not RGG_PATTERN.match(grid):
                 raise ValueError(f"Invalid {grid=}")
             try:
+                grid = grid.upper()
                 if grid[0] == "N":
                     N = int(grid[1:])
                     octahedral = 0
@@ -363,10 +367,14 @@ class HealpixGridSpec(GridSpec):
     def __init__(self, gs):
         super().__init__(gs)
 
+        # the offical key is "order", we still support "ordering" for compatibility
+        if "ordering" in gs:
+            self["order"] = self.pop("ordering")
+
         self._global_ew = True
         self._global_ns = True
         self.setdefault("area", self.DEFAULT_AREA)
-        self._ordering = None
+        self._order = None
         self._N = None
 
     @property
@@ -388,10 +396,10 @@ class HealpixGridSpec(GridSpec):
         if not super().__eq__(o):
             return False
 
-        return self.ordering == o.ordering
+        return self.order == o.order
 
     def _inspect_grid(self):
-        if self._N is None or self._ordering is None:
+        if self._N is None or self._order is None:
             grid = self["grid"]
             if not self.type_match(grid):
                 raise ValueError(f"Invalid healpix {grid=}")
@@ -401,14 +409,14 @@ class HealpixGridSpec(GridSpec):
             except Exception:
                 raise ValueError(f"Invalid healpix number in {grid=}")
 
-            ordering = self.get("ordering", "ring")
-            if ordering not in ["ring", "nested"]:
-                raise ValueError(f"Invalid {ordering=}, must be 'ring' or 'nested'")
+            order = self.get("order", "ring")
+            if order not in ["ring", "nested"]:
+                raise ValueError(f"Invalid {order=}, must be 'ring' or 'nested'")
 
             if N < 1 or N > 1000000:
                 raise ValueError(f"Invalid healpix number in {grid=}")
             self._N = N
-            self._ordering = ordering
+            self._order = order
 
     @property
     def N(self):
@@ -417,10 +425,10 @@ class HealpixGridSpec(GridSpec):
         return self._N
 
     @property
-    def ordering(self):
-        if self._ordering is None:
+    def order(self):
+        if self._order is None:
             self._inspect_grid()
-        return self._ordering
+        return self._order
 
     @staticmethod
     def type_match(grid):

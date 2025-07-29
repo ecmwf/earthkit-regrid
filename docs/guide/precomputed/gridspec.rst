@@ -1,19 +1,23 @@
 .. _gridspec-precomputed:
 
-Gridspec
-==========
+Gridspec (for precomputed backends)
+=====================================
 
-A gridspec describes spatial grids in the form a dict. Its specification is yet to be finalised. However, at the moment, only the ``grid`` key has to be used for the source and target grids earthkit-regrid supports.
+A gridspec describes spatial grids in the form a dict.
 
-The grids supported by earthkit-regrid and their gridspecs are summarised below:
+.. warning::
+
+    The gridspec format is not finalised yet and may change in future releases. Subarea specification is not yet supported.
+
+The gridspecs supported by the ``in_grid`` and ``out_grid`` options in ``regrid()`` with the :ref:`precomputed <precomputed-regrid>` and the :ref:`precomputed-local <precomputed-local-regrid>` backends are summarised below:
 
 
-global octahedral reduced gaussian grid
+Global octahedral reduced Gaussian grid
 ------------------------------------------
 
 The ``grid`` format is::
 
-    OXXX
+    [Oo]XXX
 
 where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Introducing+the+octahedral+reduced+Gaussian+grid>`_.
 
@@ -22,14 +26,15 @@ Example:
 .. code-block::
 
     {"grid": "O320"}
+    {"grid": "o320"}
 
 
-global (non-octahedral) reduced gaussian grid
+Global (non-octahedral) reduced Gaussian grid
 ------------------------------------------------
 
 The ``grid`` format is::
 
-    NXXX
+    [Nn]XXX
 
 where *XXX* is the number of latitude lines between the pole and equator. For details about this grid, see `here <https://confluence.ecmwf.int/display/FCST/Gaussian+grids>`_.
 
@@ -38,9 +43,10 @@ Example:
 .. code-block::
 
     {"grid": "N320"}
+    {"grid": "n320"}
 
 
-global regular latitude-longitude grid
+Global regular latitude-longitude grid
 ----------------------------------------
 
 The ``grid`` format is::
@@ -62,15 +68,16 @@ HEALPix nested grid
 
 The ``grid`` format is::
 
-    HXXX
+    [Hh]XXX
 
-The ``ordering`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+The ``order`` must be set to ``"nested"``. For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
 Example:
 
 .. code-block::
 
-    {"grid": "H512", "ordering": "nested"}
+    {"grid": "H512", "order": "nested"}
+    {"grid": "h512", "order": "nested"}
 
 
 HEALPix ring grid
@@ -78,16 +85,17 @@ HEALPix ring grid
 
 The ``grid`` format is::
 
-    HXXX
+    [Hh]XXX
 
-The ``ordering`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
+The ``order`` can be omitted or set to ``"ring"``.  For details about this grid, see `here  <https://en.wikipedia.org/wiki/HEALPix>`_.
 
 Example:
 
 .. code-block::
 
-    {"grid": "H512", "ordering": "ring"}
+    {"grid": "H512", "order": "ring"}
     {"grid": "H512"}
+    {"grid": "h512"}
 
 
 ORCA grid

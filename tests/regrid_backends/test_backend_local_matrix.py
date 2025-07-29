@@ -15,6 +15,7 @@ from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import ARRAY_BACKENDS
 from earthkit.regrid.utils.testing import LOCAL_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import earthkit_test_data_path
+from earthkit.regrid.utils.testing import get_test_data
 
 DB_PATH = earthkit_test_data_path("local", "db")
 DATA_PATH = earthkit_test_data_path("local")
@@ -130,7 +131,7 @@ def test_regrid_local_matrix_healpix_ring_to_ll(interpolation, array_backend):
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,
-        in_grid={"grid": "H4", "ordering": "ring"},
+        in_grid={"grid": "H4", "order": "ring"},
         out_grid=out_grid,
         interpolation=interpolation,
     )
@@ -150,7 +151,7 @@ def test_regrid_local_matrix_nested_to_ll(interpolation, array_backend):
     out_grid = {"grid": [10, 10]}
     v_res, grid_res = run_regrid(
         v_in,
-        in_grid={"grid": "H4", "ordering": "nested"},
+        in_grid={"grid": "H4", "order": "nested"},
         out_grid=out_grid,
         interpolation=interpolation,
     )
@@ -158,6 +159,29 @@ def test_regrid_local_matrix_nested_to_ll(interpolation, array_backend):
     assert v_res.shape == (19, 36)
     assert grid_res == out_grid
     assert array_backend.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.parametrize("interpolation", ["linear"])
+def test_regrid_local_matrix_orca_to_ogg(interpolation):
+    f_in = get_test_data("in_eORCA025_T.npz", subfolder="orca")
+    f_out = get_test_data(f"out_eORCA025_T_O96_{interpolation}.npz", subfolder="local")
+
+    v_in = np.load(f_in)["arr_0"]
+    v_ref = np.load(f_out)["arr_0"]
+
+    out_grid = {"grid": "O96"}
+    v_res, grid_res = run_regrid(
+        v_in,
+        in_grid={
+            "grid": "eORCA025_T",
+        },
+        out_grid=out_grid,
+        interpolation=interpolation,
+    )
+
+    assert v_res.shape == (40320,)
+    assert grid_res == out_grid
+    np.testing.assert_allclose(v_res, v_ref, verbose=False)
 
 
 # TODO: implement this test
@@ -223,6 +247,8 @@ def test_regrid_local_matrix_nested_to_ll(interpolation, array_backend):
         ({"grid": "H4"}, {"grid": [10, 10]}),
         ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
         ({"grid": "eORCA025_T"}, {"grid": "O96"}),
+        ({"grid": "n32"}, {"grid": [10, 10]}),
+        ({"grid": "h4"}, {"grid": [10, 10]}),
     ],
 )
 def test_local_matrix_gridspec_ok(gs_in, gs_out):
@@ -263,6 +289,7 @@ def test_local_matrix_gridspec_ok(gs_in, gs_out):
         ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),
         ({"grid": "bORCA025_T"}, {"grid": "O96"}, ValueError),
         ({"grid": "ORCA025_TU"}, {"grid": "O96"}, ValueError),
+        ({"grid": "eorca025_t"}, {"grid": "O96"}, ValueError),
     ],
 )
 def test_local_matrix_gridspec_bad(gs_in, gs_out, err):

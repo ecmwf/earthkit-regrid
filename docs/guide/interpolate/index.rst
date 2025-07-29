@@ -10,6 +10,4 @@ interpolate
    :maxdepth: 1
 
    interpolate
-   config
-   caching
    inventory/index.rst

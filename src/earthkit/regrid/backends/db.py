@@ -462,6 +462,10 @@ class MatrixDb:
         if gridspec_in is None or gridspec_out is None:
             return None, None
 
+        # return self._create_matrix(gridspec_in, gridspec_out, method)
+
+        from earthkit.regrid.utils.memcache import MEMORY_CACHE
+
         return MEMORY_CACHE.get(
             gridspec_in,
             gridspec_out,

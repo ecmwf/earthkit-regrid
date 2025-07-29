@@ -148,26 +148,26 @@ CONFIG_AND_HELP = {
     "user-cache-directory": _(
         os.path.join(os.path.expanduser("~"), ".cache", "earthkit-regrid"),
         """Cache directory used when ``cache-policy`` is ``user``.
-        See :doc:`/guide/caching` for more information.""",
+        See :doc:`/guide/misc/caching` for more information.""",
     ),
     "temporary-cache-directory-root": _(
         None,
         """Parent of the cache directory when ``cache-policy`` is ``temporary``.
-        See :doc:`/guide/caching` for more information.""",
+        See :doc:`/guide/misc/caching` for more information.""",
         getter="_as_str",
         none_ok=True,
     ),
     "temporary-directory-root": _(
         None,
         """Parent of the temporary directory when ``cache-policy`` is ``off``.
-        See :doc:`/guide/caching` for more information.""",
+        See :doc:`/guide/misc/caching` for more information.""",
         getter="_as_str",
         none_ok=True,
     ),
     "cache-policy": _(
         "user",
         """Caching policy. {validator}
-        See :doc:`/guide/caching` for more information. """,
+        See :doc:`/guide/misc/caching` for more information. """,
         validator=ValuesValidator(["off", "temporary", "user"]),
     ),
     "maximum-cache-size": _(
@@ -198,23 +198,26 @@ CONFIG_AND_HELP = {
         False,
         "Re-download URLs when the remote version of a cached file as been changed",
     ),
-    "maximum-matrix-memory-cache-size": _(
+    "maximum-weights-memory-cache-size": _(
         "500MB",
-        """The maximum memory size of the in-memory matrix cache in bytes. Only used when ``matrix-memory-cache-policy`` is ``"largest"`` or ``"lru"``. Can be set to None.
-        See :ref:`memory_cache` for more information.""",
+        """The maximum memory size of the in-memory precomputed weight cache in bytes.
+        Only used when ``weights-memory-cache-policy`` is ``"largest"`` or ``"lru"``. Can be
+        set to None.
+        See :ref:`mem_cache` for more information.""",
         getter="_as_bytes",
         none_ok=True,
     ),
-    "matrix-memory-cache-policy": _(
+    "weights-memory-cache-policy": _(
         "largest",
-        """The matrix in-memory cache policy. {validator}
-        See :ref:`memory_cache` for more information.""",
+        """The in-memory precomputed weights cache policy. {validator}
+        See :ref:`mem_cache` for more information.""",
         validator=ValuesValidator(["off", "unlimited", "largest", "lru"]),
     ),
-    "matrix-memory-cache-strict-mode": _(
+    "weights-memory-cache-strict-mode": _(
         False,
-        """Raise exception if the matrix cannot be fitted into the in-memory cache.  Only used when ``matrix-memory-cache-policy`` is ``"largest"`` or ``"lru"``.
-        See :ref:`memory_cache` for more information.""",
+        """Raise exception if the weights cannot be fitted into the in-memory cache.
+        Only used when ``weights-memory-cache-policy`` is ``"largest"`` or ``"lru"``.
+        See :ref:`mem_cache` for more information.""",
     ),
 }
 

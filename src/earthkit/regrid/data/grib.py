@@ -43,4 +43,4 @@ class GribMessageDataHandler(DataHandler):
             raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")
 
 
-handler = GribMessageDataHandler()
+handler = GribMessageDataHandler

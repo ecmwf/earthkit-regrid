@@ -10,8 +10,16 @@
 
 from importlib import import_module
 
+_modules = [
+    "numpy",
+    "fieldlist",
+    "grib",
+    "xarray",
+]
+
+
 DATA_HANDLERS = []
-for name in ["numpy", "fieldlist", "grib", "xarray"]:
+for name in _modules:
     module = import_module(f".{name}", package=__name__)
     lst = getattr(module, "handler", [])
     if not isinstance(lst, list):
@@ -23,4 +31,5 @@ for name in ["numpy", "fieldlist", "grib", "xarray"]:
 def get_data_handler(values):
     for h in DATA_HANDLERS:
         if h.match(values):
-            return h
+            # TODO: rethink if we need to create a new handler instance each time
+            return h()

@@ -28,4 +28,4 @@ class NumpyDataHandler(DataHandler):
         return backend.regrid(values, in_grid, out_grid, **kwargs)
 
 
-handler = NumpyDataHandler()
+handler = NumpyDataHandler

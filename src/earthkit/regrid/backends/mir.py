@@ -7,7 +7,6 @@
 # nor does it submit to any jurisdiction.
 #
 
-from warnings import warn
 
 from . import Backend
 
@@ -15,23 +14,8 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def patch_grid(self, grid, kwargs):
-
-        # TODO: remove this once we have a better way to handle area in gridspec
-        if "area" in grid:
-            warn(
-                "The area key is a temporary workaround for area in gridspec",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            area = grid.pop("area")
-            kwargs["area"] = area
-        return kwargs
-
     def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
         import mir
-
-        self.patch_grid(out_grid, kwargs)
 
         input = mir.ArrayInput(values, in_grid)
         out = mir.ArrayOutput()
@@ -57,8 +41,6 @@ class MirBackend(Backend):
         from io import BytesIO
 
         import mir
-
-        self.patch_grid(out_grid, kwargs)
 
         in_data = mir.GribMemoryInput(message)
         out = BytesIO()

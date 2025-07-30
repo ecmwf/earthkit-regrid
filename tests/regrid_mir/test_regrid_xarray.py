@@ -55,3 +55,20 @@ def test_regrid_xarray_from_h_nested(out_grid, dims):
     r = regrid(ds["2t"], out_grid=out_grid, interpolation="linear")
 
     compare_dims(r, dims, sizes=True)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.skipif(NO_EKD, reason="No earthkit.data available")
+@pytest.mark.parametrize(
+    "out_grid,dims",
+    REFS,
+)
+def test_regrid_xarray_dataset_from_h_nested(out_grid, dims):
+
+    ds_in = from_source("sample", "H8_nested_t2.grib2")
+    assert len(ds_in) == 2
+    ds = ds_in.to_xarray()
+
+    r = regrid(ds, out_grid=out_grid, interpolation="linear")
+
+    compare_dims(r, dims, sizes=True)

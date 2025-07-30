@@ -291,26 +291,37 @@ class XarrayDataHandler(DataHandler):
         if set(in_dims) == set(out_dims):
             exclude_dims = set(in_dims)
 
-        ds_out = xr.apply_ufunc(
-            functools.partial(
-                NumpyDataHandler().regrid,
-                in_grid=in_grid.grid_spec,
-                out_grid=out_geo.grid_spec,
-                output="values",
-                **kwargs,
-            ),
-            values,
-            input_core_dims=[in_dims],
-            output_core_dims=[out_dims],
-            exclude_dims=exclude_dims,
-            vectorize=True,
-            dask="parallelized",
-            dask_gufunc_kwargs={
-                "output_sizes": {dim: out_geo.shape[i] for i, dim in enumerate(out_dims)},
-                "allow_rechunk": True,
-            },
-            output_dtypes=[values.dtype],
+        method = functools.partial(
+            NumpyDataHandler().regrid,
+            in_grid=in_grid.grid_spec,
+            out_grid=out_geo.grid_spec,
+            output="values",
+            **kwargs,
         )
+
+        def _regrid(da):
+            return xr.apply_ufunc(
+                method,
+                da,
+                input_core_dims=[in_dims],
+                output_core_dims=[out_dims],
+                exclude_dims=exclude_dims,
+                vectorize=True,
+                dask="parallelized",
+                dask_gufunc_kwargs={
+                    "output_sizes": {dim: out_geo.shape[i] for i, dim in enumerate(out_dims)},
+                    "allow_rechunk": True,
+                },
+                output_dtypes=[da.dtype],
+            )
+
+        if isinstance(values, xr.Dataset):
+            ds_out = xr.Dataset()
+            for var_name, var in values.data_vars.items():
+                ds_out[var_name] = _regrid(var)
+
+        else:
+            ds_out = _regrid(values)
 
         self.add_geo_coords(ds_out, out_geo)
 

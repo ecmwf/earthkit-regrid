@@ -11,6 +11,7 @@ import pytest
 
 from earthkit.regrid import regrid
 from earthkit.regrid.utils.testing import NO_EKD  # noqa: E402
+from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import compare_dims
 
 if not NO_EKD:
@@ -18,6 +19,7 @@ if not NO_EKD:
 
 
 @pytest.mark.skipif(NO_EKD, reason="No earthkit.data available")
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize(
     "out_grid,dims",
     [
@@ -36,6 +38,7 @@ def test_regrid_matrix_xarray_from_ogg(out_grid, dims):
 
 
 @pytest.mark.skipif(NO_EKD, reason="No earthkit.data available")
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.parametrize(
     "out_grid,dims",
     [

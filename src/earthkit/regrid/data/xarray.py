@@ -91,6 +91,7 @@ class GridWrapper:
         return None
 
 
+# TODO: move this code to earthkit-geo
 class XarrrayGeographyBuilder:
     def __init__(self, grid_spec):
         self.grid = GridWrapper(grid_spec)
@@ -169,14 +170,11 @@ class XarrrayGeographyBuilder:
                         coords_dim = {k: ("y", "x") for k in coords}
                         dims["y"] = field_shape[0]
                         dims["x"] = field_shape[1]
-                        print("field_shape:", field_shape, lat.shape, lon.shape)
+                        # print("field_shape:", field_shape, lat.shape, lon.shape)
                         assert coords["latitude"].shape == field_shape
                         assert coords["longitude"].shape == field_shape
             else:
                 raise ValueError(f"Unsupported field shape {field_shape}")
-
-        # if hasattr(field, "unload"):
-        #     field.unload()
 
         for k, v in coords.items():
             assert k in coords_dim, f"{k=}, {coords_dim=}"
@@ -216,30 +214,59 @@ class XarrayDataHandler(DataHandler):
         except Exception:
             return False
 
-    def regrid(self, values, **kwargs):
-        from .numpy import NumpyDataHandler
-
-        kwargs = kwargs.copy()
-
+    @staticmethod
+    def get_in_grid(ds, kwargs):
+        """
+        Get the input grid from the dataset or from the kwargs.
+        """
         in_grid = kwargs.pop("in_grid", None)
         if in_grid is None:
-            in_grid = values.attrs.get("gridspec", None)
-            if in_grid is None:
-                try:
-                    in_grid = values.earthkit.grid_spec
-                except AttributeError:
-                    pass
+            try:
+                in_grid = ds.attrs.get("gridspec", None)
+                if in_grid is None:
+                    in_grid = ds.earthkit.grid_spec
+            except AttributeError:
+                pass
 
         if in_grid is None:
             raise ValueError("in_grid must be provided")
 
-        in_grid = GridWrapper(in_grid)
+        return GridWrapper(in_grid)
 
+    @staticmethod
+    def get_out_geo(kwargs):
+        """
+        Get the output geography from the out_grid.
+        """
         out_grid = kwargs.pop("out_grid")
         if out_grid is None:
             raise ValueError("out_grid must be provided")
 
         out_geo = XarrrayGeographyBuilder(out_grid)
+        return out_geo
+
+    @staticmethod
+    def add_geo_coords(ds, out_geo):
+        """
+        Add the geographical coordinates to the dataset.
+        """
+        dims, coords, coords_dim = out_geo.coords()
+
+        import xarray as xr
+
+        for k, v in coords.items():
+            c_dims = {x: dims[x] for x in coords_dim[k]}
+            ds.coords[k] = xr.Variable(c_dims, v)
+
+        return ds
+
+    def regrid(self, values, **kwargs):
+        from .numpy import NumpyDataHandler
+
+        kwargs = kwargs.copy()
+
+        in_grid = self.get_in_grid(values, kwargs)
+        out_geo = self.get_out_geo(kwargs)
 
         in_dims = kwargs.pop("in_dims", None)
         if in_dims is None:
@@ -260,6 +287,10 @@ class XarrayDataHandler(DataHandler):
 
         import xarray as xr
 
+        exclude_dims = set()
+        if set(in_dims) == set(out_dims):
+            exclude_dims = set(in_dims)
+
         ds_out = xr.apply_ufunc(
             functools.partial(
                 NumpyDataHandler().regrid,
@@ -271,6 +302,7 @@ class XarrayDataHandler(DataHandler):
             values,
             input_core_dims=[in_dims],
             output_core_dims=[out_dims],
+            exclude_dims=exclude_dims,
             vectorize=True,
             dask="parallelized",
             dask_gufunc_kwargs={
@@ -280,9 +312,7 @@ class XarrayDataHandler(DataHandler):
             output_dtypes=[values.dtype],
         )
 
-        _, coords, _ = out_geo.coords()
-        for k, v in coords.items():
-            ds_out.coords[k] = v
+        self.add_geo_coords(ds_out, out_geo)
 
         return ds_out
 

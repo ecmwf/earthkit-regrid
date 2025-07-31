@@ -15,7 +15,18 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def adjust_options(self, grid, kwargs):
+    @staticmethod
+    def normalise_area(area):
+        if isinstance(area, str):
+            return area
+        if isinstance(area, (list, tuple)):
+            if len(area) == 4:
+                return "/".join(map(str, area))
+
+        raise ValueError(f"Invalid area format: {area}")
+
+    @staticmethod
+    def adjust_options(grid, kwargs):
         # TODO: remove this once we have a better way to handle area in gridspec
         if "area" in grid:
             warn(
@@ -26,7 +37,7 @@ class MirBackend(Backend):
             grid = grid.copy()
             kwargs = kwargs.copy()
             area = grid.pop("area")
-            kwargs["area"] = area
+            kwargs["area"] = MirBackend.normalise_area(area)
         return grid, kwargs
 
     def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):

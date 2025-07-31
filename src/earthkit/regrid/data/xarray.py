@@ -221,6 +221,8 @@ class XarrayDataHandler(DataHandler):
         """
         in_grid = kwargs.pop("in_grid", None)
         if in_grid is None:
+            # TODO: ensure the grid_spec is always available on an Xarray.
+            # This probably should be implemented in earthkit-geo.
             try:
                 in_grid = ds.attrs.get("gridspec", None)
                 if in_grid is None:
@@ -291,6 +293,8 @@ class XarrayDataHandler(DataHandler):
         if set(in_dims) == set(out_dims):
             exclude_dims = set(in_dims)
 
+        # regrid can change the specified output gridspec.
+        # This is a workaround to get the returned output gridscpec from regrid.
         class _RegridMethod:
             def __init__(self, in_grid, out_grid, **kwargs):
                 self.out_grid = out_grid
@@ -303,16 +307,9 @@ class XarrayDataHandler(DataHandler):
                 )
 
             def __call__(self, vals):
+                # TODO: ensure it is thread safe
                 vals, self.out_grid = self.method(vals)
                 return vals
-
-        # method = functools.partial(
-        #     NumpyDataHandler().regrid,
-        #     in_grid=in_grid.grid_spec,
-        #     out_grid=out_geo.grid_spec,
-        #     output="values",
-        #     **kwargs,
-        # )
 
         method = _RegridMethod(in_grid.grid_spec, out_geo.grid_spec, **kwargs)
 

@@ -291,13 +291,30 @@ class XarrayDataHandler(DataHandler):
         if set(in_dims) == set(out_dims):
             exclude_dims = set(in_dims)
 
-        method = functools.partial(
-            NumpyDataHandler().regrid,
-            in_grid=in_grid.grid_spec,
-            out_grid=out_geo.grid_spec,
-            output="values",
-            **kwargs,
-        )
+        class _RegridMethod:
+            def __init__(self, in_grid, out_grid, **kwargs):
+                self.out_grid = out_grid
+                self.method = functools.partial(
+                    NumpyDataHandler().regrid,
+                    in_grid=in_grid,
+                    out_grid=out_grid,
+                    # output="values",
+                    **kwargs,
+                )
+
+            def __call__(self, vals):
+                vals, self.out_grid = self.method(vals)
+                return vals
+
+        # method = functools.partial(
+        #     NumpyDataHandler().regrid,
+        #     in_grid=in_grid.grid_spec,
+        #     out_grid=out_geo.grid_spec,
+        #     output="values",
+        #     **kwargs,
+        # )
+
+        method = _RegridMethod(in_grid.grid_spec, out_geo.grid_spec, **kwargs)
 
         def _regrid(da):
             return xr.apply_ufunc(
@@ -322,6 +339,10 @@ class XarrayDataHandler(DataHandler):
 
         else:
             ds_out = _regrid(values)
+
+        # The output geography might have changed, so we need to create a new geography builder
+        # with the new grid spec
+        out_geo = XarrrayGeographyBuilder(method.out_grid)
 
         self.add_geo_coords(ds_out, out_geo)
 

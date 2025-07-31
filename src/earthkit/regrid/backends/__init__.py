@@ -96,12 +96,6 @@ class BackendMaker:
 
         return backend
 
-    def plugin_names(self):
-        """Return the list of plugin names."""
-        from earthkit.regrid.utils.plugins import load_plugins
-
-        return list(load_plugins("backend").keys())
-
     def _builtins(self):
         """Scan for built-in backend classes."""
         r = {}

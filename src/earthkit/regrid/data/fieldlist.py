@@ -8,51 +8,10 @@
 #
 
 import logging
-from abc import ABCMeta
-from abc import abstractmethod
+
+from .handler import DataHandler
 
 LOG = logging.getLogger(__name__)
-
-
-class DataHandler(metaclass=ABCMeta):
-    @abstractmethod
-    def regrid(self, values, **kwargs):
-        pass
-
-    def backend_from_kwargs(self, kwargs):
-        return self.get_backend(kwargs.pop("backend"), inventory_path=kwargs.pop("inventory_path", None))
-
-    def get_backend(self, backend, inventory_path=None):
-        from earthkit.regrid.backends import get_backend
-
-        if backend == "precomputed-local":
-            backend = get_backend(backend, path_or_url=inventory_path)
-        else:
-            if inventory_path:
-                raise ValueError(
-                    f"Cannot use inventory_path={inventory_path} with backend={backend}. "
-                    "Only available for backend='precomputed-local'."
-                )
-            backend = get_backend(backend)
-
-        if not backend:
-            raise ValueError(f"No backend={backend} found")
-
-        return backend
-
-
-class NumpyDataHandler(DataHandler):
-    @staticmethod
-    def match(values):
-        import numpy as np
-
-        return isinstance(values, np.ndarray)
-
-    def regrid(self, values, **kwargs):
-        in_grid = kwargs.pop("in_grid")
-        out_grid = kwargs.pop("out_grid")
-        backend = self.backend_from_kwargs(kwargs)
-        return backend.regrid(values, in_grid, out_grid, **kwargs)
 
 
 class FieldListDataHandler(DataHandler):
@@ -102,7 +61,7 @@ class FieldListDataHandler(DataHandler):
 
         out_grid = kwargs.pop("out_grid")
         # TODO: refactor this when this limitation is removed
-        from .gridspec import GridSpec
+        from earthkit.regrid.gridspec import GridSpec
 
         out_grid = GridSpec.from_dict(out_grid)
         if not out_grid.is_regular_ll():
@@ -175,43 +134,7 @@ class FieldDataHandler(DataHandler):
         from earthkit.data import FieldList
 
         ds = FieldList.from_fields([values])
-        return FIELDLIST_DATA_HANDLER.regrid(ds, **kwargs)[0]
+        return FieldListDataHandler().regrid(ds, **kwargs)[0]
 
 
-class GribMessageDataHandler(DataHandler):
-    @staticmethod
-    def match(values):
-        if isinstance(values, bytes):
-            return True
-        else:
-            from io import BytesIO
-
-            # TODO: add further checks to see if the object is a GRIB message
-            if isinstance(values, BytesIO):
-                return True
-        return False
-
-    def regrid(self, values, **kwargs):
-        backend = self.backend_from_kwargs(kwargs)
-        # backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
-        if hasattr(backend, "regrid_grib"):
-            if not isinstance(values, bytes):
-                from io import BytesIO
-
-                if isinstance(values, BytesIO):
-                    values = values.getvalue()
-
-            kwargs.pop("in_grid", None)
-            return backend.regrid_grib(values, **kwargs)
-        else:
-            raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")
-
-
-FIELDLIST_DATA_HANDLER = FieldListDataHandler()
-DATA_HANDLERS = [NumpyDataHandler(), FIELDLIST_DATA_HANDLER, FieldDataHandler(), GribMessageDataHandler()]
-
-
-def get_data_handler(values):
-    for h in DATA_HANDLERS:
-        if h.match(values):
-            return h
+handler = [FieldListDataHandler, FieldDataHandler]

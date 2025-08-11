@@ -64,3 +64,13 @@ def no_progress_bar(total, initial=0, desc=None):
 
 def is_module_loaded(module_name):
     return module_name in sys.modules
+
+
+def ensure_list(obj):
+    """Ensure that the input is a list."""
+    if isinstance(obj, list):
+        return obj
+    elif isinstance(obj, tuple):
+        return list(obj)
+    else:
+        return [obj]

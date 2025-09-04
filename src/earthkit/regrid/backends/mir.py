@@ -7,6 +7,7 @@
 # nor does it submit to any jurisdiction.
 #
 
+from warnings import warn
 
 from . import Backend
 
@@ -14,8 +15,35 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
+    @staticmethod
+    def normalise_area(area):
+        if isinstance(area, str):
+            return area
+        if isinstance(area, (list, tuple)):
+            if len(area) == 4:
+                return "/".join(map(str, area))
+
+        raise ValueError(f"Invalid area format: {area}")
+
+    @staticmethod
+    def adjust_options(grid, kwargs):
+        # TODO: remove this once we have a better way to handle area in gridspec
+        if "area" in grid:
+            warn(
+                "The area key is a temporary workaround for area in gridspec",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            grid = grid.copy()
+            kwargs = kwargs.copy()
+            area = grid.pop("area")
+            kwargs["area"] = MirBackend.normalise_area(area)
+        return grid, kwargs
+
     def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
         import mir
+
+        out_grid, kwargs = self.adjust_options(out_grid, kwargs)
 
         input = mir.ArrayInput(values, in_grid)
         out = mir.ArrayOutput()
@@ -41,6 +69,8 @@ class MirBackend(Backend):
         from io import BytesIO
 
         import mir
+
+        out_grid, kwargs = self.adjust_options(out_grid, kwargs)
 
         in_data = mir.GribMemoryInput(message)
         out = BytesIO()

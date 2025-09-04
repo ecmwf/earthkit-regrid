@@ -35,18 +35,6 @@ class Backend(metaclass=ABCMeta):
     def regrid(self, values, in_grid, out_grid, method, **kwargs):
         pass
 
-    # @abstractmethod
-    # def regrid(
-    #     self,
-    #     values,
-    #     in_grid,
-    #     out_grid,
-    #     interpolation,
-    #     output="values_gridspec",
-    #     **kwargs,
-    # ):
-    #     pass
-
 
 class BackendLoader:
     kind = "backend"

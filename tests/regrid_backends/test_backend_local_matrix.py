@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array.regrid import regrid as array_regrid
 from earthkit.regrid.utils.testing import LOCAL_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 from earthkit.regrid.utils.testing import get_test_data
@@ -32,13 +32,13 @@ def get_local_db():
 
 
 def run_regrid(v_in, in_grid, out_grid, interpolation):
-    return regrid(
+    return array_regrid(
         v_in,
         in_grid,
         out_grid,
         interpolation=interpolation,
         backend=LOCAL_MATRIX_BACKEND_NAME,
-        inventory_path=DB_PATH,
+        inventory=DB_PATH,
     )
 
 

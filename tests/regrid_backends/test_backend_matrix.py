@@ -9,7 +9,7 @@
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array.regrid import regrid as regrid_array
 from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import get_test_data
 
@@ -35,7 +35,7 @@ def test_regrid_matrix_interpolation_kwarg(_kwarg, interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in, {"grid": "O32"}, out_grid=out_grid, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg
     )
 
@@ -50,7 +50,7 @@ def _ll_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, res_grid = regrid(
+    v_res, res_grid = regrid_array(
         v_in,
         {"grid": [5, 5]},
         out_grid=out_grid,
@@ -63,7 +63,7 @@ def _ll_to_ll(interpolation):
     assert np.allclose(v_res.flatten(), v_ref), 1
 
     # repeated use
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": [5, 5]},
         out_grid=out_grid,
@@ -98,7 +98,7 @@ def test_regrid_matrix_ogg_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": "O32"},
         out_grid=out_grid,
@@ -120,7 +120,7 @@ def test_regrid_matrix_ngg_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": "N32"},
         out_grid=out_grid,
@@ -142,7 +142,7 @@ def test_regrid_matrix_healpix_ring_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": "H4", "order": "ring"},
         out_grid=out_grid,
@@ -164,7 +164,7 @@ def test_regrid_matrix_healpix_nested_to_ll(interpolation):
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": "H4", "order": "nested"},
         out_grid=out_grid,
@@ -181,7 +181,7 @@ def test_regrid_matrix_healpix_nested_to_ll(interpolation):
 def test_regrid_matrix_unsupported_input_grid() -> None:
     a = np.ones(91 * 180)
     with pytest.raises(ValueError):
-        _ = regrid(
+        _ = regrid_array(
             a,
             {"grid": [2.2333424, 2]},
             {"grid": [1, 1]},
@@ -194,7 +194,7 @@ def test_regrid_matrix_unsupported_input_grid() -> None:
 def test_regrid_matrix_unsupported_output_grid() -> None:
     a = np.ones(181 * 360)
     with pytest.raises(ValueError):
-        _ = regrid(
+        _ = regrid_array(
             a,
             {"grid": [1.11323424, 1]},
             {"grid": [5, 5]},

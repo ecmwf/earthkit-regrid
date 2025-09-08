@@ -12,7 +12,7 @@ import time
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array.regrid import regrid as regrid_array
 from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME
 
 
@@ -38,7 +38,7 @@ def test_regrid_remote_matrix_index_handling():
     # this should use the index file in the local cache
     v_in = np.ones(5248)
     out_grid = {"grid": [10, 10]}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {"grid": "O32"},
         out_grid=out_grid,
@@ -55,7 +55,7 @@ def test_regrid_remote_matrix_index_handling():
     # this should trigger a check between the local and remote index file sha and
     # download the remote index file if they are different
     with pytest.raises(ValueError):
-        regrid(
+        regrid_array(
             v_in,
             {"grid": "O32"},
             {"grid": [1000, 10000]},

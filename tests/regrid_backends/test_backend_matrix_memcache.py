@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array.regrid import regrid as regrid_array
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
 DB_PATH = earthkit_test_data_path("local", "db")
@@ -31,13 +31,13 @@ def file_in_testdir(filename):
 def run_regrid(mode):
     v_in = np.load(file_in_testdir("in_N32.npz"))["arr_0"]
     np.load(file_in_testdir(f"out_N32_10x10_{mode}.npz"))["arr_0"]
-    regrid(
+    regrid_array(
         v_in,
         {"grid": "N32"},
         {"grid": [10, 10]},
         interpolation=mode,
-        backend="precomputed-local",
-        inventory_path=DB_PATH,
+        backend="precomputed",
+        inventory=DB_PATH,
     )
 
 

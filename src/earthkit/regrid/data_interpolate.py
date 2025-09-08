@@ -31,7 +31,7 @@ class DataHandler(metaclass=ABCMeta):
         from earthkit.regrid.backends import get_backend
 
         if matrix_source is not None:
-            backend = get_backend("precomputed-local", path_or_url=matrix_source)
+            backend = get_backend("precomputed", inventory=matrix_source)
         else:
             backend = get_backend("precomputed")
 

@@ -9,7 +9,7 @@
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array.regrid import regrid as regrid_array
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import compare_global_ll_results
 from earthkit.regrid.utils.testing import get_test_data
@@ -124,7 +124,7 @@ def test_regrid_numpy_kwarg(_kwarg, interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, **_kwarg)
+    v_res, _ = regrid_array(v_in, {"grid": "O32"}, {"grid": [10, 10]}, **_kwarg)
 
     assert v_res.shape == (19, 36), 1
     compare_global_ll_results(v_res, v_ref, interpolation, rtol=1e-4)
@@ -135,13 +135,13 @@ def _ll_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid_array(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36), 1
     assert np.allclose(v_res.flatten(), v_ref), 1
 
     # repeated use
-    v_res, _ = regrid(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid_array(v_in, {"grid": [5, 5]}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36), 1
     assert np.allclose(v_res.flatten(), v_ref), 1
@@ -159,7 +159,7 @@ def test_regrid_numpy_ll_to_ll_1(interpolation):
 def test_regrid_numpy_ll_to_ll_2(res_dx, res_shape, interpolation):
 
     values = np.random.random((37, 72))
-    res_v, _ = regrid(
+    res_v, _ = regrid_array(
         values, in_grid={"grid": [5, 5]}, out_grid={"grid": [res_dx, res_dx]}, interpolation=interpolation
     )
     assert res_v.shape == res_shape
@@ -172,7 +172,7 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid_array(v_in, {"grid": "O32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
     compare_global_ll_results(v_res, v_ref, interpolation, rtol=1e-4)
@@ -184,12 +184,11 @@ def test_regrid_numpy_ogg_to_ll_1(interpolation):
 def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
     values_in = np.load(get_test_data("in_O32.npz"))["arr_0"]
 
-    values, gridspec = regrid(
+    values, gridspec = regrid_array(
         values_in,
         {"grid": in_grid},
         {"grid": [30, 30]},
         interpolation=interpolation,
-        output="values_gridspec",
     )
 
     assert values.shape == (7, 12)
@@ -212,7 +211,7 @@ def test_regrid_numpy_ogg_to_ll_2(interpolation, in_grid):
 def test_regrid_numpy_ogg_to_ll_interpolations(interpolation):
     # O32
     values = np.random.random(5248)
-    res_v, _ = regrid(
+    res_v, _ = regrid_array(
         values, in_grid={"grid": "O32"}, out_grid={"grid": [10, 10]}, interpolation=interpolation
     )
     assert res_v.shape == (19, 36), f"{interpolation=} failed"
@@ -225,7 +224,7 @@ def test_regrid_numpy_ngg_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(v_in, {"grid": "N32"}, {"grid": [10, 10]}, interpolation=interpolation)
+    v_res, _ = regrid_array(v_in, {"grid": "N32"}, {"grid": [10, 10]}, interpolation=interpolation)
 
     assert v_res.shape == (19, 36)
     compare_global_ll_results(v_res, v_ref, interpolation)
@@ -239,7 +238,7 @@ def test_regrid_healpix_ring_to_ll(interpolation, in_grid):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(
+    v_res, _ = regrid_array(
         v_in, {"grid": in_grid, "order": "ring"}, {"grid": [10, 10]}, interpolation=interpolation
     )
 
@@ -256,7 +255,7 @@ def test_regrid_healpix_nested_to_ll(interpolation):
 
     v_in = np.load(f_in)["arr_0"]
     v_ref = np.load(f_out)["arr_0"]
-    v_res, _ = regrid(
+    v_res, _ = regrid_array(
         v_in, {"grid": "H4", "order": "nested"}, {"grid": [10, 10]}, interpolation=interpolation
     )
 
@@ -281,7 +280,7 @@ def test_regrid_orca_to_ogg(interpolation):
     v_ref = np.load(f_out)["arr_0"]
 
     out_grid = {"grid": "O96"}
-    v_res, grid_res = regrid(
+    v_res, grid_res = regrid_array(
         v_in,
         {
             "grid": "eORCA025_T",
@@ -312,38 +311,5 @@ def test_regrid_orca_to_ogg(interpolation):
 @pytest.mark.parametrize("out_grid,res_shape", REFS)
 def test_regrid_numpy_any_to_any(interpolation, in_grid, in_shape, out_grid, res_shape):
     values = np.random.random(in_shape)
-    res_v, _ = regrid(values, in_grid=in_grid, out_grid=out_grid, interpolation=interpolation)
+    res_v, _ = regrid_array(values, in_grid=in_grid, out_grid=out_grid, interpolation=interpolation)
     assert res_v.shape == res_shape, f"Expected shape {res_shape}, got {res_v.shape}"
-
-
-@pytest.mark.skipif(NO_MIR, reason="No mir available")
-def test_regrid_numpy_output_kwarg():
-    values_in = np.load(get_test_data("in_O32.npz"))["arr_0"]
-
-    values, gridspec = regrid(
-        values_in,
-        {"grid": "O32"},
-        {"grid": [30, 30]},
-        output="values_gridspec",
-    )
-
-    assert values.shape == (7, 12)
-    assert gridspec == dict(grid=[30, 30])
-
-    values = regrid(
-        values_in,
-        {"grid": "O32"},
-        {"grid": [30, 30]},
-        output="values",
-    )
-
-    assert values.shape == (7, 12)
-
-    gridspec = regrid(
-        values_in,
-        {"grid": "O32"},
-        {"grid": [30, 30]},
-        output="gridspec",
-    )
-
-    assert gridspec == dict(grid=[30, 30])

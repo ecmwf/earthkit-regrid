@@ -37,7 +37,6 @@ class GribMessageDataHandler(DataHandler):
                 if isinstance(values, BytesIO):
                     values = values.getvalue()
 
-            kwargs.pop("in_grid", None)
             return backend.regrid_grib(values, **kwargs)
         else:
             raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")

@@ -14,26 +14,29 @@ from abc import abstractmethod
 LOG = logging.getLogger(__name__)
 
 
+OPTIONAL_BACKENDS_KWARGS = ["inventory"]
+
+
 class DataHandler(metaclass=ABCMeta):
     @abstractmethod
     def regrid(self, values, **kwargs):
         pass
 
     def backend_from_kwargs(self, kwargs):
-        return self.get_backend(kwargs.pop("backend"), inventory_path=kwargs.pop("inventory_path", None))
+        backend = kwargs.pop("backend", None)
+        if backend is None:
+            raise ValueError("Missing 'backend' keyword argument")
 
-    def get_backend(self, backend, inventory_path=None):
+        b_kwargs = {}
+        for k in OPTIONAL_BACKENDS_KWARGS:
+            if k in kwargs:
+                b_kwargs[k] = kwargs.pop(k)
+        return self.get_backend(backend, **b_kwargs)
+
+    def get_backend(self, backend, **backend_kwargs):
         from earthkit.regrid.backends import get_backend
 
-        if backend == "precomputed-local":
-            backend = get_backend(backend, path_or_url=inventory_path)
-        else:
-            if inventory_path:
-                raise ValueError(
-                    f"Cannot use inventory_path={inventory_path} with backend={backend}. "
-                    "Only available for backend='precomputed-local'."
-                )
-            backend = get_backend(backend)
+        backend = get_backend(backend, **backend_kwargs)
 
         if not backend:
             raise ValueError(f"No backend={backend} found")

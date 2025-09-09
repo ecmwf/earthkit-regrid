@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pytest
 
-from earthkit.regrid.array.regrid import regrid as array_regrid
+from earthkit.regrid.array import regrid as array_regrid
 from earthkit.regrid.utils.testing import LOCAL_MATRIX_BACKEND_NAME
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 from earthkit.regrid.utils.testing import get_test_data

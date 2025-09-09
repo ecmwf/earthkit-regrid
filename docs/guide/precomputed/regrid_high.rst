@@ -5,7 +5,7 @@ regrid (high-level) with precomputed weights
 
 *New in version 0.5.0.*
 
-.. py:function:: regrid(data, grid=None, interpolation='linear', backend="precomputed", inventory="ecmwf")
+.. py:function:: regrid(data, grid=None, *, interpolation='linear', backend="precomputed", inventory="ecmwf")
     :noindex:
 
     Regrid the high-level ``data`` object (with geography information) using precomputed weights.

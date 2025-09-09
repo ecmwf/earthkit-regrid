@@ -5,7 +5,7 @@ regrid (array-level) with precomputed weights
 
 *New in version 0.5.0.*
 
-.. py:function:: regrid(values, in_grid=None, out_grid=None, interpolation='linear', backend="precomputed", inventory="ecmwf")
+.. py:function:: regrid(values, in_grid=None, out_grid=None, *, interpolation='linear', backend="precomputed", inventory="ecmwf")
     :noindex:
 
     Regrid array ``values`` using precomputed weights.

@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pytest
 
-from earthkit.regrid.array.regrid import regrid as regrid_array
+from earthkit.regrid.array import regrid as regrid_array
 from earthkit.regrid.utils.testing import earthkit_test_data_path
 
 DB_PATH = earthkit_test_data_path("local", "db")

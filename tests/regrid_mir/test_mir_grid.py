@@ -9,7 +9,7 @@
 import numpy as np
 import pytest
 
-from earthkit.regrid.array.regrid import regrid as regrid_array
+from earthkit.regrid.array import regrid as regrid_array
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 
 INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]

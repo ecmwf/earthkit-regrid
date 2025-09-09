@@ -12,7 +12,7 @@ import time
 import numpy as np
 import pytest
 
-from earthkit.regrid.array.regrid import regrid as regrid_array
+from earthkit.regrid.array import regrid as regrid_array
 from earthkit.regrid.utils.testing import SYSTEM_MATRIX_BACKEND_NAME
 
 

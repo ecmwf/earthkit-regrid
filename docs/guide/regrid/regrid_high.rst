@@ -3,7 +3,7 @@
 regrid (high-level)
 ===============================
 
-.. py:function:: regrid(data, grid=None, interpolation="linear", *, backend="mir", **kwargs)
+.. py:function:: regrid(data, grid=None, *, interpolation="linear", backend="mir", **kwargs)
 
     Regrid the high-level ``data`` object (with geography information) using the given ``backend`` and options. The ``data`` can be one of the following types:
 

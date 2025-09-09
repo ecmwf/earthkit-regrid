@@ -3,7 +3,7 @@
 regrid (array-level)
 ===============================
 
-.. py:function:: regrid(values, in_grid=None, out_grid=None, interpolation="linear", *, backend="mir", **kwargs)
+.. py:function:: regrid(values, in_grid=None, out_grid=None, *, interpolation="linear", backend="mir", **kwargs)
 
     Regrid the array ``values`` with the given ``backend`` and options.  To see the available ``**kwargs`` please refer to the documentation of the specific backend. The default backend is :ref:`mir <mir-regrid>`.
 

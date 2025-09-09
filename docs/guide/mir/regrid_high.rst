@@ -5,7 +5,7 @@ regrid (high-level) with MIR
 
 *New in version 0.5.0.*
 
-.. py:function:: regrid(data, grid=None, interpolation='linear',  backend="mir",  nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4,  **kwargs)
+.. py:function:: regrid(data, grid=None, *, interpolation='linear',  backend="mir",  nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4,  **kwargs)
     :noindex:
 
     Regrid the high-level ``data`` object (with geography information) using **MIR** (Meteorological Interpolation and Regridding).

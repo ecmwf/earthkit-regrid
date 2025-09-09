@@ -5,7 +5,7 @@ regrid (array-level) with MIR
 
 *New in version 0.5.0.*
 
-.. py:function:: regrid(values, in_grid=None, out_grid=None,   interpolation='linear', backend="mir", nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4)
+.. py:function:: regrid(values, in_grid=None, out_grid=None, *, interpolation='linear', backend="mir", nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4)
     :noindex:
 
     Regrid array ``values`` using **MIR** (Meteorological Interpolation and Regridding).

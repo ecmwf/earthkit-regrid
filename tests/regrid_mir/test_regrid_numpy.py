@@ -9,7 +9,7 @@
 import numpy as np
 import pytest
 
-from earthkit.regrid.array.regrid import regrid as regrid_array
+from earthkit.regrid.array import regrid as regrid_array
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 from earthkit.regrid.utils.testing import compare_global_ll_results
 from earthkit.regrid.utils.testing import get_test_data

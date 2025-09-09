@@ -23,13 +23,15 @@ class MatrixBackend(Backend):
         z, shape = self.db.find(in_grid, out_grid, interpolation)
 
         if z is None:
-            raise ValueError(f"No precomputed interpolator found! {in_grid=} {out_grid=} {interpolation=}")
+            raise ValueError(f"No precomputed weights found! {in_grid=} {out_grid=} {interpolation=}")
 
         # This should check for 1D (GG) and 2D (LL) matrices
         values = values.reshape(-1, 1)
 
         values = z @ values
         values = values.reshape(shape)
+
+        return values, out_grid
 
     # TODO: will be removed
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):

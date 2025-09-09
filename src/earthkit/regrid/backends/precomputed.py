@@ -31,17 +31,6 @@ class MatrixBackend(Backend):
         values = z @ values
         values = values.reshape(shape)
 
-        return values, out_grid
-
-        # if output == "values_gridspec":
-        #     return values, out_grid
-        # elif output == "values":
-        #     return values
-        # elif output == "gridspec":
-        #     return out_grid
-
-        # raise ValueError(f"Unknown output={output} for backend={self.name}")
-
     # TODO: will be removed
     def interpolate(self, values, in_grid, out_grid, method, **kwargs):
         z, shape = self.db.find(in_grid, out_grid, method, **kwargs)
@@ -72,40 +61,5 @@ class MatrixBackend(Backend):
         else:
             raise ValueError(f"Invalid path_or_url={path_or_url} for backend={self.name}")
 
-
-# class LocalMatrixBackend(MatrixBackend):
-#     name = "precomputed-local"
-#     # path_config_key = "local-matrix-directories"
-
-#     @cached_property
-#     def db(self):
-#         from .db import MatrixDb
-
-#         return MatrixDb.from_path(self.path_or_url)
-
-
-# class RemoteMatrixBackend(MatrixBackend):
-#     name = "precomputed-remote"
-#     # path_config_key = "remote-matrix-directories"
-
-#     @cached_property
-#     def db(self):
-#         from .db import MatrixDb
-
-#         return MatrixDb.from_url(self.path_or_url)
-
-
-# class SystemRemoteMatrixBackend(RemoteMatrixBackend):
-#     name = "precomputed"
-#     # path_config_key = None
-
-#     @cached_property
-#     def db(self):
-#         from .db import SYS_DB
-
-#         return SYS_DB
-
-
-# backend = {v.name: v for v in [LocalMatrixBackend, RemoteMatrixBackend, SystemRemoteMatrixBackend]}
 
 backend = MatrixBackend

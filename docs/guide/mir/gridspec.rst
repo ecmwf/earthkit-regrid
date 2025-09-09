@@ -1,6 +1,6 @@
 .. _gridspec:
 
-Gridspecs (with the MIR backend)
+Gridspecs (for MIR)
 ====================================
 
 A gridspec describes spatial grids in the form a dict.

@@ -1,34 +1,23 @@
-.. _mir-regrid:
+.. _mir-regrid-array:
 
-regrid
-=============================
+regrid (array-level) with MIR
+===============================================
 
 *New in version 0.5.0.*
 
-.. py:function:: regrid(values, in_grid=None, out_grid=None, output="values_gridspec", backend="mir", interpolation='linear',  nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4,  **kwargs)
+.. py:function:: regrid(values, in_grid=None, out_grid=None,   interpolation='linear', backend="mir", nearest_method="automatic", distance=1, distance_tolerance=1, nclosest=4)
     :noindex:
 
-    Regrid the ``values`` with the given options using **MIR** (Meteorological Interpolation and Regridding). The ``backend`` parameter is set to "mir" by default so it is not necessary to specify it explicitly.
+    Regrid array ``values`` using **MIR** (Meteorological Interpolation and Regridding).
 
-    :param values: the following input data types are supported:
+    The ``backend`` parameter is set to "mir" by default so it is not necessary to specify it explicitly.
 
-        - an ndarray representing a single field defined on the ``in_grid``. A valid ``in_grid`` must be specified.
-        - an earthkit-data GRIB :xref:`fieldlist` (requires :xref:`earthkit-data` >= 0.6.0). The input grid is automatically detected from the data (``in_grid`` is ignored).
-        - an earthkit-data GRIB :xref:`field` (requires :xref:`earthkit-data` >= 0.6.0). The input grid is automatically detected from the data (``in_grid`` is ignored).
-        - a GRIB message as a bytes or :class:`io.BytesIO` object. The input grid is automatically detected from the data (``in_grid`` is ignored).
-
-    :type values: ndarray, :xref:`fieldlist`, :xref:`field`, bytes, or :class:`io.BytesIO`
+    :param values: array representing a single field defined on the ``in_grid``.
+    :type values: ndarray
     :param in_grid: the :ref:`gridspec <gridspec>` describing the grid that ``values`` are defined on. Ignored when ``values`` is not an ndarray.
     :type in_grid: dict
     :param out_grid: the :ref:`gridspec <gridspec>` describing the target grid that ``values`` will be interpolated onto
     :type out_grid: dict
-    :param output: define what is returned when the input is an array, ignored otherwise. Possible values are as follows:
-
-        - "values_gridpec": return a tuple with the interpolated values and the :ref:`gridspec <gridspec>` of the output grid. This is the default option.
-        - "values": return the interpolated values only
-        - "gridpec": return the :ref:`gridspec <gridspec>` of the output grid only
-
-    :type output: str
     :param interpolation: the interpolation method. There is a high degree of customisation available to parametrise the available interpolation methods. Please note ot all the interpolation methods support all possible grid types. The possible values are as follows:
 
         - "linear": Finite Element based interpolation with linear base functions with supporting triangular mesh
@@ -61,8 +50,9 @@ regrid
     :type nclosest: number, default: 4
 
     :param **kwargs: additional keyword arguments that can be passed to MIR. Since earthkit-regrid only supports the MIR options that are documented above, please use these extra options with care.
-    :return: see the ``output`` parameter for details
 
+    :return: Return a tuple with the interpolated values and the :ref:`gridspec <gridspec>` of the output grid.
+    :rtype: tuple of ndarray and dict
 
 Examples
 --------

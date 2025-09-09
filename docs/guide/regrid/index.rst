@@ -1,6 +1,6 @@
-.. _mir-backend:
+.. _regrid-overview:
 
-MIR
+Overview
 ================
 
 .. toctree::
@@ -8,4 +8,3 @@ MIR
 
    regrid_high
    regrid_array
-   gridspec

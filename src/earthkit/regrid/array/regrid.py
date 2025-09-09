@@ -10,6 +10,10 @@
 
 
 def regrid(values, in_grid=None, out_grid=None, *, interpolation="linear", backend="mir", **kwargs):
+    r"""
+    Array interface.
+
+    """
     from earthkit.regrid.data.numpy import handler
 
     h = handler()

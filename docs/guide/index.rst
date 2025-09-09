@@ -3,22 +3,16 @@
 User guide
 =============
 
-.. toctree::
-   :maxdepth: 1
 
-   regrid
-
-Backends
+Regrid
 ++++++++++++++++++++++
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
+   regrid/index
    mir/index
-   precomputed/system/index
-   precomputed/local/index
-
-
+   precomputed/index
 
 Deprecated interface
 ++++++++++++++++++++++++

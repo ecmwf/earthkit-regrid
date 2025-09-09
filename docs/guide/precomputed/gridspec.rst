@@ -1,6 +1,6 @@
 .. _gridspec-precomputed:
 
-Gridspec (for precomputed backends)
+Gridspecs (for precomputed weights)
 =====================================
 
 A gridspec describes spatial grids in the form a dict.

@@ -33,7 +33,7 @@ A different interface is available depending on the input data type.
 High-level interface
 //////////////////////
 
-Use it for data containing geographical information, e.g. earthkit-data :xref:`fieldlist` objects, Xarray DataArrays or Datasets. See: :ref:`regrid() <regrid-high-overview>`.
+Use it for data containing geographical information, e.g. earthkit-data :xref:`fieldlist` objects, Xarray DataArrays or Datasets.
 
 .. code-block:: python
 
@@ -52,7 +52,8 @@ Use it for data containing geographical information, e.g. earthkit-data :xref:`f
 Array-level interface
 ////////////////////////
 
-Use it for raw data arrays, e.g. Numpy ndarrays. See: :ref:`regrid() <regrid-array-overview>`.
+Use it for raw data arrays, e.g. Numpy ndarrays.
+
 
 .. code-block:: python
 

@@ -1,4 +1,4 @@
-Welcome to earthkit-regrids's documentation
+Welcome to earthkit-regrid's documentation
 ======================================================
 
 |Static Badge| |image1| |License: Apache 2.0| |Latest

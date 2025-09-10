@@ -10,7 +10,6 @@ Regrid
 .. toctree::
    :maxdepth: 2
 
-   regrid/index
    mir/index
    precomputed/index
 

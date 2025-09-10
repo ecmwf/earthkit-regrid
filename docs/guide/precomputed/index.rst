@@ -1,8 +1,12 @@
+.. _precomputed-backend:
+
 precomputed
-=================
+================
 
 .. toctree::
-    :maxdepth: 1
+   :maxdepth: 1
 
-    system
-    local
+   regrid_high
+   regrid_array
+   gridspec
+   inventory/index

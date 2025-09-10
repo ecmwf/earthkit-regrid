@@ -51,7 +51,7 @@ def test_regrid_matrix_fieldlist_reg_ll(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time", "gridType"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
+    r = regrid(ds, grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -85,7 +85,7 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
+    r = regrid(ds, grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -112,7 +112,7 @@ def test_regrid_matrix_fieldlist_gg(_kwarg, interpolation, field_type):
 def test_regrid_matrix_grib_fieldlist(_kwarg):
     ds = from_source("url", get_test_data_path("O32.grib"))
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
+    r = regrid(ds, grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
     assert len(r) == 1
     assert r[0].shape == (19, 36)
 
@@ -139,7 +139,7 @@ def test_regrid_matrix_single_field(_kwarg, interpolation, field_type):
     field = ds[0]
     metadata_ref = field.metadata(["param", "level", "date", "time", "gridType"])
 
-    r = regrid(field, out_grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
+    r = regrid(field, grid={"grid": [10, 10]}, backend=SYSTEM_MATRIX_BACKEND_NAME, **_kwarg)
 
     assert r.shape == (19, 36)
     assert np.allclose(r.values, v_ref)

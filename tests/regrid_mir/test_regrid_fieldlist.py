@@ -51,7 +51,7 @@ def test_regrid_fieldlist_reg_ll(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time", "gridType"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, **_kwarg)
+    r = regrid(ds, grid={"grid": [10, 10]}, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -84,7 +84,7 @@ def test_regrid_fieldlist_gg(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = ds.metadata(["param", "level", "date", "time"])
 
-    r = regrid(ds, out_grid={"grid": [10, 10]}, **_kwarg)
+    r = regrid(ds, grid={"grid": [10, 10]}, **_kwarg)
 
     assert len(r) == 1
     assert r[0].shape == (19, 36)
@@ -120,7 +120,7 @@ def test_regrid_single_field(_kwarg, interpolation, field_type):
     v_ref = np.load(f_ref)["arr_0"]
     metadata_ref = field.metadata(["param", "level", "date", "time"])
 
-    r = regrid(field, out_grid={"grid": [10, 10]}, **_kwarg)
+    r = regrid(field, grid={"grid": [10, 10]}, **_kwarg)
 
     assert r.shape == (19, 36)
     compare_global_ll_results(r.to_numpy(), v_ref, interpolation, rtol=1e-4)

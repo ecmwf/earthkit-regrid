@@ -34,7 +34,7 @@ def test_regrid_grib_message(input_format, interpolation):
         if input_format == "bytes":
             in_grib = in_grib.getvalue()
 
-    out = regrid(in_grib, out_grid={"grid": [30, 30]}, interpolation=interpolation)
+    out = regrid(in_grib, grid={"grid": [30, 30]}, interpolation=interpolation)
 
     field = GribFieldInMemory.from_buffer(out)
     assert field.metadata("gridType") == "regular_ll"

@@ -32,7 +32,7 @@ def test_regrid_matrix_xarray_from_ogg(out_grid, dims):
     assert len(ds_in) == 2
     ds = ds_in.to_xarray()
 
-    r = regrid(ds["2t"], out_grid=out_grid, interpolation="linear", backend="precomputed")
+    r = regrid(ds["2t"], grid=out_grid, interpolation="linear", backend="precomputed")
 
     compare_dims(r, dims, sizes=True)
 
@@ -51,6 +51,6 @@ def test_regrid_matrix_xarray_from_h_nested(out_grid, dims):
     assert len(ds_in) == 2
     ds = ds_in.to_xarray()
 
-    r = regrid(ds["2t"], out_grid=out_grid, interpolation="linear", backend="precomputed")
+    r = regrid(ds["2t"], grid=out_grid, interpolation="linear", backend="precomputed")
 
     compare_dims(r, dims, sizes=True)

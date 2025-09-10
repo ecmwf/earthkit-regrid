@@ -29,7 +29,6 @@ class GribMessageDataHandler(DataHandler):
 
     def regrid(self, values, **kwargs):
         backend = self.backend_from_kwargs(kwargs)
-        # backend = self.get_backend(kwargs.pop("backend"), matrix_source=kwargs.pop("matrix_source", None))
         if hasattr(backend, "regrid_grib"):
             if not isinstance(values, bytes):
                 from io import BytesIO
@@ -37,7 +36,6 @@ class GribMessageDataHandler(DataHandler):
                 if isinstance(values, BytesIO):
                     values = values.getvalue()
 
-            kwargs.pop("in_grid", None)
             return backend.regrid_grib(values, **kwargs)
         else:
             raise ValueError(f"regrid() does not support GRIB message input for {backend=}!")

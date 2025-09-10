@@ -9,7 +9,6 @@
 
 import logging
 import os
-import threading
 from abc import ABCMeta
 from abc import abstractmethod
 
@@ -25,8 +24,6 @@ class Backend(metaclass=ABCMeta):
     name = None
     path_config_key = None
     enabled = True
-
-    outputs = ("values_gridspec", "values", "gridspec")
 
     def __init__(self, *args, **kwargs):
         pass

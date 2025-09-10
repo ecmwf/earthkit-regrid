@@ -1,6 +1,6 @@
 .. _precomputed_inventory:
 
-Pre-generated matrices
+Precomputed weights
 =======================
 
 .. include:: pre_gen_warn.rst

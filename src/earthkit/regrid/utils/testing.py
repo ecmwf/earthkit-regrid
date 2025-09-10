@@ -79,9 +79,9 @@ except Exception:
     NO_MIR = True
 
 # TODO: remove these constants when the backend names are finalized
-LOCAL_MATRIX_BACKEND_NAME = "precomputed-local"
+LOCAL_MATRIX_BACKEND_NAME = "precomputed"
 SYSTEM_MATRIX_BACKEND_NAME = "precomputed"
-REMOTE_MATRIX_BACKEND_NAME = "precomputed-remote"
+REMOTE_MATRIX_BACKEND_NAME = "precomputed"
 
 
 def compare_global_ll_results(v_res, v_ref, interpolation, **kwargs):

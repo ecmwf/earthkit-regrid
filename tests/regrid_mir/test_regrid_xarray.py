@@ -7,6 +7,7 @@
 # nor does it submit to any jurisdiction.
 
 
+import numpy as np
 import pytest
 
 from earthkit.regrid import regrid
@@ -25,6 +26,19 @@ REFS = [
     ({"grid": "H4", "order": "ring"}, {"step": 2, "values": 192}),
 ]
 
+REFS_SUBAREA = [
+    (
+        {"grid": [10, 10], "area": [80, -20, -10, 60]},
+        {"step": 2, "latitude": 10, "longitude": 9},
+        [80, -20, -10, 60],
+    ),
+    (
+        {"grid": [10, 10], "area": [85, -25, -10, 60]},
+        {"step": 2, "latitude": 10, "longitude": 9},
+        [80, -20, -10, 60],
+    ),
+]
+
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
 @pytest.mark.skipif(NO_EKD, reason="No earthkit.data available")
@@ -35,9 +49,35 @@ def test_regrid_xarray_from_ogg(out_grid, dims):
     assert len(ds_in) == 2
     ds = ds_in.to_xarray()
 
-    r = regrid(ds["2t"], out_grid=out_grid, interpolation="linear")
+    r = regrid(ds["2t"], grid=out_grid, interpolation="linear")
 
     compare_dims(r, dims, sizes=True)
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.skipif(NO_EKD, reason="No earthkit.data available")
+@pytest.mark.parametrize("out_grid,dims,area_ref", REFS_SUBAREA)
+def test_regrid_xarray_from_ogg_to_subarea(out_grid, dims, area_ref):
+
+    ds_in = from_source("sample", "O32_t2.grib2")
+    assert len(ds_in) == 2
+    ds = ds_in.to_xarray()
+
+    r = regrid(ds["2t"], grid=out_grid, interpolation="linear")
+
+    compare_dims(r, dims, sizes=True)
+
+    lat = r["latitude"].values
+    lon = r["longitude"].values
+    north = lat.max()
+    south = lat.min()
+    east = lon.max()
+    west = lon.min()
+
+    assert np.isclose(north, area_ref[0])
+    assert np.isclose(south, area_ref[2])
+    assert np.isclose(east, area_ref[3])
+    assert np.isclose(west, area_ref[1])
 
 
 @pytest.mark.skipif(NO_MIR, reason="No mir available")
@@ -52,7 +92,7 @@ def test_regrid_xarray_from_h_nested(out_grid, dims):
     assert len(ds_in) == 2
     ds = ds_in.to_xarray()
 
-    r = regrid(ds["2t"], out_grid=out_grid, interpolation="linear")
+    r = regrid(ds["2t"], grid=out_grid, interpolation="linear")
 
     compare_dims(r, dims, sizes=True)
 
@@ -69,6 +109,6 @@ def test_regrid_xarray_dataset_from_h_nested(out_grid, dims):
     assert len(ds_in) == 2
     ds = ds_in.to_xarray()
 
-    r = regrid(ds, out_grid=out_grid, interpolation="linear")
+    r = regrid(ds, grid=out_grid, interpolation="linear")
 
     compare_dims(r, dims, sizes=True)

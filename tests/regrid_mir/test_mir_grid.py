@@ -9,7 +9,7 @@
 import numpy as np
 import pytest
 
-from earthkit.regrid import regrid
+from earthkit.regrid.array import regrid as regrid_array
 from earthkit.regrid.utils.testing import NO_MIR  # noqa: E402
 
 INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
@@ -81,7 +81,7 @@ def test_regrid_with_mir_gridspec(gs_in, gs_out):
             continue
 
         # TODO: make this code work
-        values_res, _ = regrid(values, gs_in, gs_out, interpolation=interpolation)
+        values_res, _ = regrid_array(values, gs_in, gs_out, interpolation=interpolation)
 
         result_grid = Grid(gs_out)  # NOTE: not necessarily true
         assert values_res.shape == result_grid.shape

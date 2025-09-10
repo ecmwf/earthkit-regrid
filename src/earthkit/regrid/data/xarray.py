@@ -219,14 +219,16 @@ class XarrayDataHandler(DataHandler):
         """
         Get the input grid from the dataset or from the kwargs.
         """
-        in_grid = kwargs.pop("in_grid", None)
-        if in_grid is None:
-            try:
-                in_grid = ds.attrs.get("gridspec", None)
-                if in_grid is None:
-                    in_grid = ds.earthkit.grid_spec
-            except AttributeError:
-                pass
+        # TODO: ensure the grid_spec is always available on an Xarray.
+        # This probably should be implemented in earthkit-geo.
+        try:
+            in_grid = ds.attrs.get("gridspec", None)
+            if in_grid is None:
+                in_grid = kwargs.pop("grid_spec", None)
+            if in_grid is None:
+                in_grid = ds.earthkit.grid_spec
+        except AttributeError:
+            pass
 
         if in_grid is None:
             raise ValueError("in_grid must be provided")
@@ -234,13 +236,13 @@ class XarrayDataHandler(DataHandler):
         return GridWrapper(in_grid)
 
     @staticmethod
-    def get_out_geo(kwargs):
+    def get_out_geo(grid):
         """
         Get the output geography from the out_grid.
         """
-        out_grid = kwargs.pop("out_grid")
+        out_grid = grid
         if out_grid is None:
-            raise ValueError("out_grid must be provided")
+            raise ValueError("grid must be provided")
 
         out_geo = XarrrayGeographyBuilder(out_grid)
         return out_geo
@@ -260,13 +262,13 @@ class XarrayDataHandler(DataHandler):
 
         return ds
 
-    def regrid(self, values, **kwargs):
+    def regrid(self, values, grid=None, **kwargs):
         from .numpy import NumpyDataHandler
 
         kwargs = kwargs.copy()
 
         in_grid = self.get_in_grid(values, kwargs)
-        out_geo = self.get_out_geo(kwargs)
+        out_geo = self.get_out_geo(grid)
 
         in_dims = kwargs.pop("in_dims", None)
         if in_dims is None:
@@ -291,13 +293,24 @@ class XarrayDataHandler(DataHandler):
         if set(in_dims) == set(out_dims):
             exclude_dims = set(in_dims)
 
-        method = functools.partial(
-            NumpyDataHandler().regrid,
-            in_grid=in_grid.grid_spec,
-            out_grid=out_geo.grid_spec,
-            output="values",
-            **kwargs,
-        )
+        # regrid can change the specified output gridspec.
+        # This is a workaround to get the returned output gridscpec from regrid.
+        class _RegridMethod:
+            def __init__(self, in_grid, out_grid, **kwargs):
+                self.out_grid = out_grid
+                self.method = functools.partial(
+                    NumpyDataHandler().regrid,
+                    in_grid=in_grid,
+                    out_grid=out_grid,
+                    **kwargs,
+                )
+
+            def __call__(self, vals):
+                # TODO: ensure it is thread safe
+                vals, self.out_grid = self.method(vals)
+                return vals
+
+        method = _RegridMethod(in_grid.grid_spec, out_geo.grid_spec, **kwargs)
 
         def _regrid(da):
             return xr.apply_ufunc(
@@ -322,6 +335,10 @@ class XarrayDataHandler(DataHandler):
 
         else:
             ds_out = _regrid(values)
+
+        # The output geography might have changed, so we need to create a new geography builder
+        # with the new grid spec
+        out_geo = XarrrayGeographyBuilder(method.out_grid)
 
         self.add_geo_coords(ds_out, out_geo)
 

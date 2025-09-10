@@ -9,7 +9,6 @@
 
 import logging
 import os
-import threading
 from abc import ABCMeta
 from abc import abstractmethod
 
@@ -26,26 +25,12 @@ class Backend(metaclass=ABCMeta):
     path_config_key = None
     enabled = True
 
-    outputs = ("values_gridspec", "values", "gridspec")
-
     def __init__(self, *args, **kwargs):
         pass
 
     @abstractmethod
     def regrid(self, values, in_grid, out_grid, method, **kwargs):
         pass
-
-    # @abstractmethod
-    # def regrid(
-    #     self,
-    #     values,
-    #     in_grid,
-    #     out_grid,
-    #     interpolation,
-    #     output="values_gridspec",
-    #     **kwargs,
-    # ):
-    #     pass
 
 
 class BackendLoader:

@@ -11,7 +11,6 @@
 from importlib import import_module
 
 _modules = [
-    "numpy",
     "fieldlist",
     "grib",
     "xarray",

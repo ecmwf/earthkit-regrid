@@ -7,6 +7,7 @@
 # nor does it submit to any jurisdiction.
 #
 
+from warnings import warn
 
 from . import Backend
 
@@ -14,8 +15,53 @@ from . import Backend
 class MirBackend(Backend):
     name = "mir"
 
-    def regrid(self, values, in_grid, out_grid, interpolation, output=Backend.outputs[0], **kwargs):
+    @staticmethod
+    def normalise_area(area):
+        if isinstance(area, str):
+            return area
+        if isinstance(area, (list, tuple)):
+            if len(area) == 4:
+                return "/".join(map(str, area))
+
+        raise ValueError(f"Invalid area format: {area}")
+
+    @staticmethod
+    def adjust_options(grid, kwargs):
+        # TODO: remove this once we have a better way to handle area in gridspec
+        if "area" in grid:
+            warn(
+                "The area key is a temporary workaround for area in gridspec",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            grid = grid.copy()
+            kwargs = kwargs.copy()
+            area = grid.pop("area")
+            kwargs["area"] = MirBackend.normalise_area(area)
+        return grid, kwargs
+
+    def regrid(
+        self,
+        values,
+        in_grid,
+        out_grid,
+        interpolation="linear",
+        nearest_method="automatic",
+        distance=1,
+        distance_tolerance=1,
+        nclosest=4,
+    ):
         import mir
+
+        kwargs = {
+            "interpolation": interpolation,
+            "nearest_method": nearest_method,
+            "distance": distance,
+            "distance_tolerance": distance_tolerance,
+            "nclosest": nclosest,
+        }
+
+        out_grid, kwargs = self.adjust_options(out_grid, {})
 
         input = mir.ArrayInput(values, in_grid)
         out = mir.ArrayOutput()
@@ -28,19 +74,32 @@ class MirBackend(Backend):
 
         job.execute(input, out)
 
-        if output == "values_gridspec":
-            return out.values(), out.spec
-        elif output == "values":
-            return out.values()
-        elif output == "gridspec":
-            return out.spec
+        return out.values(), out.spec
 
-        raise ValueError("No output found!")
-
-    def regrid_grib(self, message, out_grid, **kwargs):
+    # TODO: remove this once the gridspec can be written into the GRIB message
+    def regrid_grib(
+        self,
+        message,
+        grid,
+        interpolation="linear",
+        nearest_method="automatic",
+        distance=1,
+        distance_tolerance=1,
+        nclosest=4,
+    ):
         from io import BytesIO
 
         import mir
+
+        kwargs = {
+            "interpolation": interpolation,
+            "nearest_method": nearest_method,
+            "distance": distance,
+            "distance_tolerance": distance_tolerance,
+            "nclosest": nclosest,
+        }
+
+        out_grid, kwargs = self.adjust_options(grid, kwargs)
 
         in_data = mir.GribMemoryInput(message)
         out = BytesIO()

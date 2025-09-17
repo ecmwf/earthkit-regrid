@@ -2,13 +2,13 @@ Version 0.4 Updates
 /////////////////////////
 
 
-Version 0.4.1
+Version 0.4.2
 ===============
 
 Changes
 ++++++++++++++++
 
-- enabled interpolation from HEALPix nested grids to the 0.05x0.05 degree global latitude-longitude grid. Only the H1024, H512 and H256 HEALPix resolutions are supported for the "linear" and "nearest-neighbour" methods
+- enabled interpolation from HEALPix nested grids to the 0.05x0.05 degree global latitude-longitude grid. Only the H1024, H512 and H256 HEALPix resolutions are supported for the "linear" and "nearest-neighbour" methods (:pr:`104`). If the input is an earthkit-data GRIB fieldlist `earthkit-data>=0.16.5` is required.
 
 
 Version 0.4.0

@@ -2,6 +2,15 @@ Version 0.4 Updates
 /////////////////////////
 
 
+Version 0.4.1
+===============
+
+Changes
+++++++++++++++++
+
+- enabled interpolation from HEALPix nested grids to the 0.05x0.05 degree global latitude-longitude grid. Only the H1024, H512 and H256 HEALPix resolutions are supported for the "linear" and "nearest-neighbour" methods
+
+
 Version 0.4.0
 ===============
 

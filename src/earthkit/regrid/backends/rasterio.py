@@ -60,7 +60,7 @@ class CRSAffineGridSpec:
             Coordinate reference system.
         affine : affine.Affine
             Affine transformation matrix mapping array coordinates (indices)
-            to world coordinates.
+            to CRS coordinates.
         shape : tuple[int, int]
             Number of grid points in y and x directions (array order).
         """
@@ -75,7 +75,7 @@ class CRSAffineGridSpec:
         crs : rasterio.crs.CRS
             Coordinate reference system.
         bounds : tuple[number, number, number, number]
-            Bounding coordinates of the grid in world coordinates. Order is
+            Bounding coordinates of the grid in CRS coordinates. Order is
             left, bottom, right, top. References grid boxes, grid points are
             generated at the center of the boxes.
         shape : tuple[int, int]
@@ -101,7 +101,7 @@ class CRSAffineGridSpec:
         crs : rasterio.crs.CRS
             Coordinate reference system.
         bounds : tuple[number, number, number, number]
-            Bounding coordinates of the grid in world coordinates. Order is
+            Bounding coordinates of the grid in CRS coordinates. Order is
             left, bottom, right, top. References grid boxes, grid points are
             generated at the center of the boxes.
         resolution : tuple[number, number] | number
@@ -119,7 +119,7 @@ class CRSAffineGridSpec:
 
     @classmethod
     def from_regular_coords(cls, crs, x, y):
-        """Grid from a CRS and sequences of world coordinates.
+        """Grid from a CRS and sequences of CRS coordinates.
 
         Coordinates must form a regular grid.
 
@@ -128,10 +128,10 @@ class CRSAffineGridSpec:
         crs : rasterio.crs.CRS
             Coordinate reference system.
         x : sequence
-            World coordinates of the grid points (=grid box centers) in the
+            CRS coordinates of the grid points (=grid box centers) in the
             x direction.
         y : sequence
-            World coordinates of the grid points (=grid box centers) in the
+            CRS coordinates of the grid points (=grid box centers) in the
             y direction.
         """
         shape = (len(y), len(x))
@@ -168,7 +168,7 @@ class CRSAffineGridSpec:
 
     @property
     def bounds(self):
-        """World coordinates of bounding box (left, bottom, top, right).
+        """CRS coordinates of bounding box (left, bottom, top, right).
 
         Outer coordinates, including all grid boxes, with grid points at the
         center of the grid boxes.
@@ -181,7 +181,7 @@ class CRSAffineGridSpec:
 
     @property
     def xy_coords(self):
-        """World coordinates of all grid points."""
+        """CRS coordinates of all grid points."""
         gridx = np.arange(self.nx) + 0.5
         gridy = np.arange(self.ny) + 0.5
         return self.transform * np.meshgrid(gridx, gridy)

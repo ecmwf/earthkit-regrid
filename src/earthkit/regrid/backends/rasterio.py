@@ -275,7 +275,6 @@ class RasterioBackend(Backend):
         # (rasterio only handles 2- and 3-dimensional arrays)
         extra_shape = values.shape[:-2]
         flat_size = np.prod(extra_shape, dtype=int)
-        print(extra_shape, flat_size)
         values = values.reshape((flat_size, *in_grid.shape[-2:]))
         regridded = np.empty((flat_size, *out_grid.shape), dtype=values.dtype)
         reproject(source=values, destination=regridded, **reproject_kwargs)

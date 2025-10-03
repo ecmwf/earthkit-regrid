@@ -76,9 +76,31 @@ def test_regrid_with_mir_gridspec(gs_in, gs_out):
     values = np.random.rand(in_grid.size())
 
     for interpolation in INTERPOLATIONS:
-        if gs_in["grid"] == "eORCA025_T" and interpolation == "grid-box-average":
+        if gs_in.get("grid") == "eORCA025_T" and interpolation == "grid-box-average":
             continue
 
+        # TODO: make this code work
+        values_res, _ = regrid_array(values, gs_in, gs_out, interpolation=interpolation)
+
+        result_grid = Grid(gs_out)  # NOTE: not necessarily true
+        assert values_res.shape == result_grid.shape
+
+
+@pytest.mark.skipif(NO_MIR, reason="No mir available")
+@pytest.mark.parametrize(
+    "gs_in,size,gs_out",
+    [
+        ({"type": "sh", "truncation": 32}, 1122, {"grid": [10, 10]}),
+    ],
+)
+def test_regrid_with_mir_gridspec_sh(gs_in, size, gs_out):
+    from mir import Grid
+
+    in_grid = Grid(**gs_in)
+    print(in_grid)
+    values = np.random.rand(size)
+
+    for interpolation in INTERPOLATIONS:
         # TODO: make this code work
         values_res, _ = regrid_array(values, gs_in, gs_out, interpolation=interpolation)
 

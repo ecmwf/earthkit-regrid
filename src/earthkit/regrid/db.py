@@ -22,7 +22,7 @@ LOG = logging.getLogger(__name__)
 
 VERSION = 1
 
-_SYSTEM_URL = "https://get.ecmwf.int/repository/earthkit/regrid/db/1/"
+_SYSTEM_URL = "https://sites.ecmwf.int/repository/earthkit/regrid/db/1/"
 _INDEX_FILENAME = "index.json"
 _INDEX_SHA_FILENAME = "index.json.sha256"
 _INDEX_GZ_FILENAME = "index.json.gz"

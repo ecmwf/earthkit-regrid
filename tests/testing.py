@@ -10,7 +10,7 @@ import os
 
 PATH = os.path.dirname(__file__)
 
-URL_ROOT = "https://get.ecmwf.int/repository/test-data/earthkit-regrid/test-data"
+URL_ROOT = "https://sites.ecmwf.int/repository/earthkit-regrid/test-data"
 
 
 def simple_download(url, target):

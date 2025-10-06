@@ -2,15 +2,6 @@ Version 0.4 Updates
 /////////////////////////
 
 
-Version 0.4.3
-===============
-
-Changes
-++++++++++++++++
-
-- use new remote host for matrices (:pr:`110`)
-
-
 Version 0.4.2
 ===============
 

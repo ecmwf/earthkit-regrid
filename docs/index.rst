@@ -1,10 +1,14 @@
 Welcome to earthkit-regrids's documentation
 ======================================================
 
-.. warning::
+|Static Badge| |image1| |License: Apache 2.0|
 
-    This project is **BETA** and will be **Experimental** for the foreseeable future. Interfaces and functionality are likely to change, and the project itself may be scrapped. **DO NOT** use this software in any project/software that is operational.
-
+.. |Static Badge| image:: https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE/foundation_badge.svg
+   :target: https://github.com/ecmwf/codex/raw/refs/heads/main/ESEE
+.. |image1| image:: https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/emerging_badge.svg
+   :target: https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity
+.. |License: Apache 2.0| image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+   :target: https://opensource.org/licenses/apache-2-0
 
 **earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.
 

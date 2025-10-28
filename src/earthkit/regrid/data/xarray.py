@@ -222,7 +222,7 @@ class XarrayDataHandler(DataHandler):
         # TODO: ensure the grid_spec is always available on an Xarray.
         # This probably should be implemented in earthkit-geo.
         try:
-            in_grid = ds.attrs.get("gridspec", None)
+            in_grid = ds.attrs.get("ek_grid_spec", None)
             if in_grid is None:
                 in_grid = kwargs.pop("grid_spec", None)
             if in_grid is None:

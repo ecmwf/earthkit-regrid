@@ -21,13 +21,28 @@ Specs = namedtuple("Specs", ["source", "target"])
 BLOCK_COL_NUM = 3
 
 
+def sort_key_gridspec(gs):
+    grid = gs["grid"]
+    if isinstance(grid, str):
+        return (1000, grid)
+    elif isinstance(grid, list) and grid:
+        return (grid[0], grid[1])
+
+    return (0, 0)
+
+
 def to_str(gs):
     if isinstance(gs, str):
         return gs
 
     grid = gs["grid"]
     if isinstance(grid, str) and grid.startswith("H"):
-        return {"grid": gs["grid"], "order": gs["order"]}
+        if "ordering" in gs:
+            return {"grid": gs["grid"], "ordering": gs["ordering"]}
+        elif "order" in gs:
+            return {"grid": gs["grid"], "ordering": gs["order"]}
+        else:
+            raise ValueError(f"Unknown healpix ordering in gridspec: {gs}")
     else:
         return {"grid": gs["grid"]}
 
@@ -138,6 +153,10 @@ def load_matrix_index_file():
             else:
                 specs[gs_id].target.append(gs_out)
 
+    for k in specs:
+        target = sorted(specs[k].target, key=sort_key_gridspec)
+        specs[k] = Specs(specs[k].source, target)
+
     return specs
 
 
@@ -155,10 +174,10 @@ def execute(*args):
         gs["octahedral"] = False
     elif grid_type == "healpix_ring":
         gs["type"] = "healpix"
-        gs["order"] = "ring"
+        gs["ordering"] = "ring"
     elif grid_type == "healpix_nested":
         gs["type"] = "healpix"
-        gs["order"] = "nested"
+        gs["ordering"] = "nested"
     else:
         gs["type"] = grid_type
 

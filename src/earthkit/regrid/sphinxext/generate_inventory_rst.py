@@ -36,12 +36,7 @@ def to_str(gs):
 
     grid = gs["grid"]
     if isinstance(grid, str) and grid.startswith("H"):
-        if "ordering" in gs:
-            return {"grid": gs["grid"], "ordering": gs["ordering"]}
-        elif "order" in gs:
-            return {"grid": gs["grid"], "ordering": gs["order"]}
-        else:
-            raise ValueError(f"Unknown healpix ordering in gridspec: {gs}")
+        return {"grid": gs["grid"], "order": gs["order"]}
     else:
         return {"grid": gs["grid"]}
 
@@ -173,10 +168,10 @@ def execute(*args):
         gs["octahedral"] = False
     elif grid_type == "healpix_ring":
         gs["type"] = "healpix"
-        gs["ordering"] = "ring"
+        gs["order"] = "ring"
     elif grid_type == "healpix_nested":
         gs["type"] = "healpix"
-        gs["ordering"] = "nested"
+        gs["order"] = "nested"
     else:
         gs["type"] = grid_type
 

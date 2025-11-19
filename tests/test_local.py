@@ -113,7 +113,23 @@ def test_local_healpix_ring_to_ll(method):
     v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{method}.npz"))["arr_0"]
     v_res = interpolate(
         v_in,
-        {"grid": "H4", "ordering": "ring"},
+        {"grid": "H4", "order": "ring"},
+        {"grid": [10, 10]},
+        matrix_source=DB_PATH,
+        method=method,
+    )
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_local_healpix_ring_to_ll_compat_ordering(method):
+    v_in = np.load(file_in_testdir("in_H4_ring.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_H4_ring_10x10_{method}.npz"))["arr_0"]
+    v_res = interpolate(
+        v_in,
+        {"grid": "H4", "order": "ring"},
         {"grid": [10, 10]},
         matrix_source=DB_PATH,
         method=method,
@@ -125,6 +141,22 @@ def test_local_healpix_ring_to_ll(method):
 
 @pytest.mark.parametrize("method", METHODS)
 def test_local_healpix_nested_to_ll(method):
+    v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
+    v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{method}.npz"))["arr_0"]
+    v_res = interpolate(
+        v_in,
+        {"grid": "H4", "order": "nested"},
+        {"grid": [10, 10]},
+        matrix_source=DB_PATH,
+        method=method,
+    )
+
+    assert v_res.shape == (19, 36)
+    assert np.allclose(v_res.flatten(), v_ref)
+
+
+@pytest.mark.parametrize("method", METHODS)
+def test_local_healpix_nested_to_ll_compat_ordering(method):
     v_in = np.load(file_in_testdir("in_H4_nested.npz"))["arr_0"]
     v_ref = np.load(file_in_testdir(f"out_H4_nested_10x10_{method}.npz"))["arr_0"]
     v_res = interpolate(
@@ -201,6 +233,7 @@ def test_local_healpix_nested_to_ll(method):
         ),
         ({"grid": "H4"}, {"grid": [10, 10]}),
         ({"grid": "H4", "ordering": "ring"}, {"grid": [10, 10]}),
+        ({"grid": "H4", "order": "ring"}, {"grid": [10, 10]}),
         ({"grid": "eORCA025_T"}, {"grid": "O96"}),
     ],
 )
@@ -237,6 +270,7 @@ def test_local_gridspec_ok(gs_in, gs_out):
         ({"grid": "N32", "shape": 6599680}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, 0, -90, 359.999]}, {"grid": [10, 10]}, None),
         ({"grid": "N32", "area": [90, -0.1, -90, 360]}, {"grid": [10, 10]}, None),
+        ({"grid": "H4", "order": "any"}, {"grid": [10, 10]}, ValueError),
         ({"grid": "H4", "ordering": "any"}, {"grid": [10, 10]}, ValueError),
         ({"grid": "ORCA025_T"}, {"grid": "O96"}, None),
         ({"grid": "eORCA025_U"}, {"grid": "O96"}, None),

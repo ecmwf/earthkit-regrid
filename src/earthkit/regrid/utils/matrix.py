@@ -49,7 +49,7 @@ def reduced_gg(entry):
 
 
 def healpix(entry):
-    d = {"grid": entry["grid"], "ordering": entry["ordering"]}
+    d = {"grid": entry["grid"], "order": entry["order"]}
     return d
 
 

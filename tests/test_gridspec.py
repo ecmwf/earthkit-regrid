@@ -81,7 +81,10 @@ from earthkit.regrid.db import SYS_DB
             {"grid": [10, 10]},
         ),
         ({"grid": "H128"}, {"grid": [1, 1]}),
+        ({"grid": "H128", "order": "ring"}, {"grid": [1, 1]}),
         ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}),
+        ({"grid": "H128", "order": "nested"}, {"grid": [1, 1]}),
+        ({"grid": "H128", "ordering": "nested"}, {"grid": [1, 1]}),
         ({"grid": (5, 5)}, {"grid": (10, 10)}),
         ({"grid": "eORCA025_T"}, {"grid": "O96"}),
     ],
@@ -89,6 +92,24 @@ from earthkit.regrid.db import SYS_DB
 def test_gridspec_ok(gs_in, gs_out):
     r = SYS_DB.find_entry(gs_in, gs_out, "linear")
     assert r, f"gs_in={gs_in} gs_out={gs_out}"
+
+
+@pytest.mark.parametrize(
+    "gs_in, gs_out, order",
+    [
+        ({"grid": "H128"}, {"grid": [1, 1]}, "ring"),
+        ({"grid": "H128", "order": "ring"}, {"grid": [1, 1]}, "ring"),
+        ({"grid": "H128", "ordering": "ring"}, {"grid": [1, 1]}, "ring"),
+        ({"grid": "H128", "order": "nested"}, {"grid": [1, 1]}, "nested"),
+        ({"grid": "H128", "ordering": "nested"}, {"grid": [1, 1]}, "nested"),
+    ],
+)
+def test_gridspec_healpix(gs_in, gs_out, order):
+    r = SYS_DB.find_entry(gs_in, gs_out, "linear")
+    assert r, f"gs_in={gs_in} gs_out={gs_out}"
+    assert r["input"].order == order
+    assert r["input"].get("order") == order
+    assert r["input"]["order"] == order
 
 
 @pytest.mark.parametrize(

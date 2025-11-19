@@ -77,3 +77,55 @@ def test_fieldlist_gg(_kwarg, method):
     assert len(r) == 1
     assert r[0].shape == (19, 36)
     assert np.allclose(r[0].values, v_ref)
+
+
+@pytest.mark.download
+@pytest.mark.tmp_cache
+@pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
+@pytest.mark.parametrize(
+    "_kwarg,method",
+    [
+        ({}, "linear"),
+        ({"method": "linear"}, "linear"),
+        ({"method": "nearest-neighbour"}, "nearest-neighbour"),
+        ({"method": "nn"}, "nearest-neighbour"),
+        ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+    ],
+)
+def test_fieldlist_healpix_ring(_kwarg, method):
+    ds = from_source("url", get_test_data_path("H4_ring.grib"))
+
+    f_ref = get_test_data(f"out_H4_ring_10x10_{method}.npz")
+    v_ref = np.load(f_ref)["arr_0"]
+
+    r = interpolate(ds, out_grid={"grid": [10, 10]}, **_kwarg)
+
+    assert len(r) == 1
+    assert r[0].shape == (19, 36)
+    assert np.allclose(r[0].values, v_ref)
+
+
+@pytest.mark.download
+@pytest.mark.tmp_cache
+@pytest.mark.skipif(NO_EKD, reason="No access to earthkit-data")
+@pytest.mark.parametrize(
+    "_kwarg,method",
+    [
+        ({}, "linear"),
+        ({"method": "linear"}, "linear"),
+        ({"method": "nearest-neighbour"}, "nearest-neighbour"),
+        ({"method": "nn"}, "nearest-neighbour"),
+        ({"method": "nearest-neighbor"}, "nearest-neighbour"),
+    ],
+)
+def test_fieldlist_healpix_nested(_kwarg, method):
+    ds = from_source("url", get_test_data_path("H4_nested.grib"))
+
+    f_ref = get_test_data(f"out_H4_nested_10x10_{method}.npz")
+    v_ref = np.load(f_ref)["arr_0"]
+
+    r = interpolate(ds, out_grid={"grid": [10, 10]}, **_kwarg)
+
+    assert len(r) == 1
+    assert r[0].shape == (19, 36)
+    assert np.allclose(r[0].values, v_ref)

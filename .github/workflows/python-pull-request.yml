@@ -5,6 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+
 jobs:
   quality:
     uses: ecmwf/reusable-workflows/.github/workflows/qa-precommit-run.yml@v2

@@ -125,7 +125,7 @@ class UrlAccessor(MatrixAccessor):
     def _get_index(self, check_remote=False, force=False):
         from earthkit.regrid.utils.caching import cache_file
 
-        url = os.path.join(self._url, _INDEX_FILENAME)
+        url = f"{self._url.rstrip('/')}/{_INDEX_FILENAME}"
 
         def _compare_sha(args, path, owner_data):
             """Decide if the index file should be downloaded and cached again."""
@@ -207,7 +207,7 @@ class UrlAccessor(MatrixAccessor):
 
     def _remote_sha(self):
         try:
-            url = os.path.join(self._url, _INDEX_SHA_FILENAME)
+            url = f"{self._url.rstrip('/')}/{_INDEX_SHA_FILENAME}"
             path = download_and_cache(
                 url,
                 owner="url",
@@ -230,7 +230,7 @@ class UrlAccessor(MatrixAccessor):
 
     def _gzip_file(self):
         try:
-            url = os.path.join(self._url, _INDEX_GZ_FILENAME)
+            url = f"{self._url.rstrip('/')}/{_INDEX_GZ_FILENAME}"
             LOG.info(f"Download gzipped index file={url}")
             path = download_and_cache(
                 url,
@@ -252,7 +252,7 @@ class UrlAccessor(MatrixAccessor):
 
     def matrix_path(self, name):
         try:
-            url = os.path.join(self._url, name)
+            url = f"{self._url.rstrip('/')}/{name}"
             path = download_and_cache(
                 url,
                 owner="url",

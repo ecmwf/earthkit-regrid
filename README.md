@@ -1,3 +1,6 @@
+> \[!IMPORTANT\]
+> earthkit-regrid is **deprecated** as of the Earthkit 1.0 release. Its functionality has been expanded and rolled into [earthkit-go](https://github.com/ecmwf/earthkit-geo).
+
 <p align="center">
   <picture>
     <source srcset="https://github.com/ecmwf/logos/raw/refs/heads/main/logos/earthkit/earthkit-regrid-dark.svg" media="(prefers-color-scheme: dark)">
@@ -32,7 +35,7 @@
 </p>
 
 > \[!IMPORTANT\]
-> This software is **Emerging** and subject to ECMWF's guidelines on [Software Maturity](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity).
+> earthkit-regrid is **deprecated** as of the Earthkit 1.0 release. Its functionality has been expanded and rolled into [earthkit-go](https://github.com/ecmwf/earthkit-geo).
 
 **earthkit-regrid** is a Python package for regridding geospatial data. It is a component of [earthkit](https://github.com/ecmwf/earthkit).
 

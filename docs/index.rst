@@ -16,7 +16,7 @@ Release|
 
 .. important::
 
-    This software is **Incubating** and subject to ECMWF's guidelines on `Software Maturity <https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity>`_.
+    This software is **deprecated** as of the Earthkit 1.0 release. Its functionality has been expanded and rolled into `earthkit-geo <https://earthkit-geo.readthedocs.io/en/latest/>`_.
 
 
 **earthkit-regrid** is a Python package for regridding. It is one of the components of :xref:`earthkit`.

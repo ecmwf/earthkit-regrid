@@ -221,12 +221,29 @@ class XarrayDataHandler(DataHandler):
         """
         # TODO: ensure the grid_spec is always available on an Xarray.
         # This probably should be implemented in earthkit-geo.
+
+        def _convert(grid_spec):
+            if grid_spec is None:
+                return None
+            res = None
+            if isinstance(grid_spec, dict) and grid_spec:
+                res = grid_spec
+            elif isinstance(grid_spec, str):
+                import json
+
+                res = json.loads(grid_spec)
+
+            if res:
+                return res
+            else:
+                raise None
+
         try:
-            in_grid = ds.attrs.get("ek_grid_spec", None)
+            in_grid = _convert(ds.attrs.get("ek_grid_spec", None))
             if in_grid is None:
-                in_grid = kwargs.pop("grid_spec", None)
+                in_grid = _convert(kwargs.pop("grid_spec", None))
             if in_grid is None:
-                in_grid = ds.earthkit.grid_spec
+                in_grid = _convert(ds.earthkit.grid_spec)
         except AttributeError:
             pass
 

@@ -31,6 +31,7 @@ INTERPOLATIONS = ["linear", "nearest-neighbour", "grid-box-average"]
         ({"grid": [5, 5]}, {"grid": [10, 10]}),
         ({"grid": [5, 5]}, {"grid": [10, 10]}),
         ({"grid": [5, 5]}, {"grid": [10, 10]}),
+        ({"grid": [5, 5]}, {"grid": [30, 30]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
         ({"grid": "o32"}, {"grid": [10, 10]}),
         ({"grid": "O32"}, {"grid": [10, 10]}),
